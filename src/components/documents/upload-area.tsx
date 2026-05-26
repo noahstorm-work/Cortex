@@ -22,8 +22,8 @@ export function UploadArea() {
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
       ]
 
-      if (!allowed.includes(file.type) && !file.name.endsWith(".txt") && !file.name.endsWith(".md")) {
-        alert("Only PDF, TXT, and MD files are supported.")
+      if (!allowed.includes(file.type) && !file.name.endsWith(".txt") && !file.name.endsWith(".md") && !file.name.endsWith(".docx")) {
+        alert("Only PDF, TXT, MD, and DOCX files are supported.")
         return
       }
 
@@ -105,14 +105,14 @@ export function UploadArea() {
               Drop a file here, or click to browse
             </p>
             <p className="mt-1 text-xs text-gray-500">
-              PDF, TXT, MD supported
+              PDF, TXT, MD, DOCX supported
             </p>
           </div>
           <label className="inline-flex cursor-pointer rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
             Choose file
             <input
               type="file"
-              accept=".pdf,.txt,.md"
+              accept=".pdf,.txt,.md,.docx"
               onChange={handleUpload}
               className="hidden"
             />

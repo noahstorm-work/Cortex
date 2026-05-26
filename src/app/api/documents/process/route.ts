@@ -36,6 +36,10 @@ export async function POST(request: Request) {
       const pdfParse = (await import("pdf-parse")).default
       const pdfData = await pdfParse(Buffer.from(buffer))
       text = pdfData.text
+    } else if (file_url.endsWith(".docx")) {
+      const mammoth = await import("mammoth")
+      const result = await mammoth.extractRawText({ buffer: Buffer.from(buffer) })
+      text = result.value
     } else {
       text = new TextDecoder("utf-8").decode(buffer)
     }
