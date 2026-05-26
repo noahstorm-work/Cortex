@@ -3,6 +3,7 @@ import { createServerSupabaseClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { chunkText } from "@/lib/chunking"
 import { generateEmbedding } from "@/lib/embeddings"
+import { ocrImage, ocrPDF } from "@/lib/ocr"
 
 export async function POST(request: Request) {
   const supabase = await createServerSupabaseClient()
@@ -36,10 +37,16 @@ export async function POST(request: Request) {
       const pdfParse = (await import("pdf-parse")).default
       const pdfData = await pdfParse(Buffer.from(buffer))
       text = pdfData.text
+
+      if (text.trim().length < 50) {
+        text = await ocrPDF(Buffer.from(buffer))
+      }
     } else if (file_url.endsWith(".docx")) {
       const mammoth = await import("mammoth")
       const result = await mammoth.extractRawText({ buffer: Buffer.from(buffer) })
       text = result.value
+    } else if (/\.(png|jpg|jpeg|webp)$/i.test(file_url)) {
+      text = await ocrImage(Buffer.from(buffer))
     } else {
       text = new TextDecoder("utf-8").decode(buffer)
     }
