@@ -8,6 +8,7 @@ export interface SearchResponse {
     content: string
     score: number
   }[]
+  processing_documents?: boolean
 }
 
 export function buildResponse(results: ScoredChunk[]): SearchResponse {

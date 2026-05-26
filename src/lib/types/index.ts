@@ -5,6 +5,7 @@ export interface Document {
   file_url: string
   file_type: string
   project_id: string | null
+  status: string
   created_at: string
 }
 
@@ -24,4 +25,5 @@ export interface SearchResponse {
     content: string
     score: number
   }[]
+  processing_documents?: boolean
 }

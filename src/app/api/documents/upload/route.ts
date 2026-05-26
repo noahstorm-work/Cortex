@@ -73,6 +73,7 @@ export async function POST(request: Request) {
         file_url: fileUrl,
         file_type: file.type || "application/octet-stream",
         project_id: projectId || null,
+        status: "processing",
       })
       .select("id")
       .single()
@@ -85,15 +86,25 @@ export async function POST(request: Request) {
       )
     }
 
-    fetch(new URL("/api/documents/process", request.url), {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        document_id: doc.id,
-        file_url: fileUrl,
-        user_id: user.id,
-      }),
-    }).catch((err) => console.error("Process trigger failed:", err))
+    const { count } = await supabase
+      .from("documents")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .eq("status", "processing")
+
+    if (count && count > 3) {
+      await supabase.from("documents").update({ status: "pending" }).eq("id", doc.id)
+    } else {
+      fetch(new URL("/api/documents/process", request.url), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          document_id: doc.id,
+          file_url: fileUrl,
+          user_id: user.id,
+        }),
+      }).catch((err) => console.error("Process trigger failed:", err))
+    }
 
     return NextResponse.json({
       document_id: doc.id,

@@ -11,6 +11,17 @@ import {
 } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from "@/components/ui/alert-dialog"
 import { FileText, ExternalLink, Trash2, Loader2, Inbox } from "lucide-react"
 import type { Document, Project } from "@/lib/types"
 
@@ -20,40 +31,48 @@ export function DocumentList() {
   const [deleting, setDeleting] = useState<string | null>(null)
   const [projects, setProjects] = useState<Project[]>([])
   const [filterProject, setFilterProject] = useState("")
+  const [page, setPage] = useState(0)
+  const [hasMore, setHasMore] = useState(false)
   const supabase = createClient()
 
   const fetchDocuments = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
-    const { data: pData } = await supabase
-      .from("projects")
-      .select("id, name, description, user_id, created_at")
-      .eq("user_id", user.id)
+    const [pResult, dResult] = await Promise.all([
+      supabase
+        .from("projects")
+        .select("id, name, description, user_id, created_at")
+        .eq("user_id", user.id),
+      (() => {
+        let q = supabase
+          .from("documents")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false })
+        if (filterProject) {
+          q = q.eq("project_id", filterProject)
+        }
+        return q.range(page * 20, (page + 1) * 20 - 1)
+      })(),
+    ])
+
+    const pData = pResult.data
     if (pData) setProjects(pData as any)
 
     const projectMap = new Map((pData || []).map((p) => [p.id, p.name]))
 
-    let query = supabase
-      .from("documents")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-
-    if (filterProject) {
-      query = query.eq("project_id", filterProject)
-    }
-
-    const { data } = await query
-
-    if (data) {
-      setDocuments(data.map((d: Document) => ({
+    if (dResult.data) {
+      setHasMore(dResult.data.length === 20)
+      const mapped = dResult.data.map((d: Document) => ({
         ...d,
         project_name: d.project_id ? projectMap.get(d.project_id) : undefined,
-      })))
+      }))
+      setDocuments(page === 0 ? mapped : (prev) => [...prev, ...mapped])
     }
+
     setLoading(false)
-  }, [supabase, filterProject])
+  }, [supabase, filterProject, page])
 
   useEffect(() => {
     fetchDocuments()
@@ -116,6 +135,9 @@ export function DocumentList() {
                   </p>
                   <p className="text-xs text-muted-foreground">
                     {new Date(doc.created_at).toLocaleDateString()}
+                    <Badge variant={doc.status === 'ready' ? 'default' : doc.status === 'processing' ? 'secondary' : 'destructive'} className="ml-2 text-[10px]">
+                      {doc.status === 'pending' ? 'Pending' : doc.status === 'processing' ? 'Processing...' : doc.status === 'ready' ? 'Ready' : 'Failed'}
+                    </Badge>
                     {doc.project_name && (
                       <Badge variant="secondary" className="ml-2 text-[10px]">
                         {doc.project_name}
@@ -134,23 +156,36 @@ export function DocumentList() {
                   <ExternalLink className="h-3 w-3" />
                   View
                 </a>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7"
-                  onClick={() => handleDelete(doc)}
-                  disabled={deleting === doc.id}
-                >
-                  {deleting === doc.id ? (
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                  ) : (
-                    <Trash2 className="h-3 w-3" />
-                  )}
-                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-7 w-7" disabled={deleting === doc.id}>
+                      {deleting === doc.id ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : (
+                        <Trash2 className="h-3 w-3" />
+                      )}
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete document</AlertDialogTitle>
+                      <AlertDialogDescription>Are you sure you want to delete "{doc.title}"? This cannot be undone.</AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => handleDelete(doc)}>Delete</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
             </div>
           ))}
         </div>
+      )}
+      {hasMore && (
+        <Button variant="outline" className="w-full mt-4" onClick={() => setPage(p => p + 1)}>
+          Load more
+        </Button>
       )}
     </div>
   )

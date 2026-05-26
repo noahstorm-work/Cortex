@@ -3,7 +3,7 @@
 import { useState, useRef } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Upload, File, X } from "lucide-react"
+import { Upload, File, X, AlertCircle } from "lucide-react"
 import { cn } from "@/lib/utils/cn"
 
 interface UploadAreaProps {
@@ -13,6 +13,7 @@ interface UploadAreaProps {
 export function UploadArea({ onUploadComplete }: UploadAreaProps) {
   const [files, setFiles] = useState<File[]>([])
   const [uploading, setUploading] = useState(false)
+  const [uploadError, setUploadError] = useState<string | null>(null)
   const [dragOver, setDragOver] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -45,14 +46,24 @@ export function UploadArea({ onUploadComplete }: UploadAreaProps) {
   const handleUpload = async () => {
     if (files.length === 0) return
     setUploading(true)
+    setUploadError(null)
 
     for (const file of files) {
       const formData = new FormData()
       formData.append("file", file)
-      await fetch("/api/documents/upload", {
-        method: "POST",
-        body: formData,
-      }).catch(() => {})
+      try {
+        const res = await fetch("/api/documents/upload", {
+          method: "POST",
+          body: formData,
+        })
+        if (!res.ok) {
+          const data = await res.json()
+          throw new Error(data.error || "Upload failed")
+        }
+      } catch (err) {
+        setUploadError(err instanceof Error ? err.message : "Upload failed")
+        return
+      }
     }
 
     setFiles([])
@@ -111,6 +122,12 @@ export function UploadArea({ onUploadComplete }: UploadAreaProps) {
             <Button onClick={handleUpload} disabled={uploading} className="w-full">
               {uploading ? "Uploading..." : `Upload ${files.length} file${files.length > 1 ? "s" : ""}`}
             </Button>
+            {uploadError && (
+              <p className="mt-2 text-sm text-destructive flex items-center gap-1">
+                <AlertCircle className="h-4 w-4" />
+                {uploadError}
+              </p>
+            )}
           </div>
         )}
       </CardContent>

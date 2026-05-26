@@ -2,13 +2,23 @@
 
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
+import { createClient } from "@/lib/supabase/client"
 import { Sparkles, ArrowRight, Loader2 } from "lucide-react"
 
 export default function Home() {
   const router = useRouter()
   const [demoLoading, setDemoLoading] = useState(false)
+  const supabase = createClient()
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        router.push("/documents")
+      }
+    })
+  }, [supabase, router])
 
   const handleDemoLogin = async () => {
     setDemoLoading(true)

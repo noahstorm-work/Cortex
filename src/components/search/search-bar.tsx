@@ -113,6 +113,11 @@ export function SearchBar() {
           animate={{ opacity: 1, y: 0 }}
           className="space-y-6"
         >
+          {result.processing_documents && (
+            <div className="rounded-lg border border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-800 p-3 text-sm text-amber-800 dark:text-amber-200">
+              Some documents are still being processed. Results may be incomplete. Check back shortly.
+            </div>
+          )}
           <div className="rounded-xl border bg-card p-6 shadow-sm">
             <div className="mb-2 flex items-center gap-2">
               <BookOpen className="h-4 w-4 text-muted-foreground" />

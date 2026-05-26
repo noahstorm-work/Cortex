@@ -77,26 +77,27 @@ export async function POST(request: Request) {
 
     const chunks = chunkText(text)
 
-    for (let i = 0; i < chunks.length; i++) {
-      const content = chunks[i]
-      const embedding = await generateEmbedding(content)
-
-      const { error: insertError } = await adminClient.from("chunks").insert({
-        document_id,
-        content,
-        embedding,
-      })
-
-      if (insertError) {
-        console.error(`Failed to insert chunk ${i}:`, insertError)
+    const batchSize = 3
+    for (let i = 0; i < chunks.length; i += batchSize) {
+      const batch = chunks.slice(i, i + batchSize)
+      const embeddings = await Promise.all(batch.map(content => generateEmbedding(content)))
+      for (let j = 0; j < batch.length; j++) {
+        await adminClient.from("chunks").insert({
+          document_id,
+          content: batch[j],
+          embedding: embeddings[j],
+        })
       }
     }
+
+    await adminClient.from("documents").update({ status: "ready" }).eq("id", document_id)
 
     return NextResponse.json({
       chunks_created: chunks.length,
       document_id,
     })
   } catch (error) {
+    await adminClient.from("documents").update({ status: "failed" }).eq("id", document_id)
     console.error("Process error:", error)
     return NextResponse.json(
       { error: "Failed to process document" },

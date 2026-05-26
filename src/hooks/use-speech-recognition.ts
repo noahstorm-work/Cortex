@@ -17,6 +17,7 @@ interface SpeechRecognitionHook {
   transcript: string
   interimTranscript: string
   error: string | null
+  micPermission: "prompt"|"granted"|"denied"|"unknown"
   supported: boolean
   start: () => void
   stop: () => void
@@ -28,7 +29,10 @@ export function useSpeechRecognition(): SpeechRecognitionHook {
   const [transcript, setTranscript] = useState("")
   const [interimTranscript, setInterimTranscript] = useState("")
   const [error, setError] = useState<string | null>(null)
+  const [micPermission, setMicPermission] = useState<"prompt"|"granted"|"denied"|"unknown">("unknown")
   const recognitionRef = useRef<any>(null)
+  const retryCountRef = useRef(0)
+  const MAX_RETRIES = 2
   const [supported, setSupported] = useState(false)
 
   useEffect(() => {
@@ -60,6 +64,14 @@ export function useSpeechRecognition(): SpeechRecognitionHook {
     }
 
     recognition.onerror = (event: any) => {
+      if (event.error === "network" && retryCountRef.current < MAX_RETRIES) {
+        retryCountRef.current++
+        setTimeout(() => {
+          try { recognition.start() } catch {}
+        }, 1500)
+        return
+      }
+      retryCountRef.current = 0
       const friendly = ERROR_MESSAGES[event.error] || event.error
       if (friendly) setError(friendly)
       setIsListening(false)
@@ -72,7 +84,27 @@ export function useSpeechRecognition(): SpeechRecognitionHook {
     return recognition
   }, [])
 
-  const start = useCallback(() => {
+  const requestMicPermission = useCallback(async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      stream.getTracks().forEach(t => t.stop())
+      setMicPermission("granted")
+      return true
+    } catch {
+      setMicPermission("denied")
+      return false
+    }
+  }, [])
+
+  const start = useCallback(async () => {
+    if (micPermission === "denied") {
+      setError("Microphone access was denied. Allow mic access in your browser settings and try again.")
+      return
+    }
+    if (micPermission !== "granted") {
+      const ok = await requestMicPermission()
+      if (!ok) return
+    }
     const recognition = createRecognition()
     if (!recognition) {
       setError("Speech recognition not supported")
@@ -88,7 +120,7 @@ export function useSpeechRecognition(): SpeechRecognitionHook {
     } catch {
       setError("Failed to start speech recognition")
     }
-  }, [createRecognition])
+  }, [createRecognition, micPermission, requestMicPermission])
 
   const stop = useCallback(() => {
     try {
@@ -117,6 +149,7 @@ export function useSpeechRecognition(): SpeechRecognitionHook {
     transcript,
     interimTranscript,
     error,
+    micPermission,
     supported,
     start,
     stop,

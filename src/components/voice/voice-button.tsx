@@ -58,7 +58,20 @@ export function VoiceButton({ onSearchResult }: VoiceButtonProps) {
     stopTts()
   }
 
-  if (!supported) return null
+  if (!supported) {
+    return (
+      <div className="group relative">
+        <div className="opacity-40 cursor-not-allowed">
+          <VoiceOrb isListening={false} onToggle={() => {}} />
+        </div>
+        <div className="absolute bottom-full right-0 mb-2 hidden group-hover:block">
+          <div className="rounded-lg border bg-card px-3 py-2 text-xs shadow-sm whitespace-nowrap">
+            Voice search requires Chrome or Microsoft Edge
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="relative">
@@ -109,7 +122,21 @@ export function VoiceButton({ onSearchResult }: VoiceButtonProps) {
           </motion.p>
         )}
         {error && (
-          <p className="text-xs text-destructive">{error}</p>
+          <motion.div
+            initial={{ opacity: 0, y: -5 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="rounded-lg border bg-card p-3 text-xs shadow-sm w-64"
+          >
+            <p className="font-medium text-destructive mb-1">{error}</p>
+            {error.includes("Microphone") && (
+              <p className="text-muted-foreground">Click the lock icon in your URL bar and enable microphone access.</p>
+            )}
+            {(error.includes("unreachable") || error.includes("connection")) && (
+              <button onClick={toggle} className="mt-1 text-primary underline hover:no-underline">
+                Try again
+              </button>
+            )}
+          </motion.div>
         )}
       </div>
     </div>

@@ -32,6 +32,16 @@ export async function POST(request: Request) {
     const results = await search(query, user.id, { project_id: project_id || undefined })
     const response = buildResponse(results)
 
+    const { data: processingDocs } = await supabase
+      .from("documents")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .in("status", ["pending", "processing"])
+
+    if (processingDocs) {
+      response.processing_documents = true
+    }
+
     supabase.from("search_history").insert({
       user_id: user.id,
       query: query.trim(),
