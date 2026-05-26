@@ -2,6 +2,16 @@
 
 import { useState, useRef, useCallback, useEffect } from "react"
 
+const ERROR_MESSAGES: Record<string, string> = {
+  "network": "Speech service unreachable. Check your connection.",
+  "no-speech": "No speech detected. Try again.",
+  "aborted": "",
+  "audio-capture": "No microphone found.",
+  "not-allowed": "Microphone access denied.",
+  "service-not-allowed": "Speech service not available.",
+  "language-not-supported": "Language not supported.",
+}
+
 interface SpeechRecognitionHook {
   isListening: boolean
   transcript: string
@@ -50,7 +60,8 @@ export function useSpeechRecognition(): SpeechRecognitionHook {
     }
 
     recognition.onerror = (event: any) => {
-      setError(event.error)
+      const friendly = ERROR_MESSAGES[event.error] || event.error
+      if (friendly) setError(friendly)
       setIsListening(false)
     }
 
@@ -71,12 +82,18 @@ export function useSpeechRecognition(): SpeechRecognitionHook {
     setTranscript("")
     setInterimTranscript("")
     setError(null)
-    recognition.start()
-    setIsListening(true)
+    try {
+      recognition.start()
+      setIsListening(true)
+    } catch {
+      setError("Failed to start speech recognition")
+    }
   }, [createRecognition])
 
   const stop = useCallback(() => {
-    recognitionRef.current?.stop()
+    try {
+      recognitionRef.current?.stop()
+    } catch {}
     recognitionRef.current = null
     setIsListening(false)
   }, [])
@@ -88,6 +105,12 @@ export function useSpeechRecognition(): SpeechRecognitionHook {
       start()
     }
   }, [isListening, start, stop])
+
+  useEffect(() => {
+    return () => {
+      try { recognitionRef.current?.stop() } catch {}
+    }
+  }, [])
 
   return {
     isListening,

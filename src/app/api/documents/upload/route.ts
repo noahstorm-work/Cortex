@@ -91,6 +91,7 @@ export async function POST(request: Request) {
       body: JSON.stringify({
         document_id: doc.id,
         file_url: fileUrl,
+        user_id: user.id,
       }),
     }).catch((err) => console.error("Process trigger failed:", err))
 

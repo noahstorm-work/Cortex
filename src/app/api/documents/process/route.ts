@@ -1,21 +1,21 @@
 import { NextResponse } from "next/server"
-import { createServerSupabaseClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { createServerSupabaseClient } from "@/lib/supabase/server"
 import { chunkText } from "@/lib/chunking"
 import { generateEmbedding } from "@/lib/embeddings"
 import { ocrImage, ocrPDF } from "@/lib/ocr"
 
 export async function POST(request: Request) {
-  const supabase = await createServerSupabaseClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  let user: { id: string } | null = null
 
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
+  const cookieClient = await createServerSupabaseClient()
+  const { data: { user: cookieUser } } = await cookieClient.auth.getUser()
+  user = cookieUser
 
-  const { document_id, file_url } = await request.json()
+  const adminClient = createAdminClient()
+
+  const body = await request.json()
+  const { document_id, file_url, user_id } = body
 
   if (!document_id || !file_url) {
     return NextResponse.json(
@@ -24,7 +24,24 @@ export async function POST(request: Request) {
     )
   }
 
+  if (!user && !user_id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  const effectiveUserId = user?.id || user_id
+
   try {
+    const { data: doc } = await adminClient
+      .from("documents")
+      .select("id")
+      .eq("id", document_id)
+      .eq("user_id", effectiveUserId)
+      .single()
+
+    if (!doc) {
+      return NextResponse.json({ error: "Document not found" }, { status: 404 })
+    }
+
     const response = await fetch(file_url)
     if (!response.ok) {
       throw new Error("Failed to fetch document file")
@@ -59,7 +76,6 @@ export async function POST(request: Request) {
     }
 
     const chunks = chunkText(text)
-    const adminClient = createAdminClient()
 
     for (let i = 0; i < chunks.length; i++) {
       const content = chunks[i]
