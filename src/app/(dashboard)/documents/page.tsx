@@ -1,7 +1,16 @@
+"use client"
+
+import { useState, useCallback } from "react"
 import { UploadArea } from "@/components/documents/upload-area"
 import { DocumentList } from "@/components/documents/document-list"
 
 export default function DocumentsPage() {
+  const [refreshKey, setRefreshKey] = useState(0)
+
+  const handleUploadComplete = useCallback(() => {
+    setRefreshKey((k) => k + 1)
+  }, [])
+
   return (
     <div className="space-y-8">
       <div>
@@ -11,13 +20,13 @@ export default function DocumentsPage() {
         </p>
       </div>
 
-      <UploadArea />
+      <UploadArea onUploadComplete={handleUploadComplete} />
 
       <div>
         <h2 className="mb-4 text-lg font-semibold text-foreground">
           Your documents
         </h2>
-        <DocumentList />
+        <DocumentList key={refreshKey} />
       </div>
     </div>
   )

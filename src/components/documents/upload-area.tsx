@@ -1,18 +1,20 @@
 "use client"
 
 import { useState, useRef } from "react"
-import { useRouter } from "next/navigation"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Upload, File, X } from "lucide-react"
 import { cn } from "@/lib/utils/cn"
 
-export function UploadArea() {
+interface UploadAreaProps {
+  onUploadComplete?: () => void
+}
+
+export function UploadArea({ onUploadComplete }: UploadAreaProps) {
   const [files, setFiles] = useState<File[]>([])
   const [uploading, setUploading] = useState(false)
   const [dragOver, setDragOver] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
-  const router = useRouter()
 
   const acceptedTypes = [
     "application/pdf",
@@ -47,16 +49,15 @@ export function UploadArea() {
     for (const file of files) {
       const formData = new FormData()
       formData.append("file", file)
-
       await fetch("/api/documents/upload", {
         method: "POST",
         body: formData,
-      })
+      }).catch(() => {})
     }
 
     setFiles([])
     setUploading(false)
-    router.refresh()
+    onUploadComplete?.()
   }
 
   return (
