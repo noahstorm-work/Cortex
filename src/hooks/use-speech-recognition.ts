@@ -68,6 +68,7 @@ export function useSpeechRecognition(): SpeechRecognitionHook {
     }
 
     recognition.onerror = (event: any) => {
+      console.error("[SpeechRecognition] error:", event.error, event.message || "", event)
       const friendly = ERROR_MESSAGES[event.error] || event.error
       if (friendly) setError(friendly)
       setIsListening(false)
