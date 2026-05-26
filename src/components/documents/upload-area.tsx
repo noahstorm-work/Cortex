@@ -1,14 +1,31 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
+import type { Project } from "@/lib/types"
 
 export function UploadArea() {
   const [uploading, setUploading] = useState(false)
   const [progress, setProgress] = useState("")
+  const [projects, setProjects] = useState<Project[]>([])
+  const [selectedProject, setSelectedProject] = useState("")
   const router = useRouter()
   const supabase = createClient()
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) return
+      supabase
+        .from("projects")
+        .select("id, name, description, user_id, created_at")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .then(({ data }) => {
+          if (data) setProjects(data as any)
+        })
+    })
+  }, [supabase])
 
   const handleUpload = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -65,6 +82,7 @@ export function UploadArea() {
           title: file.name,
           file_url: urlData.publicUrl,
           file_type: file.type || "text/plain",
+          project_id: selectedProject || null,
         }),
       })
 
@@ -88,7 +106,7 @@ export function UploadArea() {
       router.refresh()
       setUploading(false)
     },
-    [supabase, router]
+    [supabase, router, selectedProject]
   )
 
   return (
@@ -111,15 +129,33 @@ export function UploadArea() {
               PDF, TXT, MD, DOCX, PNG, JPG supported
             </p>
           </div>
-          <label className="inline-flex cursor-pointer rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
-            Choose file
-            <input
-              type="file"
-              accept=".pdf,.txt,.md,.docx,.png,.jpg,.jpeg,.webp"
-              onChange={handleUpload}
-              className="hidden"
-            />
-          </label>
+
+          <div className="flex items-center justify-center gap-3">
+            {projects.length > 0 && (
+              <select
+                value={selectedProject}
+                onChange={(e) => setSelectedProject(e.target.value)}
+                className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+              >
+                <option value="">No project</option>
+                {projects.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+            )}
+
+            <label className="inline-flex cursor-pointer rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+              Choose file
+              <input
+                type="file"
+                accept=".pdf,.txt,.md,.docx,.png,.jpg,.jpeg,.webp"
+                onChange={handleUpload}
+                className="hidden"
+              />
+            </label>
+          </div>
         </div>
       )}
     </div>

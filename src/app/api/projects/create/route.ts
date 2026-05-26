@@ -11,30 +11,25 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  const { title, file_url, file_type, project_id } = await request.json()
+  const { name, description } = await request.json()
 
-  if (!title || !file_url) {
-    return NextResponse.json(
-      { error: "title and file_url are required" },
-      { status: 400 }
-    )
+  if (!name || typeof name !== "string" || !name.trim()) {
+    return NextResponse.json({ error: "name is required" }, { status: 400 })
   }
 
   const { data, error } = await supabase
-    .from("documents")
+    .from("projects")
     .insert({
       user_id: user.id,
-      title,
-      file_url,
-      file_type: file_type || "text/plain",
-      project_id: project_id || null,
+      name: name.trim(),
+      description: (description || "").trim(),
     })
-    .select("id")
+    .select()
     .single()
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  return NextResponse.json({ document_id: data.id })
+  return NextResponse.json(data)
 }

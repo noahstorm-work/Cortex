@@ -1,18 +1,24 @@
+import { CreateProjectForm } from "@/components/projects/create-project-form"
+import { ProjectList } from "@/components/projects/project-list"
+
 export default function ProjectsPage() {
   return (
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Projects</h1>
         <p className="mt-1 text-sm text-gray-500">
-          Organize your documents into projects (coming soon).
+          Organize your documents into projects.
         </p>
       </div>
 
-      <div className="rounded-lg bg-white p-12 text-center shadow-sm ring-1 ring-gray-200">
-        <div className="text-4xl">🚧</div>
-        <p className="mt-4 text-sm text-gray-500">
-          Projects are not yet available. Check back later.
-        </p>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="lg:col-span-1">
+          <CreateProjectForm />
+        </div>
+        <div className="lg:col-span-2">
+          <h2 className="mb-4 text-lg font-semibold text-gray-900">Your projects</h2>
+          <ProjectList />
+        </div>
       </div>
     </div>
   )

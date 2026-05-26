@@ -12,7 +12,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  const { query } = await request.json()
+  const { query, project_id } = await request.json()
 
   if (!query || typeof query !== "string") {
     return NextResponse.json(
@@ -29,7 +29,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const results = await search(query, user.id)
+    const results = await search(query, user.id, { project_id: project_id || undefined })
     const response = buildResponse(results)
 
     return NextResponse.json(response)

@@ -1,13 +1,31 @@
 "use client"
 
-import { useState } from "react"
-import type { SearchResponse } from "@/lib/types"
+import { useState, useEffect } from "react"
+import type { SearchResponse, Project } from "@/lib/types"
+import { createClient } from "@/lib/supabase/client"
 
 export function SearchBar() {
   const [query, setQuery] = useState("")
   const [searching, setSearching] = useState(false)
   const [result, setResult] = useState<SearchResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [projects, setProjects] = useState<Project[]>([])
+  const [selectedProject, setSelectedProject] = useState("")
+  const supabase = createClient()
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) return
+      supabase
+        .from("projects")
+        .select("id, name, description, user_id, created_at")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .then(({ data }) => {
+          if (data) setProjects(data as any)
+        })
+    })
+  }, [supabase])
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -21,7 +39,10 @@ export function SearchBar() {
       const res = await fetch("/api/search", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: query.trim() }),
+        body: JSON.stringify({
+          query: query.trim(),
+          project_id: selectedProject || undefined,
+        }),
       })
 
       if (!res.ok) {
@@ -48,6 +69,20 @@ export function SearchBar() {
           placeholder="Search your documents..."
           className="block flex-1 rounded-lg border border-gray-300 px-4 py-2.5 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
         />
+        {projects.length > 0 && (
+          <select
+            value={selectedProject}
+            onChange={(e) => setSelectedProject(e.target.value)}
+            className="rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none"
+          >
+            <option value="">All projects</option>
+            {projects.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+          </select>
+        )}
         <button
           type="submit"
           disabled={searching || !query.trim()}
