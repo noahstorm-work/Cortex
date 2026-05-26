@@ -1,4 +1,4 @@
-import { tokenize } from "./tokenize"
+import { generateQueryEmbedding } from "@/lib/embeddings"
 import { createServerSupabaseClient } from "@/lib/supabase/server"
 
 export interface ScoredChunk {
@@ -9,77 +9,63 @@ export interface ScoredChunk {
   score: number
 }
 
-const K1 = 1.5
-const B = 0.75
-
-export async function bm25Search(
+export async function vectorSearch(
   query: string,
   userId: string,
   topK: number = 5
 ): Promise<ScoredChunk[]> {
-  const queryTerms = tokenize(query)
-  if (queryTerms.length === 0) return []
+  const queryEmbedding = await generateQueryEmbedding(query)
+  const supabase = await createServerSupabaseClient()
+
+  const { data, error } = await supabase.rpc("match_chunks", {
+    query_embedding: queryEmbedding,
+    match_threshold: 0.1,
+    match_count: topK,
+    user_id: userId,
+  })
+
+  if (error) {
+    console.error("Vector search error:", error)
+    return textFallbackSearch(query, userId)
+  }
+
+  if (data && data.length > 0) {
+    return data.map((r: any) => ({
+      chunk_id: r.id,
+      document_id: r.document_id,
+      document_title: r.document_title,
+      content: r.content,
+      score: r.similarity,
+    }))
+  }
+
+  return textFallbackSearch(query, userId)
+}
+
+async function textFallbackSearch(
+  query: string,
+  userId: string,
+  topK: number = 5
+): Promise<ScoredChunk[]> {
+  const words = query.trim().split(/\s+/).filter(Boolean)
+  if (words.length === 0) return []
 
   const supabase = await createServerSupabaseClient()
 
-  const { data: chunks, error } = await supabase
+  const { data, error } = await supabase
     .from("chunks")
     .select("id, document_id, content, documents!inner(title, user_id)")
     .eq("documents.user_id", userId)
+    .or(words.map((w) => `content.ilike.%${w}%`).join(","))
+    .limit(topK)
 
-  if (error || !chunks || chunks.length === 0) return []
+  if (error || !data || data.length === 0) return []
 
-  const docs = chunks.map((c: any) => ({
-    id: c.id,
-    docId: c.document_id,
-    title: c.documents.title,
-    content: c.content,
-    tokens: tokenize(c.content),
+  return data.map((r: any) => ({
+    chunk_id: r.id,
+    document_id: r.document_id,
+    document_title: r.documents.title,
+    content: r.content,
+    score: 1.0,
   }))
-
-  const avgDocLen =
-    docs.reduce((sum, d) => sum + d.tokens.length, 0) / docs.length
-
-  const docCount = docs.length
-  const df: Map<string, number> = new Map()
-
-  for (const term of queryTerms) {
-    let count = 0
-    for (const doc of docs) {
-      if (doc.tokens.includes(term)) count++
-    }
-    df.set(term, count)
-  }
-
-  const scored: ScoredChunk[] = docs.map((doc) => {
-    const docLen = doc.tokens.length
-    let score = 0
-
-    for (const term of queryTerms) {
-      const tf = doc.tokens.filter((t) => t === term).length
-      if (tf === 0) continue
-
-      const nq = df.get(term) || 1
-      const idf = Math.log(
-        (docCount - nq + 0.5) / (nq + 0.5) + 1
-      )
-
-      score +=
-        idf *
-        ((tf * (K1 + 1)) / (tf + K1 * (1 - B + B * (docLen / avgDocLen))))
-    }
-
-    return {
-      chunk_id: doc.id,
-      document_id: doc.docId,
-      document_title: doc.title,
-      content: doc.content,
-      score,
-    }
-  })
-
-  return scored
-    .filter((s) => s.score > 0)
-    .sort((a, b) => b.score - a.score)
-    .slice(0, topK)
 }

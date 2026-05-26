@@ -38,17 +38,24 @@ function hashToVector(text: string, dimensions: number = EMBEDDING_DIMENSIONS): 
   return vector
 }
 
-export function generateEmbedding(text: string): number[] {
-  return hashToVector(text)
+let embedder: any = null
+
+async function getEmbedder() {
+  if (!embedder) {
+    const { pipeline } = await import("@xenova/transformers")
+    embedder = await pipeline("feature-extraction", "Xenova/all-MiniLM-L6-v2")
+  }
+  return embedder
 }
 
-export function generateQueryEmbedding(query: string): number[] {
-  const expanded = query
-    .toLowerCase()
-    .split(/\s+/)
-    .filter(Boolean)
-    .flatMap((word) => [word, word, word])
-    .join(" ")
-
-  return hashToVector(expanded)
+export async function generateEmbedding(text: string): Promise<number[]> {
+  try {
+    const extractor = await getEmbedder()
+    const result = await extractor(text, { pooling: "mean", normalize: true })
+    return Array.from(result.data)
+  } catch {
+    return hashToVector(text)
+  }
 }
+
+export const generateQueryEmbedding = generateEmbedding

@@ -1,3 +1,3 @@
-export { bm25Search } from "./bm25"
+export { vectorSearch as search } from "./bm25"
 export { buildResponse } from "./response"
 export type { ScoredChunk } from "./bm25"
