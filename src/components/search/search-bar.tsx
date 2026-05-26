@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { motion } from "framer-motion"
-import { Search, Loader2, BookOpen, List, FileText } from "lucide-react"
+import { Search, Loader2, BookOpen, List, FileText, Sparkles } from "lucide-react"
 import type { SearchResponse, Project } from "@/lib/types"
 import { createClient } from "@/lib/supabase/client"
 
@@ -74,18 +74,18 @@ export function SearchBar() {
     <div className="space-y-6">
       <form onSubmit={handleSearch} className="flex gap-2">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/60" />
           <Input
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search your documents..."
-            className="pl-9"
+            className="h-11 pl-10 rounded-xl border-border/60 bg-background/50 backdrop-blur-sm text-sm transition-all duration-200 focus:border-amber-400/40 focus:ring-2 focus:ring-amber-400/10"
           />
         </div>
         {projects.length > 0 && (
           <Select value={selectedProject} onValueChange={setSelectedProject}>
-            <SelectTrigger className="w-40">
+            <SelectTrigger className="h-11 w-40 rounded-xl border-border/60 bg-background/50 backdrop-blur-sm">
               <SelectValue placeholder="All projects" />
             </SelectTrigger>
             <SelectContent>
@@ -96,46 +96,58 @@ export function SearchBar() {
             </SelectContent>
           </Select>
         )}
-        <Button type="submit" disabled={searching || !query.trim()}>
+        <Button
+          type="submit"
+          disabled={searching || !query.trim()}
+          className="h-11 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-lg shadow-amber-500/20 transition-all duration-300 hover:shadow-xl hover:shadow-amber-500/30 hover:scale-[1.02] active:scale-[0.98]"
+        >
           {searching ? <Loader2 className="h-4 w-4 animate-spin" /> : "Search"}
         </Button>
       </form>
 
       {error && (
-        <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-sm text-destructive">
+        <motion.div
+          initial={{ opacity: 0, y: 5 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="rounded-xl border border-destructive/20 bg-destructive/5 p-4 text-sm text-destructive"
+        >
           {error}
-        </div>
+        </motion.div>
       )}
 
       {result && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="space-y-6"
+          className="space-y-5"
         >
           {result.processing_documents && (
-            <div className="rounded-lg border border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-800 p-3 text-sm text-amber-800 dark:text-amber-200">
-              Some documents are still being processed. Results may be incomplete. Check back shortly.
+            <div className="rounded-xl border border-amber-400/20 bg-amber-400/5 p-4 text-sm text-amber-600 dark:text-amber-400">
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4 animate-pulse-glow" />
+                Some documents are still being processed. Results may be incomplete.
+              </div>
             </div>
           )}
-          <div className="rounded-xl border bg-card p-6 shadow-sm">
-            <div className="mb-2 flex items-center gap-2">
-              <BookOpen className="h-4 w-4 text-muted-foreground" />
+
+          <div className="rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm p-6 shadow-sm">
+            <div className="mb-3 flex items-center gap-2">
+              <BookOpen className="h-4 w-4 text-amber-400" />
               <h3 className="text-sm font-semibold text-foreground">Summary</h3>
             </div>
             <p className="text-sm leading-relaxed text-muted-foreground">{result.summary}</p>
           </div>
 
           {result.key_points.length > 0 && (
-            <div className="rounded-xl border bg-card p-6 shadow-sm">
+            <div className="rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm p-6 shadow-sm">
               <div className="mb-3 flex items-center gap-2">
-                <List className="h-4 w-4 text-muted-foreground" />
+                <List className="h-4 w-4 text-amber-400" />
                 <h3 className="text-sm font-semibold text-foreground">Key Points</h3>
               </div>
               <ul className="space-y-2">
                 {result.key_points.map((point, i) => (
                   <li key={i} className="flex gap-2 text-sm text-muted-foreground">
-                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-400/60" />
                     {point}
                   </li>
                 ))}
@@ -144,25 +156,23 @@ export function SearchBar() {
           )}
 
           {result.references.length > 0 && (
-            <div className="rounded-xl border bg-card p-6 shadow-sm">
+            <div className="rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm p-6 shadow-sm">
               <div className="mb-3 flex items-center gap-2">
-                <FileText className="h-4 w-4 text-muted-foreground" />
+                <FileText className="h-4 w-4 text-amber-400" />
                 <h3 className="text-sm font-semibold text-foreground">
                   Sources ({result.references.length})
                 </h3>
               </div>
               <div className="space-y-3">
                 {result.references.map((ref, i) => (
-                  <div key={i} className="border-l-2 border-primary/20 pl-3">
+                  <div key={i} className="border-l-2 border-amber-400/20 pl-4 transition-colors hover:border-amber-400/40">
                     <p className="text-xs font-medium text-foreground">
                       {ref.document_title}
-                      <span className="ml-2 text-muted-foreground">
+                      <span className="ml-2 text-muted-foreground/60">
                         (score: {ref.score})
                       </span>
                     </p>
-                    <p className="mt-1 text-sm text-muted-foreground line-clamp-3">
-                      {ref.content}
-                    </p>
+                    <p className="mt-1 text-sm text-muted-foreground line-clamp-3">{ref.content}</p>
                   </div>
                 ))}
               </div>

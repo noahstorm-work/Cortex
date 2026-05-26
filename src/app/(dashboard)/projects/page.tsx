@@ -1,14 +1,20 @@
+import { FolderKanban } from "lucide-react"
 import { CreateProjectForm } from "@/components/projects/create-project-form"
 import { ProjectList } from "@/components/projects/project-list"
 
 export default function ProjectsPage() {
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Projects</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Organize your documents into projects.
-        </p>
+    <div className="space-y-8 animate-fade-in-up">
+      <div className="flex items-center gap-3">
+        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 shadow-sm">
+          <FolderKanban className="h-4.5 w-4.5 text-white" />
+        </div>
+        <div>
+          <h1 className="text-xl font-semibold tracking-tight">Projects</h1>
+          <p className="text-sm text-muted-foreground/70">
+            Organize your documents into projects.
+          </p>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -16,7 +22,11 @@ export default function ProjectsPage() {
           <CreateProjectForm />
         </div>
         <div className="lg:col-span-2">
-          <h2 className="mb-4 text-lg font-semibold text-foreground">Your projects</h2>
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-sm font-medium text-foreground/80 tracking-wide uppercase">
+              Your projects
+            </h2>
+          </div>
           <ProjectList />
         </div>
       </div>
