@@ -95,7 +95,7 @@ export function SearchBar() {
                     <p className="text-xs font-medium text-blue-700">
                       {ref.document_title}
                       <span className="ml-2 text-gray-400">
-                        ({(ref.similarity * 100).toFixed(1)}% match)
+                        (score: {ref.score})
                       </span>
                     </p>
                     <p className="mt-1 text-sm text-gray-600 line-clamp-3">

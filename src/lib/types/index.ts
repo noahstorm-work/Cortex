@@ -7,28 +7,12 @@ export interface Document {
   created_at: string
 }
 
-export interface Chunk {
-  id: string
-  document_id: string
-  content: string
-  embedding: number[]
-  created_at: string
-}
-
-export interface SearchResult {
-  chunk_id: string
-  document_id: string
-  document_title: string
-  content: string
-  similarity: number
-}
-
 export interface SearchResponse {
   summary: string
   key_points: string[]
   references: {
     document_title: string
     content: string
-    similarity: number
+    score: number
   }[]
 }

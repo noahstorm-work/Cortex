@@ -2,7 +2,6 @@ import { NextResponse } from "next/server"
 import { createServerSupabaseClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { chunkText } from "@/lib/chunking"
-import { generateEmbedding } from "@/lib/embeddings"
 
 export async function POST(request: Request) {
   const supabase = await createServerSupabaseClient()
@@ -51,13 +50,9 @@ export async function POST(request: Request) {
     const adminClient = createAdminClient()
 
     for (let i = 0; i < chunks.length; i++) {
-      const content = chunks[i]
-      const embedding = generateEmbedding(content)
-
       const { error: insertError } = await adminClient.from("chunks").insert({
         document_id,
-        content,
-        embedding,
+        content: chunks[i],
       })
 
       if (insertError) {

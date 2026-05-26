@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { createServerSupabaseClient } from "@/lib/supabase/server"
-import { semanticSearch, buildResponse } from "@/lib/search"
+import { bm25Search, buildResponse } from "@/lib/search"
 
 export async function POST(request: Request) {
   const supabase = await createServerSupabaseClient()
@@ -29,7 +29,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const results = await semanticSearch(query, user.id)
+    const results = await bm25Search(query, user.id)
     const response = buildResponse(results)
 
     return NextResponse.json(response)
