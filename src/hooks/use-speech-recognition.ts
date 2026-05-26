@@ -43,22 +43,28 @@ export function useSpeechRecognition(): SpeechRecognitionHook {
     if (!SR) return null
 
     const recognition = new SR()
-    recognition.continuous = true
+    recognition.continuous = false
     recognition.interimResults = true
     recognition.lang = "en-US"
 
     recognition.onresult = (event: any) => {
       let final = ""
-      let interim = ""
       for (let i = event.resultIndex; i < event.results.length; i++) {
         if (event.results[i].isFinal) {
           final += event.results[i][0].transcript
-        } else {
-          interim += event.results[i][0].transcript
         }
       }
-      if (final) setTranscript((prev) => prev + final)
-      setInterimTranscript(interim)
+      if (final) {
+        setTranscript((prev) => prev + final)
+      }
+      if (event.results.length > 0) {
+        const last = event.results[event.results.length - 1]
+        if (!last.isFinal) {
+          setInterimTranscript(last[0].transcript)
+        } else {
+          setInterimTranscript("")
+        }
+      }
     }
 
     recognition.onerror = (event: any) => {
