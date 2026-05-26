@@ -24,19 +24,19 @@ interface SpeechRecognitionHook {
   toggle: () => void
 }
 
-const isBrowser = typeof window !== "undefined"
-const hasNativeSpeechRecognition = isBrowser && (
-  !!(window as any).SpeechRecognition || !!(window as any).webkitSpeechRecognition
-)
-
 export function useSpeechRecognition(): SpeechRecognitionHook {
   const [isListening, setIsListening] = useState(false)
   const [transcript, setTranscript] = useState("")
   const [interimTranscript, setInterimTranscript] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [micPermission, setMicPermission] = useState<"prompt"|"granted"|"denied"|"unknown">("unknown")
+  const [supported, setSupported] = useState(false)
   const recognitionRef = useRef<any>(null)
-  const supportedRef = useRef(hasNativeSpeechRecognition)
+
+  useEffect(() => {
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+    setSupported(!!SR)
+  }, [])
 
   const createRecognition = useCallback(() => {
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
@@ -140,7 +140,7 @@ export function useSpeechRecognition(): SpeechRecognitionHook {
     interimTranscript,
     error,
     micPermission,
-    supported: supportedRef.current,
+    supported,
     start,
     stop,
     toggle,
