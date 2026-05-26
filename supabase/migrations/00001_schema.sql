@@ -74,3 +74,66 @@ BEGIN
   LIMIT match_count;
 END;
 $$;
+
+-- Text search fallback function
+CREATE OR REPLACE FUNCTION text_search_chunks(
+  p_user_id UUID,
+  p_terms TEXT[],
+  p_limit INT DEFAULT 5
+)
+RETURNS TABLE(
+  id UUID,
+  document_id UUID,
+  document_title TEXT,
+  content TEXT,
+  similarity FLOAT
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT
+    c.id,
+    c.document_id,
+    d.title AS document_title,
+    c.content,
+    1.0::FLOAT AS similarity
+  FROM chunks c
+  JOIN documents d ON c.document_id = d.id
+  WHERE d.user_id = p_user_id
+    AND (
+      SELECT bool_or(c.content ILIKE '%' || term || '%')
+      FROM unnest(p_terms) AS term
+    )
+  LIMIT p_limit;
+END;
+$$;
+
+-- Storage bucket policies (run after bucket is created)
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'objects' AND policyname = 'Allow authenticated uploads'
+  ) THEN
+    CREATE POLICY "Allow authenticated uploads" ON storage.objects
+      FOR INSERT TO authenticated
+      WITH CHECK (bucket_id = 'documents');
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'objects' AND policyname = 'Allow authenticated selects'
+  ) THEN
+    CREATE POLICY "Allow authenticated selects" ON storage.objects
+      FOR SELECT TO authenticated
+      USING (bucket_id = 'documents');
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'objects' AND policyname = 'Allow authenticated deletes'
+  ) THEN
+    CREATE POLICY "Allow authenticated deletes" ON storage.objects
+      FOR DELETE TO authenticated
+      USING (bucket_id = 'documents');
+  END IF;
+END;
+$$;

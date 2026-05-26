@@ -2,8 +2,9 @@ const EMBEDDING_DIMENSIONS = 384
 
 function hashToVector(text: string, dimensions: number = EMBEDDING_DIMENSIONS): number[] {
   const vector: number[] = new Array(dimensions).fill(0)
-
   const words = text.toLowerCase().split(/\s+/).filter(Boolean)
+
+  if (words.length === 0) return vector
 
   for (const word of words) {
     let hash = 0
@@ -15,8 +16,15 @@ function hashToVector(text: string, dimensions: number = EMBEDDING_DIMENSIONS): 
     vector[position] += 1.0
 
     for (let i = 0; i < 3; i++) {
-      const bigramIdx = (hash * (i + 1)) % dimensions
-      vector[bigramIdx] += 0.5 / (i + 1)
+      const ngram = i === 0
+        ? word
+        : (i === 1 ? word.slice(0, Math.ceil(word.length / 2)) : word.slice(Math.floor(word.length / 2)))
+      let ngramHash = 0
+      for (let j = 0; j < ngram.length; j++) {
+        ngramHash = (ngramHash * 31 + ngram.charCodeAt(j)) & 0x7fffffff
+      }
+      const ngramIdx = ngramHash % dimensions
+      vector[ngramIdx] += 0.5 / (i + 1)
     }
   }
 
@@ -35,5 +43,12 @@ export function generateEmbedding(text: string): number[] {
 }
 
 export function generateQueryEmbedding(query: string): number[] {
-  return hashToVector(query)
+  const expanded = query
+    .toLowerCase()
+    .split(/\s+/)
+    .filter(Boolean)
+    .flatMap((word) => [word, word, word])
+    .join(" ")
+
+  return hashToVector(expanded)
 }
