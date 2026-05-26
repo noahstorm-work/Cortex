@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/client"
 import { cn } from "@/lib/utils/cn"
 import { ThemeToggle } from "@/components/ui/theme-toggle"
 import { Button } from "@/components/ui/button"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import {
   FileText,
   Search,
@@ -44,6 +44,8 @@ export function Sidebar() {
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="w-64 p-0">
+            <SheetTitle className="sr-only">Navigation menu</SheetTitle>
+            <SheetDescription className="sr-only">Navigate to different sections of Cortex Voice</SheetDescription>
             <div className="flex h-14 items-center border-b border-sidebar-border px-4">
               <Link href="/documents" className="flex items-center gap-2">
                 <Sparkles className="h-5 w-5 text-violet-500" />
