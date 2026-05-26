@@ -156,7 +156,7 @@ export function useSpeechRecognition(): SpeechRecognitionHook {
     recognition.onerror = (event: any) => {
       console.error("[SpeechRecognition] error:", event.error, event.message || "", event)
       if (event.error === "network") {
-        setIsListening(false)
+        recognitionRef.current = null
         startLocalRecording()
       } else {
         const friendly = event.error === "not-allowed"
@@ -195,6 +195,7 @@ export function useSpeechRecognition(): SpeechRecognitionHook {
   }, [])
 
   const start = useCallback(async () => {
+    if (mediaRecorderRef.current) return
     if (micPermission === "denied") {
       setError("Microphone access was denied. Allow mic access in your browser settings and try again.")
       return
@@ -203,6 +204,7 @@ export function useSpeechRecognition(): SpeechRecognitionHook {
       const ok = await requestMicPermission()
       if (!ok) return
     }
+    recognitionRef.current = null
     const recognition = createRecognition()
     if (!recognition) {
       startLocalRecording()
@@ -217,23 +219,24 @@ export function useSpeechRecognition(): SpeechRecognitionHook {
       recognition.start()
       setIsListening(true)
     } catch {
+      recognitionRef.current = null
       startLocalRecording()
     }
   }, [createRecognition, micPermission, requestMicPermission, startLocalRecording])
 
   const stop = useCallback(() => {
-    if (recognitionRef.current) {
-      try {
-        recognitionRef.current?.stop()
-      } catch {}
-      recognitionRef.current = null
-      setIsListening(false)
-    } else if (mediaRecorderRef.current) {
+    if (mediaRecorderRef.current) {
       stopLocalRecording().then((text) => {
         if (text) {
           setTranscript(text)
         }
       })
+    } else if (recognitionRef.current) {
+      try {
+        recognitionRef.current?.stop()
+      } catch {}
+      recognitionRef.current = null
+      setIsListening(false)
     }
   }, [stopLocalRecording])
 
