@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from "framer-motion"
 import { useSpeechRecognition } from "@/hooks/use-speech-recognition"
 import { useSpeechSynthesis } from "@/hooks/use-speech-synthesis"
 import { VoiceOrb } from "@/components/voice/voice-orb"
-import { Button } from "@/components/ui/button"
 import { X, Loader2 } from "lucide-react"
 import { useState, useRef, useEffect } from "react"
 import type { SearchResponse } from "@/lib/types"
@@ -14,7 +13,7 @@ interface VoiceButtonProps {
 }
 
 export function VoiceButton({ onSearchResult }: VoiceButtonProps) {
-  const { isListening, transcript, interimTranscript, error, supported, toggle } = useSpeechRecognition()
+  const { isListening, transcript, interimTranscript, error, modelLoading, usingLocalModel, toggle } = useSpeechRecognition()
   const { speaking, supported: ttsSupported, speak, stop: stopTts } = useSpeechSynthesis()
   const [expanded, setExpanded] = useState(false)
   const [searching, setSearching] = useState(false)
@@ -58,21 +57,6 @@ export function VoiceButton({ onSearchResult }: VoiceButtonProps) {
     stopTts()
   }
 
-  if (!supported) {
-    return (
-      <div className="group relative">
-        <div className="opacity-40 cursor-not-allowed">
-          <VoiceOrb isListening={false} onToggle={() => {}} />
-        </div>
-        <div className="absolute bottom-full right-0 mb-2 hidden group-hover:block">
-          <div className="rounded-lg border bg-card px-3 py-2 text-xs shadow-sm whitespace-nowrap">
-            Voice search requires Chrome or Microsoft Edge
-          </div>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className="relative">
       <AnimatePresence>
@@ -111,15 +95,35 @@ export function VoiceButton({ onSearchResult }: VoiceButtonProps) {
       </AnimatePresence>
 
       <div className="flex flex-col items-center gap-2">
-        <VoiceOrb isListening={isListening} onToggle={toggle} />
+        {modelLoading ? (
+          <div className="flex h-16 w-16 items-center justify-center rounded-full border bg-card">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : (
+          <VoiceOrb isListening={isListening} onToggle={toggle} />
+        )}
+        {modelLoading && (
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-xs text-muted-foreground"
+          >
+            Downloading speech model...
+          </motion.p>
+        )}
         {isListening && (
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="text-xs text-muted-foreground"
           >
-            {interimTranscript || "Listening..."}
+            {interimTranscript || (usingLocalModel ? "Recording..." : "Listening...")}
           </motion.p>
+        )}
+        {usingLocalModel && isListening && (
+          <span className="rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-medium text-amber-600">
+            Local
+          </span>
         )}
         {error && (
           <motion.div
@@ -131,7 +135,7 @@ export function VoiceButton({ onSearchResult }: VoiceButtonProps) {
             {error.includes("Microphone") && (
               <p className="text-muted-foreground">Click the lock icon in your URL bar and enable microphone access.</p>
             )}
-            {(error.includes("unreachable") || error.includes("connection")) && (
+            {!error.includes("Microphone") && (
               <button onClick={toggle} className="mt-1 text-primary underline hover:no-underline">
                 Try again
               </button>
