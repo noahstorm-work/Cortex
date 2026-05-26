@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useRef } from "react"
+import { useState, useCallback, useRef, useEffect } from "react"
 
 interface SpeechSynthesisHook {
   speaking: boolean
@@ -11,14 +11,31 @@ interface SpeechSynthesisHook {
   resume: () => void
 }
 
+const isBrowser = typeof window !== "undefined"
+const hasSpeechSynthesis = isBrowser && "speechSynthesis" in window
+
 export function useSpeechSynthesis(): SpeechSynthesisHook {
   const [speaking, setSpeaking] = useState(false)
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null)
-  const supported = typeof window !== "undefined" && "speechSynthesis" in window
+  const voicesRef = useRef<SpeechSynthesisVoice[]>([])
+
+  useEffect(() => {
+    if (!hasSpeechSynthesis) return
+
+    const updateVoices = () => {
+      voicesRef.current = window.speechSynthesis.getVoices()
+    }
+
+    updateVoices()
+    window.speechSynthesis.addEventListener("voiceschanged", updateVoices)
+    return () => {
+      window.speechSynthesis.removeEventListener("voiceschanged", updateVoices)
+    }
+  }, [])
 
   const speak = useCallback(
     (text: string) => {
-      if (!supported) return
+      if (!hasSpeechSynthesis) return
 
       window.speechSynthesis.cancel()
 
@@ -27,7 +44,7 @@ export function useSpeechSynthesis(): SpeechSynthesisHook {
       utterance.pitch = 1.0
       utterance.volume = 1
 
-      const voices = window.speechSynthesis.getVoices()
+      const voices = voicesRef.current.length > 0 ? voicesRef.current : window.speechSynthesis.getVoices()
       const preferred = voices.find(
         (v) => v.lang.startsWith("en") && v.name.includes("Female")
       ) || voices.find((v) => v.lang.startsWith("en")) || voices[0]
@@ -40,7 +57,7 @@ export function useSpeechSynthesis(): SpeechSynthesisHook {
       utteranceRef.current = utterance
       window.speechSynthesis.speak(utterance)
     },
-    [supported]
+    []
   )
 
   const stop = useCallback(() => {
@@ -56,5 +73,5 @@ export function useSpeechSynthesis(): SpeechSynthesisHook {
     window.speechSynthesis.resume()
   }, [])
 
-  return { speaking, supported, speak, stop, pause, resume }
+  return { speaking, supported: hasSpeechSynthesis, speak, stop, pause, resume }
 }

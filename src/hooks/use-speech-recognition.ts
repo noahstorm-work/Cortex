@@ -24,6 +24,11 @@ interface SpeechRecognitionHook {
   toggle: () => void
 }
 
+const isBrowser = typeof window !== "undefined"
+const hasNativeSpeechRecognition = isBrowser && (
+  !!(window as any).SpeechRecognition || !!(window as any).webkitSpeechRecognition
+)
+
 export function useSpeechRecognition(): SpeechRecognitionHook {
   const [isListening, setIsListening] = useState(false)
   const [transcript, setTranscript] = useState("")
@@ -31,14 +36,7 @@ export function useSpeechRecognition(): SpeechRecognitionHook {
   const [error, setError] = useState<string | null>(null)
   const [micPermission, setMicPermission] = useState<"prompt"|"granted"|"denied"|"unknown">("unknown")
   const recognitionRef = useRef<any>(null)
-  const retryCountRef = useRef(0)
-  const MAX_RETRIES = 2
-  const [supported, setSupported] = useState(false)
-
-  useEffect(() => {
-    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
-    setSupported(!!SR)
-  }, [])
+  const supportedRef = useRef(hasNativeSpeechRecognition)
 
   const createRecognition = useCallback(() => {
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
@@ -64,14 +62,6 @@ export function useSpeechRecognition(): SpeechRecognitionHook {
     }
 
     recognition.onerror = (event: any) => {
-      if (event.error === "network" && retryCountRef.current < MAX_RETRIES) {
-        retryCountRef.current++
-        setTimeout(() => {
-          try { recognition.start() } catch {}
-        }, 1500)
-        return
-      }
-      retryCountRef.current = 0
       const friendly = ERROR_MESSAGES[event.error] || event.error
       if (friendly) setError(friendly)
       setIsListening(false)
@@ -150,7 +140,7 @@ export function useSpeechRecognition(): SpeechRecognitionHook {
     interimTranscript,
     error,
     micPermission,
-    supported,
+    supported: supportedRef.current,
     start,
     stop,
     toggle,
