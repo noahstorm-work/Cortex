@@ -2,6 +2,10 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Plus, Loader2 } from "lucide-react"
 
 export function CreateProjectForm() {
   const [name, setName] = useState("")
@@ -27,32 +31,34 @@ export function CreateProjectForm() {
   }
 
   return (
-    <form onSubmit={handleCreate} className="rounded-xl border border-gray-200 bg-white p-6">
-      <h3 className="mb-4 text-sm font-semibold text-gray-900">New project</h3>
-      <div className="space-y-3">
-        <input
-          type="text"
-          placeholder="Project name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
-        />
-        <input
-          type="text"
-          placeholder="Description (optional)"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
-        />
-        <button
-          type="submit"
-          disabled={creating || !name.trim()}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
-        >
-          {creating ? "Creating..." : "Create"}
-        </button>
-      </div>
-    </form>
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-sm">New project</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleCreate} className="space-y-3">
+          <Input
+            type="text"
+            placeholder="Project name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+          />
+          <Input
+            type="text"
+            placeholder="Description (optional)"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+          />
+          <Button type="submit" disabled={creating || !name.trim()} className="w-full">
+            {creating ? (
+              <><Loader2 className="mr-1 h-4 w-4 animate-spin" /> Creating...</>
+            ) : (
+              <><Plus className="mr-1 h-4 w-4" /> Create</>
+            )}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
   )
 }

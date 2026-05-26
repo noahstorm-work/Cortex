@@ -3,6 +3,8 @@
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { Sparkles, ArrowRight, Loader2 } from "lucide-react"
 
 export default function Home() {
   const router = useRouter()
@@ -27,35 +29,39 @@ export default function Home() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center px-4">
-      <div className="max-w-md text-center">
-        <div className="mb-6 text-5xl">⚡</div>
-        <h1 className="text-3xl font-bold text-gray-900">
-          AI Knowledge & Automation Workspace
+    <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-background via-background to-violet-500/5 px-4">
+      <div className="max-w-lg text-center">
+        <div className="mb-6 inline-flex items-center justify-center rounded-2xl bg-violet-500/10 p-4">
+          <Sparkles className="h-10 w-10 text-violet-500" />
+        </div>
+        <h1 className="text-4xl font-bold tracking-tight text-foreground">
+          Cortex Voice
         </h1>
-        <p className="mt-3 text-gray-500">
-          Upload documents, extract insights, and search with vector-powered
-          semantic retrieval.
+        <p className="mt-3 text-lg text-muted-foreground">
+          Your AI-powered knowledge workspace. Upload documents, ask questions with your voice, and get instant semantic answers from your personal knowledge base.
         </p>
         <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-          <button
+          <Button
             onClick={handleDemoLogin}
             disabled={demoLoading}
-            className="w-full sm:w-auto rounded-lg bg-green-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-green-700 transition-colors disabled:opacity-50"
+            size="lg"
+            className="w-full sm:w-auto"
           >
-            {demoLoading ? "Loading demo..." : "Try Demo"}
-          </button>
-          <Link
-            href="/login"
-            className="w-full sm:w-auto rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors text-center"
-          >
-            Sign in
+            {demoLoading ? (
+              <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading demo...</>
+            ) : (
+              <><Sparkles className="mr-2 h-4 w-4" /> Try Demo</>
+            )}
+          </Button>
+          <Link href="/login" className="w-full sm:w-auto">
+            <Button variant="default" size="lg" className="w-full">
+              Sign in <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
           </Link>
-          <Link
-            href="/register"
-            className="w-full sm:w-auto rounded-lg border border-gray-300 bg-white px-6 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors text-center"
-          >
-            Create account
+          <Link href="/register" className="w-full sm:w-auto">
+            <Button variant="outline" size="lg" className="w-full">
+              Create account
+            </Button>
           </Link>
         </div>
       </div>

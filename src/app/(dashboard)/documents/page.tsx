@@ -5,8 +5,8 @@ export default function DocumentsPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Documents</h1>
-        <p className="mt-1 text-sm text-gray-500">
+        <h1 className="text-2xl font-bold text-foreground">Documents</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
           Upload and manage your documents for semantic search.
         </p>
       </div>
@@ -14,7 +14,7 @@ export default function DocumentsPage() {
       <UploadArea />
 
       <div>
-        <h2 className="mb-4 text-lg font-semibold text-gray-900">
+        <h2 className="mb-4 text-lg font-semibold text-foreground">
           Your documents
         </h2>
         <DocumentList />

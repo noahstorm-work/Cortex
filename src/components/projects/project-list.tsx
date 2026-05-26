@@ -3,6 +3,10 @@
 import { useEffect, useState, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
+import { Card, CardContent } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { FolderKanban, FileText, Trash2, Unlink, Loader2, Inbox } from "lucide-react"
 import type { Project, Document } from "@/lib/types"
 
 interface ProjectWithDocs extends Project {
@@ -48,7 +52,6 @@ export function ProjectList() {
   }, [fetchProjects])
 
   const handleDelete = async (projectId: string) => {
-    if (!confirm("Delete this project? Documents will be unlinked but not deleted.")) return
     setDeleting(projectId)
     await fetch("/api/projects/delete", {
       method: "POST",
@@ -72,16 +75,17 @@ export function ProjectList() {
 
   if (loading) {
     return (
-      <div className="rounded-lg bg-white p-8 text-center text-sm text-gray-500">
-        Loading...
+      <div className="flex items-center justify-center rounded-lg border bg-card p-12">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
       </div>
     )
   }
 
   if (projects.length === 0) {
     return (
-      <div className="rounded-lg bg-white p-8 text-center text-sm text-gray-500">
-        No projects yet. Create one above.
+      <div className="flex flex-col items-center justify-center rounded-lg border bg-card p-12 text-center">
+        <FolderKanban className="mb-2 h-8 w-8 text-muted-foreground" />
+        <p className="text-sm text-muted-foreground">No projects yet. Create one above.</p>
       </div>
     )
   }
@@ -89,60 +93,70 @@ export function ProjectList() {
   return (
     <div className="space-y-3">
       {projects.map((project) => (
-        <div key={project.id} className="rounded-lg border border-gray-200 bg-white">
-          <button
-            onClick={() => setExpandedId(expandedId === project.id ? null : project.id)}
-            className="flex w-full items-center justify-between px-5 py-3 text-left hover:bg-gray-50"
-          >
-            <div className="flex items-center gap-3">
-              <span className="text-lg">📁</span>
-              <div>
-                <p className="text-sm font-medium text-gray-900">{project.name}</p>
-                <p className="text-xs text-gray-500">
-                  {project.documents.length} document{project.documents.length !== 1 ? "s" : ""}
-                  {project.description && ` — ${project.description}`}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-              <span className="text-xs text-gray-400">
-                {new Date(project.created_at).toLocaleDateString()}
-              </span>
-              <button
-                onClick={() => handleDelete(project.id)}
-                disabled={deleting === project.id}
-                className="text-xs text-red-600 hover:underline disabled:opacity-50"
-              >
-                {deleting === project.id ? "..." : "Delete"}
-              </button>
-            </div>
-          </button>
-
-          {expandedId === project.id && (
-            <div className="border-t border-gray-100 px-5 py-3">
-              {project.documents.length === 0 ? (
-                <p className="text-xs text-gray-400">No documents in this project.</p>
-              ) : (
-                <div className="space-y-1">
-                  {project.documents.map((doc) => (
-                    <div key={doc.id} className="flex items-center justify-between rounded-md bg-gray-50 px-3 py-2">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <span className="text-sm">{doc.file_type === "application/pdf" ? "📕" : "📄"}</span>
-                        <span className="text-sm text-gray-700 truncate">{doc.title}</span>
-                      </div>
-                      <button
-                        onClick={() => handleUnlink(doc.id)}
-                        className="flex-shrink-0 text-xs text-gray-400 hover:text-red-500"
-                      >
-                        Unlink
-                      </button>
-                    </div>
-                  ))}
+        <Card key={project.id}>
+          <CardContent className="p-0">
+            <button
+              onClick={() => setExpandedId(expandedId === project.id ? null : project.id)}
+              className="flex w-full items-center justify-between px-5 py-3 text-left hover:bg-muted/50"
+            >
+              <div className="flex items-center gap-3">
+                <FolderKanban className="h-5 w-5 text-muted-foreground" />
+                <div>
+                  <p className="text-sm font-medium text-foreground">{project.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {project.documents.length} document{project.documents.length !== 1 ? "s" : ""}
+                    {project.description && <span className="ml-1">— {project.description}</span>}
+                  </p>
                 </div>
-              )}
-            </div>
-          )}
-        </div>
+              </div>
+              <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                <span className="text-xs text-muted-foreground">
+                  {new Date(project.created_at).toLocaleDateString()}
+                </span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7"
+                  onClick={() => handleDelete(project.id)}
+                  disabled={deleting === project.id}
+                >
+                  {deleting === project.id ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <Trash2 className="h-3 w-3" />
+                  )}
+                </Button>
+              </div>
+            </button>
+
+            {expandedId === project.id && (
+              <div className="border-t px-5 py-3">
+                {project.documents.length === 0 ? (
+                  <p className="text-xs text-muted-foreground">No documents in this project.</p>
+                ) : (
+                  <div className="space-y-1">
+                    {project.documents.map((doc) => (
+                      <div key={doc.id} className="flex items-center justify-between rounded-md bg-muted/50 px-3 py-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
+                          <span className="truncate text-sm text-foreground">{doc.title}</span>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 shrink-0"
+                          onClick={() => handleUnlink(doc.id)}
+                        >
+                          <Unlink className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       ))}
     </div>
   )

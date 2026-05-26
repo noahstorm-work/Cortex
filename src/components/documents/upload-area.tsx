@@ -1,163 +1,118 @@
 "use client"
 
-import { useState, useCallback, useEffect } from "react"
+import { useState, useRef } from "react"
 import { useRouter } from "next/navigation"
-import { createClient } from "@/lib/supabase/client"
-import type { Project } from "@/lib/types"
+import { Card, CardContent } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Upload, File, X } from "lucide-react"
+import { cn } from "@/lib/utils/cn"
 
 export function UploadArea() {
+  const [files, setFiles] = useState<File[]>([])
   const [uploading, setUploading] = useState(false)
-  const [progress, setProgress] = useState("")
-  const [projects, setProjects] = useState<Project[]>([])
-  const [selectedProject, setSelectedProject] = useState("")
+  const [dragOver, setDragOver] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
-  const supabase = createClient()
 
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (!user) return
-      supabase
-        .from("projects")
-        .select("id, name, description, user_id, created_at")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .then(({ data }) => {
-          if (data) setProjects(data as any)
-        })
-    })
-  }, [supabase])
+  const acceptedTypes = [
+    "application/pdf",
+    "text/plain",
+    "text/markdown",
+    "text/csv",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "image/png",
+    "image/jpeg",
+    "image/webp",
+  ]
 
-  const handleUpload = useCallback(
-    async (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0]
-      if (!file) return
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    setDragOver(false)
+    const dropped = Array.from(e.dataTransfer.files).filter((f) =>
+      acceptedTypes.includes(f.type)
+    )
+    if (dropped.length > 0) setFiles((prev) => [...prev, ...dropped])
+  }
 
-      const allowed = [
-        "application/pdf",
-        "text/plain",
-        "text/markdown",
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        "image/png",
-        "image/jpeg",
-        "image/webp",
-      ]
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setFiles((prev) => [...prev, ...Array.from(e.target.files!)])
+    }
+  }
 
-      if (!allowed.includes(file.type) && !file.name.endsWith(".txt") && !file.name.endsWith(".md") && !file.name.endsWith(".docx") && !/\.(png|jpg|jpeg|webp)$/i.test(file.name)) {
-        alert("Only PDF, TXT, MD, DOCX, PNG, and JPG files are supported.")
-        return
-      }
+  const handleUpload = async () => {
+    if (files.length === 0) return
+    setUploading(true)
 
-      setUploading(true)
-      setProgress("Uploading file...")
+    for (const file of files) {
+      const formData = new FormData()
+      formData.append("file", file)
 
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
-      if (!user) {
-        setUploading(false)
-        return
-      }
-
-      const filePath = `${user.id}/${Date.now()}-${file.name}`
-      const { error: uploadError } = await supabase.storage
-        .from("documents")
-        .upload(filePath, file)
-
-      if (uploadError) {
-        setProgress(`Upload failed: ${uploadError.message}`)
-        setUploading(false)
-        return
-      }
-
-      const { data: urlData } = supabase.storage
-        .from("documents")
-        .getPublicUrl(filePath)
-
-      setProgress("Processing document...")
-
-      const res = await fetch("/api/documents/upload", {
+      await fetch("/api/documents/upload", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: file.name,
-          file_url: urlData.publicUrl,
-          file_type: file.type || "text/plain",
-          project_id: selectedProject || null,
-        }),
+        body: formData,
       })
+    }
 
-      if (!res.ok) {
-        setProgress("Failed to save document metadata.")
-        setUploading(false)
-        return
-      }
-
-      const { document_id } = await res.json()
-
-      setProgress("Extracting and chunking...")
-
-      await fetch("/api/documents/process", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ document_id, file_url: urlData.publicUrl }),
-      })
-
-      setProgress("Done!")
-      router.refresh()
-      setUploading(false)
-    },
-    [supabase, router, selectedProject]
-  )
+    setFiles([])
+    setUploading(false)
+    router.refresh()
+  }
 
   return (
-    <div className="rounded-xl border-2 border-dashed border-gray-300 bg-white p-12 text-center transition-colors hover:border-blue-400">
-      {uploading ? (
-        <div className="space-y-3">
-          <div className="flex justify-center">
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600" />
-          </div>
-          <p className="text-sm text-gray-600">{progress}</p>
+    <Card>
+      <CardContent className="p-6">
+        <div
+          onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
+          onDragLeave={() => setDragOver(false)}
+          onDrop={handleDrop}
+          onClick={() => inputRef.current?.click()}
+          className={cn(
+            "flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 transition-colors",
+            dragOver
+              ? "border-primary bg-primary/5"
+              : "border-muted-foreground/25 hover:border-muted-foreground/50"
+          )}
+        >
+          <Upload className="mb-2 h-8 w-8 text-muted-foreground" />
+          <p className="text-sm font-medium text-foreground">
+            Drop files here or click to browse
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            PDF, TXT, MD, CSV, DOCX, PNG, JPG, WEBP
+          </p>
+          <input
+            ref={inputRef}
+            type="file"
+            multiple
+            accept=".pdf,.txt,.md,.csv,.docx,.png,.jpg,.jpeg,.webp"
+            onChange={handleFileSelect}
+            className="hidden"
+          />
         </div>
-      ) : (
-        <div className="space-y-4">
-          <div className="text-4xl">📄</div>
-          <div>
-            <p className="text-sm font-medium text-gray-700">
-              Drop a file here, or click to browse
-            </p>
-            <p className="mt-1 text-xs text-gray-500">
-              PDF, TXT, MD, DOCX, PNG, JPG supported
-            </p>
-          </div>
 
-          <div className="flex items-center justify-center gap-3">
-            {projects.length > 0 && (
-              <select
-                value={selectedProject}
-                onChange={(e) => setSelectedProject(e.target.value)}
-                className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
-              >
-                <option value="">No project</option>
-                {projects.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
-            )}
-
-            <label className="inline-flex cursor-pointer rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
-              Choose file
-              <input
-                type="file"
-                accept=".pdf,.txt,.md,.docx,.png,.jpg,.jpeg,.webp"
-                onChange={handleUpload}
-                className="hidden"
-              />
-            </label>
+        {files.length > 0 && (
+          <div className="mt-4 space-y-2">
+            {files.map((file, i) => (
+              <div key={i} className="flex items-center justify-between rounded-lg bg-muted px-3 py-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <File className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  <span className="truncate text-sm text-foreground">{file.name}</span>
+                </div>
+                <button
+                  onClick={() => setFiles((prev) => prev.filter((_, j) => j !== i))}
+                  className="shrink-0 text-muted-foreground hover:text-foreground"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            ))}
+            <Button onClick={handleUpload} disabled={uploading} className="w-full">
+              {uploading ? "Uploading..." : `Upload ${files.length} file${files.length > 1 ? "s" : ""}`}
+            </Button>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+      </CardContent>
+    </Card>
   )
 }

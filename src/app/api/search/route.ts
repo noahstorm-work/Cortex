@@ -32,6 +32,15 @@ export async function POST(request: Request) {
     const results = await search(query, user.id, { project_id: project_id || undefined })
     const response = buildResponse(results)
 
+    supabase.from("search_history").insert({
+      user_id: user.id,
+      query: query.trim(),
+      result_summary: response.summary?.slice(0, 200),
+      source_count: response.references?.length || 0,
+    }).then(({ error }) => {
+      if (error) console.error("Failed to log search history:", error)
+    })
+
     return NextResponse.json(response)
   } catch (error) {
     console.error("Search error:", error)

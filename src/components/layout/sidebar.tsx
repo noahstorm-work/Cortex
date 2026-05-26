@@ -3,11 +3,20 @@
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
+import { cn } from "@/lib/utils/cn"
+import { ThemeToggle } from "@/components/ui/theme-toggle"
+import {
+  FileText,
+  Search,
+  FolderKanban,
+  LogOut,
+  Sparkles,
+} from "lucide-react"
 
 const navItems = [
-  { href: "/documents", label: "Documents", icon: "📄" },
-  { href: "/search", label: "Search", icon: "🔍" },
-  { href: "/projects", label: "Projects", icon: "📁" },
+  { href: "/documents", label: "Documents", icon: FileText },
+  { href: "/search", label: "Search", icon: Search },
+  { href: "/projects", label: "Projects", icon: FolderKanban },
 ]
 
 export function Sidebar() {
@@ -22,38 +31,45 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="flex h-screen w-64 flex-col border-r border-gray-200 bg-white">
-      <div className="flex h-14 items-center gap-2 border-b border-gray-200 px-6">
-        <span className="text-xl">⚡</span>
-        <span className="text-lg font-bold text-gray-900">Cortex</span>
+    <aside className="flex h-screen w-64 flex-col border-r border-sidebar-border bg-sidebar">
+      <div className="flex h-14 items-center justify-between border-b border-sidebar-border px-4">
+        <Link href="/documents" className="flex items-center gap-2">
+          <Sparkles className="h-5 w-5 text-violet-500" />
+          <span className="text-sm font-bold text-sidebar-foreground">
+            Cortex Voice
+          </span>
+        </Link>
+        <ThemeToggle />
       </div>
 
       <nav className="flex-1 space-y-1 px-3 py-4">
         {navItems.map((item) => {
           const isActive = pathname.startsWith(item.href)
+          const Icon = item.icon
           return (
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+              className={cn(
+                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                 isActive
-                  ? "bg-blue-50 text-blue-700"
-                  : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-              }`}
+                  ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                  : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+              )}
             >
-              <span>{item.icon}</span>
+              <Icon className="h-4 w-4" />
               {item.label}
             </Link>
           )
         })}
       </nav>
 
-      <div className="border-t border-gray-200 p-4">
+      <div className="border-t border-sidebar-border p-4">
         <button
           onClick={handleSignOut}
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors"
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
         >
-          <span>🚪</span>
+          <LogOut className="h-4 w-4" />
           Sign out
         </button>
       </div>

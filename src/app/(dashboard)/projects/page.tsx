@@ -5,8 +5,8 @@ export default function ProjectsPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Projects</h1>
-        <p className="mt-1 text-sm text-gray-500">
+        <h1 className="text-2xl font-bold text-foreground">Projects</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
           Organize your documents into projects.
         </p>
       </div>
@@ -16,7 +16,7 @@ export default function ProjectsPage() {
           <CreateProjectForm />
         </div>
         <div className="lg:col-span-2">
-          <h2 className="mb-4 text-lg font-semibold text-gray-900">Your projects</h2>
+          <h2 className="mb-4 text-lg font-semibold text-foreground">Your projects</h2>
           <ProjectList />
         </div>
       </div>

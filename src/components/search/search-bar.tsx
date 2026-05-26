@@ -1,6 +1,17 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { motion } from "framer-motion"
+import { Search, Loader2, BookOpen, List, FileText } from "lucide-react"
 import type { SearchResponse, Project } from "@/lib/types"
 import { createClient } from "@/lib/supabase/client"
 
@@ -62,56 +73,64 @@ export function SearchBar() {
   return (
     <div className="space-y-6">
       <form onSubmit={handleSearch} className="flex gap-2">
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search your documents..."
-          className="block flex-1 rounded-lg border border-gray-300 px-4 py-2.5 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-        />
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search your documents..."
+            className="pl-9"
+          />
+        </div>
         {projects.length > 0 && (
-          <select
-            value={selectedProject}
-            onChange={(e) => setSelectedProject(e.target.value)}
-            className="rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none"
-          >
-            <option value="">All projects</option>
-            {projects.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
+          <Select value={selectedProject} onValueChange={setSelectedProject}>
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="All projects" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">All projects</SelectItem>
+              {projects.map((p) => (
+                <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         )}
-        <button
-          type="submit"
-          disabled={searching || !query.trim()}
-          className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
-        >
-          {searching ? "Searching..." : "Search"}
-        </button>
+        <Button type="submit" disabled={searching || !query.trim()}>
+          {searching ? <Loader2 className="h-4 w-4 animate-spin" /> : "Search"}
+        </Button>
       </form>
 
       {error && (
-        <div className="rounded-lg bg-red-50 p-4 text-sm text-red-700">
+        <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-sm text-destructive">
           {error}
         </div>
       )}
 
       {result && (
-        <div className="space-y-6">
-          <div className="rounded-lg bg-white p-6 shadow-sm ring-1 ring-gray-200">
-            <h3 className="mb-2 text-sm font-semibold text-gray-900">Summary</h3>
-            <p className="text-sm leading-relaxed text-gray-700">{result.summary}</p>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="space-y-6"
+        >
+          <div className="rounded-xl border bg-card p-6 shadow-sm">
+            <div className="mb-2 flex items-center gap-2">
+              <BookOpen className="h-4 w-4 text-muted-foreground" />
+              <h3 className="text-sm font-semibold text-foreground">Summary</h3>
+            </div>
+            <p className="text-sm leading-relaxed text-muted-foreground">{result.summary}</p>
           </div>
 
           {result.key_points.length > 0 && (
-            <div className="rounded-lg bg-white p-6 shadow-sm ring-1 ring-gray-200">
-              <h3 className="mb-3 text-sm font-semibold text-gray-900">Key Points</h3>
+            <div className="rounded-xl border bg-card p-6 shadow-sm">
+              <div className="mb-3 flex items-center gap-2">
+                <List className="h-4 w-4 text-muted-foreground" />
+                <h3 className="text-sm font-semibold text-foreground">Key Points</h3>
+              </div>
               <ul className="space-y-2">
                 {result.key_points.map((point, i) => (
-                  <li key={i} className="flex gap-2 text-sm text-gray-700">
-                    <span className="mt-0.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-blue-500" />
+                  <li key={i} className="flex gap-2 text-sm text-muted-foreground">
+                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
                     {point}
                   </li>
                 ))}
@@ -120,20 +139,23 @@ export function SearchBar() {
           )}
 
           {result.references.length > 0 && (
-            <div className="rounded-lg bg-white p-6 shadow-sm ring-1 ring-gray-200">
-              <h3 className="mb-3 text-sm font-semibold text-gray-900">
-                Sources ({result.references.length})
-              </h3>
+            <div className="rounded-xl border bg-card p-6 shadow-sm">
+              <div className="mb-3 flex items-center gap-2">
+                <FileText className="h-4 w-4 text-muted-foreground" />
+                <h3 className="text-sm font-semibold text-foreground">
+                  Sources ({result.references.length})
+                </h3>
+              </div>
               <div className="space-y-3">
                 {result.references.map((ref, i) => (
-                  <div key={i} className="border-l-2 border-blue-200 pl-3">
-                    <p className="text-xs font-medium text-blue-700">
+                  <div key={i} className="border-l-2 border-primary/20 pl-3">
+                    <p className="text-xs font-medium text-foreground">
                       {ref.document_title}
-                      <span className="ml-2 text-gray-400">
+                      <span className="ml-2 text-muted-foreground">
                         (score: {ref.score})
                       </span>
                     </p>
-                    <p className="mt-1 text-sm text-gray-600 line-clamp-3">
+                    <p className="mt-1 text-sm text-muted-foreground line-clamp-3">
                       {ref.content}
                     </p>
                   </div>
@@ -141,7 +163,7 @@ export function SearchBar() {
               </div>
             </div>
           )}
-        </div>
+        </motion.div>
       )}
     </div>
   )
