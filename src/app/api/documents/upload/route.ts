@@ -7,54 +7,49 @@ export async function POST(request: Request) {
   if (auth.response) return auth.response
   const { supabase, user } = auth
 
-  let formData: FormData
+  let body: { fileName?: string; fileType?: string; fileSize?: number; projectId?: string }
   try {
-    formData = await request.formData()
+    body = await request.json()
   } catch {
     return NextResponse.json(
-      { error: "Expected multipart/form-data" },
+      { error: "Expected JSON body" },
       { status: 400 }
     )
   }
 
-  const file = formData.get("file") as File | null
-  if (!file) {
-    return NextResponse.json({ error: "file is required" }, { status: 400 })
+  const { fileName, fileType, fileSize, projectId } = body
+
+  if (!fileName) {
+    return NextResponse.json({ error: "fileName is required" }, { status: 400 })
   }
 
-  if (file.size === 0) {
+  if (!fileSize || fileSize <= 0) {
     return NextResponse.json({ error: "File is empty" }, { status: 400 })
   }
 
-  const projectId = formData.get("project_id") as string | null
-
   const maxSize = 50 * 1024 * 1024
-  if (file.size > maxSize) {
+  if (fileSize > maxSize) {
     return NextResponse.json({ error: "File exceeds 50 MB limit" }, { status: 400 })
   }
 
   try {
-    const buffer = Buffer.from(await file.arrayBuffer())
-    const fileExt = file.name.split(".").pop() || "txt"
+    const fileExt = fileName.split(".").pop() || "txt"
     const filePath = `${user.id}/${crypto.randomUUID()}.${fileExt}`
 
     const admin = createAdminClient()
 
-    const { error: uploadError } = await admin.storage
+    const { data: signedData, error: signedError } = await admin.storage
       .from("documents")
-      .upload(filePath, buffer, {
-        contentType: file.type,
-        upsert: false,
-      })
+      .createSignedUploadUrl(filePath)
 
-    if (uploadError) {
+    if (signedError || !signedData) {
       return NextResponse.json(
-        { error: "Storage upload failed: " + uploadError.message },
+        { error: "Failed to create upload URL: " + (signedError?.message || "unknown") },
         { status: 500 }
       )
     }
 
-    const { data: urlData } = await supabase.storage
+    const { data: urlData } = supabase.storage
       .from("documents")
       .getPublicUrl(filePath)
 
@@ -64,11 +59,11 @@ export async function POST(request: Request) {
       .from("documents")
       .insert({
         user_id: user.id,
-        title: file.name,
+        title: fileName,
         file_url: fileUrl,
-        file_type: file.type || "application/octet-stream",
+        file_type: fileType || "application/octet-stream",
         project_id: projectId || null,
-        status: "processing",
+        status: "pending",
       })
       .select("id")
       .single()
@@ -81,27 +76,10 @@ export async function POST(request: Request) {
       )
     }
 
-    const { count } = await supabase
-      .from("documents")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", user.id)
-      .eq("status", "processing")
-
-    if (count && count > 3) {
-      await supabase.from("documents").update({ status: "pending" }).eq("id", doc.id)
-    } else {
-      fetch(new URL("/api/documents/process", request.url), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          document_id: doc.id,
-          file_url: fileUrl,
-          user_id: user.id,
-        }),
-      }).catch((err) => console.error("Process trigger failed:", err))
-    }
-
     return NextResponse.json({
+      signedUrl: signedData.signedUrl,
+      path: signedData.path,
+      token: signedData.token,
       document_id: doc.id,
       file_url: fileUrl,
     })

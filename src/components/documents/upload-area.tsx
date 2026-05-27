@@ -49,17 +49,37 @@ export function UploadArea({ onUploadComplete }: UploadAreaProps) {
     setUploadError(null)
 
     for (const file of files) {
-      const formData = new FormData()
-      formData.append("file", file)
       try {
-        const res = await fetch("/api/documents/upload", {
+        const metaRes = await fetch("/api/documents/upload", {
           method: "POST",
-          body: formData,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            fileName: file.name,
+            fileType: file.type,
+            fileSize: file.size,
+          }),
         })
-        if (!res.ok) {
-          const data = await res.json()
+        if (!metaRes.ok) {
+          const data = await metaRes.json()
           throw new Error(data.error || "Upload failed")
         }
+
+        const { signedUrl, document_id, file_url } = await metaRes.json()
+
+        const uploadRes = await fetch(signedUrl, {
+          method: "PUT",
+          body: file,
+          headers: { "Content-Type": file.type },
+        })
+        if (!uploadRes.ok) {
+          throw new Error("File upload to storage failed")
+        }
+
+        fetch("/api/documents/process", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ document_id, file_url }),
+        }).catch((err) => console.error("Process trigger failed:", err))
       } catch (err) {
         setUploadError(err instanceof Error ? err.message : "Upload failed")
         return
