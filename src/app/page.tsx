@@ -14,7 +14,7 @@ export default function Home() {
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) router.push("/documents")
+      if (user) router.push("/dashboard")
     })
   }, [supabase, router])
 

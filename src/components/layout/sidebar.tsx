@@ -8,6 +8,7 @@ import { ThemeToggle } from "@/components/ui/theme-toggle"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import {
+  LayoutDashboard,
   FileText,
   Search,
   FolderKanban,
@@ -18,6 +19,7 @@ import {
 } from "lucide-react"
 
 const navItems = [
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/documents", label: "Documents", icon: FileText },
   { href: "/search", label: "Search", icon: Search },
   { href: "/projects", label: "Projects", icon: FolderKanban },
@@ -47,13 +49,13 @@ export function Sidebar() {
           </SheetTrigger>
           <SheetContent side="left" className="w-64 p-0 border-r-0">
             <SheetTitle className="sr-only">Navigation menu</SheetTitle>
-            <SheetDescription className="sr-only">Navigate to different sections of Cortex Voice</SheetDescription>
+            <SheetDescription className="sr-only">Navigate to different sections of Cortex</SheetDescription>
             <div className="flex h-14 items-center border-b border-border px-4">
-              <Link href="/documents" className="flex items-center gap-2.5">
+              <Link href="/dashboard" className="flex items-center gap-2.5">
                 <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 shadow-sm">
                   <Sparkles className="h-4 w-4 text-white" />
                 </div>
-                <span className="text-sm font-semibold tracking-tight">Cortex Voice</span>
+                <span className="text-sm font-semibold tracking-tight">Cortex</span>
               </Link>
             </div>
             <nav className="space-y-1 px-3 py-4">
@@ -93,7 +95,7 @@ export function Sidebar() {
           <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 shadow-sm">
             <Sparkles className="h-4 w-4 text-white" />
           </div>
-          <span className="text-sm font-semibold tracking-tight">Cortex Voice</span>
+          <span className="text-sm font-semibold tracking-tight">Cortex</span>
         </div>
         <div className="ml-auto">
           <ThemeToggle />
@@ -103,11 +105,11 @@ export function Sidebar() {
       <div className="hidden md:flex">
         <aside className="group/sidebar flex h-screen w-64 flex-col border-r border-border bg-sidebar">
           <div className="flex h-14 items-center justify-between border-b border-border px-4">
-            <Link href="/documents" className="flex items-center gap-2.5">
+            <Link href="/dashboard" className="flex items-center gap-2.5">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 shadow-sm shadow-amber-500/20 transition-transform duration-200 group-hover/sidebar:scale-105">
                 <Sparkles className="h-4.5 w-4.5 text-white" />
               </div>
-              <span className="text-sm font-semibold tracking-tight">Cortex Voice</span>
+              <span className="text-sm font-semibold tracking-tight">Cortex</span>
             </Link>
             <ThemeToggle />
           </div>
@@ -141,8 +143,8 @@ export function Sidebar() {
 
           <div className="border-t border-border p-3">
             <div className="rounded-xl bg-gradient-to-br from-amber-400/5 to-amber-600/5 p-3">
-              <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/60">
-                Workspace
+                <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground/60">
+                Account
               </p>
               <div className="mt-2 space-y-1">
                 <button
