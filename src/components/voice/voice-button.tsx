@@ -13,7 +13,7 @@ interface VoiceButtonProps {
 }
 
 export function VoiceButton({ onSearchResult }: VoiceButtonProps) {
-  const { isListening, transcript, interimTranscript, error, modelLoading, usingLocalModel, toggle } = useSpeechRecognition()
+  const { isListening, transcript, interimTranscript, error, modelLoading, modelProgress, usingLocalModel, audioLevel, toggle } = useSpeechRecognition()
   const { speaking, supported: ttsSupported, speak, stop: stopTts } = useSpeechSynthesis()
   const [expanded, setExpanded] = useState(false)
   const [searching, setSearching] = useState(false)
@@ -96,20 +96,30 @@ export function VoiceButton({ onSearchResult }: VoiceButtonProps) {
 
       <div className="flex flex-col items-center gap-2">
         {modelLoading ? (
-          <div className="flex h-16 w-16 items-center justify-center rounded-full border bg-card">
-            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          <div className="flex flex-col items-center gap-3">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full border bg-card">
+              <Loader2 className="h-6 w-6 animate-spin text-amber-500" />
+            </div>
+            <div className="w-32">
+              <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                <motion.div
+                  className="h-full rounded-full bg-gradient-to-r from-amber-500 to-amber-400"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${Math.max(modelProgress, 5)}%` }}
+                  transition={{ duration: 0.3 }}
+                />
+              </div>
+            </div>
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-xs text-muted-foreground"
+            >
+              {modelProgress > 0 ? `Downloading model... ${modelProgress}%` : "Loading speech model..."}
+            </motion.p>
           </div>
         ) : (
-          <VoiceOrb isListening={isListening} onToggle={toggle} />
-        )}
-        {modelLoading && (
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-xs text-muted-foreground"
-          >
-            Downloading speech model...
-          </motion.p>
+          <VoiceOrb isListening={isListening} onToggle={toggle} audioLevel={audioLevel} />
         )}
         {isListening && (
           <motion.p

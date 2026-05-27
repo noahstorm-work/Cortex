@@ -11,7 +11,9 @@ interface SpeechRecognitionHook {
   micPermission: "prompt"|"granted"|"denied"|"unknown"
   supported: boolean
   modelLoading: boolean
+  modelProgress: number
   usingLocalModel: boolean
+  audioLevel: number
   start: () => void
   stop: () => void
   toggle: () => void
@@ -26,6 +28,8 @@ export function useSpeechRecognition(): SpeechRecognitionHook {
   const [supported, setSupported] = useState(false)
   const [usingLocalModel, setUsingLocalModel] = useState(false)
   const [modelLoading, setModelLoading] = useState(false)
+  const [modelProgress, setModelProgress] = useState(0)
+  const [audioLevel, setAudioLevel] = useState(0)
   const recognitionRef = useRef<any>(null)
   const mediaRecorderRef = useRef<{
     stream: MediaStream
@@ -33,8 +37,12 @@ export function useSpeechRecognition(): SpeechRecognitionHook {
     source: MediaStreamAudioSourceNode
     processor: ScriptProcessorNode
     chunks: Float32Array[]
+    maxRms: number
     stopRecording: () => void
   } | null>(null)
+  const networkFailureRef = useRef(false)
+  const startingRef = useRef(false)
+  const fallbackInProgressRef = useRef(false)
 
   useEffect(() => {
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
@@ -42,9 +50,43 @@ export function useSpeechRecognition(): SpeechRecognitionHook {
     const status = getTranscriberStatus()
     if (status.loading) setModelLoading(true)
     if (status.loaded) setModelLoading(false)
+    if (status.progress > 0) setModelProgress(status.progress)
+
+    if (SR) {
+      const probe = new SR()
+      probe.continuous = false
+      probe.interimResults = false
+      probe.lang = "en-US"
+      probe.onstart = () => { probe.abort() }
+      probe.onerror = (e: any) => {
+        if (e.error === "network") networkFailureRef.current = true
+        probe.abort()
+      }
+      try { probe.start() } catch {
+        if (!navigator.mediaDevices) networkFailureRef.current = true
+      }
+    }
+
+    const timer = setTimeout(() => {
+      const s = getTranscriberStatus()
+      if (!s.loaded && !s.loading) {
+        setModelLoading(true)
+        loadTranscriber((pct) => setModelProgress(pct)).finally(() => setModelLoading(false))
+      }
+    }, 3000)
+
+    return () => clearTimeout(timer)
   }, [])
 
   const startLocalRecording = useCallback(async () => {
+    if (mediaRecorderRef.current) return
+    const sentinel: any = { _pending: true }
+    mediaRecorderRef.current = sentinel
+    setTranscript("")
+    setInterimTranscript("")
+    setError(null)
+    setUsingLocalModel(true)
+    setIsListening(true)
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
       const audioContext = new AudioContext()
@@ -54,11 +96,19 @@ export function useSpeechRecognition(): SpeechRecognitionHook {
       const processor = audioContext.createScriptProcessor(4096, 1, 1)
       const chunks: Float32Array[] = []
       let recording = true
+      let maxRms = 0
 
       processor.onaudioprocess = (e) => {
         if (!recording) return
         const input = e.inputBuffer.getChannelData(0)
         chunks.push(new Float32Array(input))
+        let sum = 0
+        for (let i = 0; i < input.length; i++) {
+          sum += input[i] * input[i]
+        }
+        const rms = Math.sqrt(sum / input.length)
+        if (rms > maxRms) maxRms = rms
+        setAudioLevel(Math.min(rms * 50, 1))
       }
 
       source.connect(processor)
@@ -78,31 +128,44 @@ export function useSpeechRecognition(): SpeechRecognitionHook {
         source,
         processor,
         chunks,
+        maxRms,
         stopRecording,
       }
 
       setMicPermission("granted")
-      setTranscript("")
-      setInterimTranscript("")
-      setError(null)
-      setUsingLocalModel(true)
-      setIsListening(true)
     } catch {
+      mediaRecorderRef.current = null
       setMicPermission("denied")
       setError("Microphone access was denied.")
+      setIsListening(false)
     }
   }, [])
 
   const stopLocalRecording = useCallback(async () => {
     const recorder = mediaRecorderRef.current
-    if (!recorder) return ""
+    setAudioLevel(0)
+    if (!recorder || (recorder as any)._pending) {
+      mediaRecorderRef.current = null
+      setIsListening(false)
+      return ""
+    }
 
     const chunks = recorder.chunks
+    const maxRms = recorder.maxRms
     recorder.stopRecording()
     mediaRecorderRef.current = null
     setIsListening(false)
 
-    if (chunks.length === 0) return ""
+    if (chunks.length === 0) {
+      setUsingLocalModel(false)
+      return ""
+    }
+
+    if (maxRms < 0.008) {
+      setError("No speech detected. Try speaking into the mic.")
+      setUsingLocalModel(false)
+      return ""
+    }
 
     setInterimTranscript("Transcribing locally...")
 
@@ -111,12 +174,13 @@ export function useSpeechRecognition(): SpeechRecognitionHook {
 
     try {
       if (!status.loaded) {
-        await loadTranscriber()
+        await loadTranscriber((pct) => setModelProgress(pct))
         setModelLoading(false)
       }
       const text = await transcribeAudioChunks(chunks)
       return text
-    } catch {
+    } catch (e) {
+      console.error("[Transcriber] stopLocalRecording error:", e)
       setError("Local transcription failed. Try again.")
       return ""
     } finally {
@@ -154,8 +218,9 @@ export function useSpeechRecognition(): SpeechRecognitionHook {
     }
 
     recognition.onerror = (event: any) => {
-      console.error("[SpeechRecognition] error:", event.error, event.message || "", event)
       if (event.error === "network") {
+        networkFailureRef.current = true
+        fallbackInProgressRef.current = true
         recognitionRef.current = null
         startLocalRecording()
       } else {
@@ -176,6 +241,10 @@ export function useSpeechRecognition(): SpeechRecognitionHook {
     }
 
     recognition.onend = () => {
+      if (fallbackInProgressRef.current) {
+        fallbackInProgressRef.current = false
+        return
+      }
       setIsListening(false)
     }
 
@@ -195,32 +264,43 @@ export function useSpeechRecognition(): SpeechRecognitionHook {
   }, [])
 
   const start = useCallback(async () => {
-    if (mediaRecorderRef.current) return
-    if (micPermission === "denied") {
-      setError("Microphone access was denied. Allow mic access in your browser settings and try again.")
-      return
-    }
-    if (micPermission !== "granted") {
-      const ok = await requestMicPermission()
-      if (!ok) return
-    }
-    recognitionRef.current = null
-    const recognition = createRecognition()
-    if (!recognition) {
-      startLocalRecording()
-      return
-    }
-    recognitionRef.current = recognition
-    setTranscript("")
-    setInterimTranscript("")
-    setError(null)
-    setUsingLocalModel(false)
+    if (startingRef.current) return
+    startingRef.current = true
     try {
-      recognition.start()
-      setIsListening(true)
-    } catch {
+      if (mediaRecorderRef.current) return
+      if (micPermission === "denied") {
+        setError("Microphone access was denied. Allow mic access in your browser settings and try again.")
+        return
+      }
+      if (micPermission !== "granted") {
+        const ok = await requestMicPermission()
+        if (!ok) return
+      }
+      setAudioLevel(0)
+      if (networkFailureRef.current) {
+        startLocalRecording()
+        return
+      }
       recognitionRef.current = null
-      startLocalRecording()
+      const recognition = createRecognition()
+      if (!recognition) {
+        startLocalRecording()
+        return
+      }
+      recognitionRef.current = recognition
+      setTranscript("")
+      setInterimTranscript("")
+      setError(null)
+      setUsingLocalModel(false)
+      try {
+        recognition.start()
+        setIsListening(true)
+      } catch {
+        recognitionRef.current = null
+        startLocalRecording()
+      }
+    } finally {
+      startingRef.current = false
     }
   }, [createRecognition, micPermission, requestMicPermission, startLocalRecording])
 
@@ -251,7 +331,12 @@ export function useSpeechRecognition(): SpeechRecognitionHook {
   useEffect(() => {
     return () => {
       try { recognitionRef.current?.stop() } catch {}
-      mediaRecorderRef.current?.stopRecording()
+      try {
+        const rec = mediaRecorderRef.current
+        if (rec && typeof (rec as any).stopRecording === "function") {
+          rec.stopRecording()
+        }
+      } catch {}
     }
   }, [])
 
@@ -263,7 +348,9 @@ export function useSpeechRecognition(): SpeechRecognitionHook {
     micPermission,
     supported,
     modelLoading,
+    modelProgress,
     usingLocalModel,
+    audioLevel,
     start,
     stop,
     toggle,

@@ -5,9 +5,10 @@ import { motion, AnimatePresence } from "framer-motion"
 interface VoiceOrbProps {
   isListening: boolean
   onToggle: () => void
+  audioLevel?: number
 }
 
-export function VoiceOrb({ isListening, onToggle }: VoiceOrbProps) {
+export function VoiceOrb({ isListening, onToggle, audioLevel = 0 }: VoiceOrbProps) {
   return (
     <button
       onClick={onToggle}
@@ -58,23 +59,26 @@ export function VoiceOrb({ isListening, onToggle }: VoiceOrbProps) {
       <AnimatePresence>
         {isListening && (
           <>
-            {[0, 1, 2, 3, 4].map((i) => (
-              <motion.span
-                key={i}
-                className="absolute bottom-5 h-3 w-0.5 rounded-full bg-white/70"
-                style={{ left: `calc(50% + ${(i - 2) * 5}px)` }}
-                animate={{
-                  height: [3, 10 + Math.random() * 8, 3],
-                  opacity: [0.5, 1, 0.5],
-                }}
-                transition={{
-                  duration: 0.6 + i * 0.08,
-                  repeat: Infinity,
-                  delay: i * 0.1,
-                  ease: "easeInOut",
-                }}
-              />
-            ))}
+            {[0, 1, 2, 3, 4].map((i) => {
+              const barHeight = Math.max(3, audioLevel * 24)
+              return (
+                <motion.span
+                  key={i}
+                  className="absolute bottom-5 w-0.5 rounded-full bg-white/70"
+                  style={{ left: `calc(50% + ${(i - 2) * 5}px)` }}
+                  animate={{
+                    height: [barHeight * 0.3, barHeight, barHeight * 0.3],
+                    opacity: [0.5, 1, 0.5],
+                  }}
+                  transition={{
+                    duration: 0.4 + i * 0.06,
+                    repeat: Infinity,
+                    delay: i * 0.08,
+                    ease: "easeInOut",
+                  }}
+                />
+              )
+            })}
           </>
         )}
       </AnimatePresence>
