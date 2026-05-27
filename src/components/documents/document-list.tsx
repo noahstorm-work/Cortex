@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState, useCallback, useRef } from "react"
 import { createClient } from "@/lib/supabase/client"
 import {
   Select,
@@ -78,6 +78,14 @@ export function DocumentList() {
     fetchDocuments()
   }, [fetchDocuments])
 
+  const hasProcessing = documents.some((d) => d.status === "pending" || d.status === "processing")
+
+  useEffect(() => {
+    if (!hasProcessing) return
+    const interval = setInterval(fetchDocuments, 3000)
+    return () => clearInterval(interval)
+  }, [hasProcessing, fetchDocuments])
+
   const handleDelete = async (doc: Document) => {
     setDeleting(doc.id)
     await fetch("/api/documents/delete", {
@@ -135,9 +143,15 @@ export function DocumentList() {
                   </p>
                   <p className="text-xs text-muted-foreground">
                     {new Date(doc.created_at).toLocaleDateString()}
-                    <Badge variant={doc.status === 'ready' ? 'default' : doc.status === 'processing' ? 'secondary' : 'destructive'} className="ml-2 text-[10px]">
-                      {doc.status === 'pending' ? 'Pending' : doc.status === 'processing' ? 'Processing...' : doc.status === 'ready' ? 'Ready' : 'Failed'}
-                    </Badge>
+                    <span className={`ml-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium ${
+                      doc.status === 'ready' ? 'bg-emerald-400/10 text-emerald-500' :
+                      doc.status === 'processing' ? 'bg-amber-400/10 text-amber-500' :
+                      doc.status === 'pending' ? 'bg-muted text-muted-foreground' :
+                      'bg-destructive/10 text-destructive'
+                    }`}>
+                      {doc.status === 'processing' && <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />}
+                      {doc.status === 'pending' ? 'Pending' : doc.status === 'processing' ? 'Processing' : doc.status === 'ready' ? 'Ready' : 'Failed'}
+                    </span>
                     {doc.project_name && (
                       <Badge variant="secondary" className="ml-2 text-[10px]">
                         {doc.project_name}

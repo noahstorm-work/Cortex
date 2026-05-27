@@ -3,8 +3,14 @@
 import { useState, useRef } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Upload, File, X, AlertCircle } from "lucide-react"
+import { Upload, File, X, AlertCircle, CheckCircle2, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils/cn"
+
+interface FileStatus {
+  name: string
+  state: "pending" | "uploading" | "processing" | "done" | "error"
+  error?: string
+}
 
 interface UploadAreaProps {
   onUploadComplete?: () => void
@@ -12,6 +18,7 @@ interface UploadAreaProps {
 
 export function UploadArea({ onUploadComplete }: UploadAreaProps) {
   const [files, setFiles] = useState<File[]>([])
+  const [fileStatuses, setFileStatuses] = useState<FileStatus[]>([])
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [dragOver, setDragOver] = useState(false)
@@ -43,13 +50,22 @@ export function UploadArea({ onUploadComplete }: UploadAreaProps) {
     }
   }
 
+  const updateStatus = (name: string, update: Partial<FileStatus>) => {
+    setFileStatuses((prev) =>
+      prev.map((s) => (s.name === name ? { ...s, ...update } : s))
+    )
+  }
+
   const handleUpload = async () => {
     if (files.length === 0) return
     setUploading(true)
     setUploadError(null)
+    setFileStatuses(files.map((f) => ({ name: f.name, state: "pending" })))
 
     for (const file of files) {
       try {
+        updateStatus(file.name, { state: "uploading" })
+
         const metaRes = await fetch("/api/documents/upload", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -75,25 +91,29 @@ export function UploadArea({ onUploadComplete }: UploadAreaProps) {
           throw new Error("File upload to storage failed")
         }
 
-        const triggerProcess = async (retries = 3): Promise<void> => {
-          for (let i = 0; i < retries; i++) {
-            if (i > 0) await new Promise(r => setTimeout(r, 1000))
-            const res = await fetch("/api/documents/process", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ document_id, file_url }),
-            })
-            if (res.ok) return
-            if (i === retries - 1) {
-              const err = await res.json().catch(() => ({ error: "Unknown error" }))
-              console.error("Process trigger failed:", err.error)
-            }
+        updateStatus(file.name, { state: "processing" })
+
+        for (let i = 0; i < 3; i++) {
+          if (i > 0) await new Promise((r) => setTimeout(r, 1000))
+          const res = await fetch("/api/documents/process", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ document_id, file_url }),
+          })
+          if (res.ok) {
+            updateStatus(file.name, { state: "done" })
+            break
+          }
+          if (i === 2) {
+            const err = await res.json().catch(() => ({ error: "Unknown error" }))
+            throw new Error(err.error)
           }
         }
-        triggerProcess()
       } catch (err) {
-        setUploadError(err instanceof Error ? err.message : "Upload failed")
-        return
+        updateStatus(file.name, {
+          state: "error",
+          error: err instanceof Error ? err.message : "Upload failed",
+        })
       }
     }
 
@@ -136,23 +156,51 @@ export function UploadArea({ onUploadComplete }: UploadAreaProps) {
 
         {files.length > 0 && (
           <div className="mt-4 space-y-2">
-            {files.map((file, i) => (
-              <div key={i} className="flex items-center justify-between rounded-lg bg-muted px-3 py-2">
-                <div className="flex items-center gap-2 min-w-0">
-                  <File className="h-4 w-4 shrink-0 text-muted-foreground" />
-                  <span className="truncate text-sm text-foreground">{file.name}</span>
+            {files.map((file, i) => {
+              const status = fileStatuses.find((s) => s.name === file.name)
+              return (
+                <div key={i} className="flex items-center justify-between rounded-lg bg-muted px-3 py-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <File className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <span className="truncate text-sm text-foreground">{file.name}</span>
+                    {status?.state === "uploading" && <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin text-muted-foreground" />}
+                    {status?.state === "processing" && <span className="h-2 w-2 shrink-0 rounded-full bg-amber-400 animate-pulse" />}
+                    {status?.state === "done" && <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-500" />}
+                    {status?.state === "error" && <AlertCircle className="h-3.5 w-3.5 shrink-0 text-destructive" />}
+                  </div>
+                  {!status || status.state === "pending" ? (
+                    <button
+                      onClick={() => {
+                        setFiles((prev) => prev.filter((_, j) => j !== i))
+                        setFileStatuses((prev) => prev.filter((s) => s.name !== file.name))
+                      }}
+                      className="shrink-0 text-muted-foreground hover:text-foreground"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  ) : status.state === "error" ? (
+                    <span className="text-[11px] text-destructive truncate max-w-[160px]">{status.error}</span>
+                  ) : null}
                 </div>
-                <button
-                  onClick={() => setFiles((prev) => prev.filter((_, j) => j !== i))}
-                  className="shrink-0 text-muted-foreground hover:text-foreground"
-                >
-                  <X className="h-4 w-4" />
-                </button>
+              )
+            })}
+            {!fileStatuses.some((s) => s.state === "done" || s.state === "error") && (
+              <Button onClick={handleUpload} disabled={uploading || fileStatuses.some((s) => s.state === "uploading" || s.state === "processing")} className="w-full">
+                {uploading ? "Processing..." : `Upload ${files.length} file${files.length > 1 ? "s" : ""}`}
+              </Button>
+            )}
+            {fileStatuses.some((s) => s.state === "done" || s.state === "error") && (
+              <div className="flex gap-2">
+                <Button onClick={() => { setFiles([]); setFileStatuses([]); onUploadComplete?.() }} variant="default" className="flex-1">
+                  Done
+                </Button>
+                {fileStatuses.some((s) => s.state === "error") && (
+                  <Button onClick={() => { setFiles([]); setFileStatuses([]) }} variant="outline" className="flex-1">
+                    Clear all
+                  </Button>
+                )}
               </div>
-            ))}
-            <Button onClick={handleUpload} disabled={uploading} className="w-full">
-              {uploading ? "Uploading..." : `Upload ${files.length} file${files.length > 1 ? "s" : ""}`}
-            </Button>
+            )}
             {uploadError && (
               <p className="mt-2 text-sm text-destructive flex items-center gap-1">
                 <AlertCircle className="h-4 w-4" />
