@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import { Outfit, Inter, JetBrains_Mono } from "next/font/google"
 import { ThemeProvider } from "@/components/ui/theme-provider"
+import { SonnerToast } from "@/components/ui/sonner-toast"
 import "./globals.css"
 
 const outfit = Outfit({
@@ -34,6 +35,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       >
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           {children}
+          <SonnerToast />
         </ThemeProvider>
       </body>
     </html>

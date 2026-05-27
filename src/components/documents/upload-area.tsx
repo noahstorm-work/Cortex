@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Upload, File, X, AlertCircle, CheckCircle2, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils/cn"
+import { toast } from "sonner"
 
 interface FileStatus {
   name: string
@@ -62,6 +63,9 @@ export function UploadArea({ onUploadComplete }: UploadAreaProps) {
     setUploadError(null)
     setFileStatuses(files.map((f) => ({ name: f.name, state: "pending" })))
 
+    let succeeded = 0
+    let failed = 0
+
     for (const file of files) {
       try {
         updateStatus(file.name, { state: "uploading" })
@@ -102,6 +106,7 @@ export function UploadArea({ onUploadComplete }: UploadAreaProps) {
           })
           if (res.ok) {
             updateStatus(file.name, { state: "done" })
+            succeeded++
             break
           }
           if (i === 2) {
@@ -114,11 +119,19 @@ export function UploadArea({ onUploadComplete }: UploadAreaProps) {
           state: "error",
           error: err instanceof Error ? err.message : "Upload failed",
         })
+        failed++
       }
     }
 
     setFiles([])
     setUploading(false)
+
+    if (failed > 0) {
+      toast.error(`${failed} file${failed !== 1 ? "s" : ""} failed to upload`)
+    } else if (succeeded > 0) {
+      toast.success(`${succeeded} file${succeeded !== 1 ? "s" : ""} uploaded successfully`)
+    }
+
     onUploadComplete?.()
   }
 
