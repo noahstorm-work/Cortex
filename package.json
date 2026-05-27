@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev --webpack",
-    "build": "next build",
+    "postinstall": "node -e \"try{require('fs').cpSync(require('path').join('node_modules','@xenova','transformers','dist'),'public/wasm',{recursive:true})}catch(e){console.error('copy wasm failed:',e.message)}\"",
+    "build": "node -e \"require('fs').cpSync(require('path').join('node_modules','@xenova','transformers','dist'),'public/wasm',{recursive:true})\" && next build",
     "start": "next start",
     "lint": "eslint"
   },
