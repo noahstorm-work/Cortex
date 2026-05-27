@@ -42,12 +42,20 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Document not found" }, { status: 404 })
     }
 
-    const response = await fetch(file_url)
-    if (!response.ok) {
-      throw new Error("Failed to fetch document file")
+    const storagePath = file_url.split("/public/documents/")[1]
+    if (!storagePath) {
+      throw new Error("Could not extract storage path from file URL")
     }
 
-    const buffer = await response.arrayBuffer()
+    const { data: fileData, error: downloadError } = await adminClient.storage
+      .from("documents")
+      .download(storagePath)
+
+    if (downloadError || !fileData) {
+      throw new Error("Failed to fetch document file: " + (downloadError?.message || "unknown"))
+    }
+
+    const buffer = Buffer.from(await fileData.arrayBuffer())
     let text: string
 
     if (file_url.endsWith(".pdf")) {
@@ -97,10 +105,10 @@ export async function POST(request: Request) {
       document_id,
     })
   } catch (error) {
-    await adminClient.from("documents").update({ status: "failed" }).eq("id", document_id)
+    try { await adminClient.from("documents").update({ status: "failed" }).eq("id", document_id) } catch {}
     console.error("Process error:", error)
     return NextResponse.json(
-      { error: "Failed to process document" },
+      { error: error instanceof Error ? error.message : "Failed to process document" },
       { status: 500 }
     )
   }

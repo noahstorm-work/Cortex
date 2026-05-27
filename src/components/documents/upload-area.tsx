@@ -75,11 +75,22 @@ export function UploadArea({ onUploadComplete }: UploadAreaProps) {
           throw new Error("File upload to storage failed")
         }
 
-        fetch("/api/documents/process", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ document_id, file_url }),
-        }).catch((err) => console.error("Process trigger failed:", err))
+        const triggerProcess = async (retries = 3): Promise<void> => {
+          for (let i = 0; i < retries; i++) {
+            if (i > 0) await new Promise(r => setTimeout(r, 1000))
+            const res = await fetch("/api/documents/process", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ document_id, file_url }),
+            })
+            if (res.ok) return
+            if (i === retries - 1) {
+              const err = await res.json().catch(() => ({ error: "Unknown error" }))
+              console.error("Process trigger failed:", err.error)
+            }
+          }
+        }
+        triggerProcess()
       } catch (err) {
         setUploadError(err instanceof Error ? err.message : "Upload failed")
         return
