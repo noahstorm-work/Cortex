@@ -11,9 +11,22 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { motion } from "framer-motion"
-import { Search, Loader2, BookOpen, List, FileText, Sparkles } from "lucide-react"
+import { Search, Loader2, BookOpen, List, FileText, Sparkles, Cpu, ChevronDown, ChevronUp } from "lucide-react"
 import type { SearchResponse, Project } from "@/lib/types"
 import { createClient } from "@/lib/supabase/client"
+
+function RelevanceBadge({ label }: { label: "high" | "medium" | "low" }) {
+  const styles = {
+    high: "bg-emerald-400/10 text-emerald-500 border-emerald-400/20",
+    medium: "bg-amber-400/10 text-amber-500 border-amber-400/20",
+    low: "bg-muted text-muted-foreground border-border/50",
+  }
+  return (
+    <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ${styles[label]}`}>
+      {label}
+    </span>
+  )
+}
 
 export function SearchBar() {
   const [query, setQuery] = useState("")
@@ -22,6 +35,7 @@ export function SearchBar() {
   const [error, setError] = useState<string | null>(null)
   const [projects, setProjects] = useState<Project[]>([])
   const [selectedProject, setSelectedProject] = useState("")
+  const [expandedRefs, setExpandedRefs] = useState<Set<number>>(new Set())
   const supabase = createClient()
 
   useEffect(() => {
@@ -45,6 +59,7 @@ export function SearchBar() {
     setSearching(true)
     setError(null)
     setResult(null)
+    setExpandedRefs(new Set())
 
     try {
       const res = await fetch("/api/search", {
@@ -68,6 +83,15 @@ export function SearchBar() {
     } finally {
       setSearching(false)
     }
+  }
+
+  const toggleRef = (i: number) => {
+    setExpandedRefs((prev) => {
+      const next = new Set(prev)
+      if (next.has(i)) next.delete(i)
+      else next.add(i)
+      return next
+    })
   }
 
   return (
@@ -134,6 +158,12 @@ export function SearchBar() {
             <div className="mb-3 flex items-center gap-2">
               <BookOpen className="h-4 w-4 text-amber-400" />
               <h3 className="text-sm font-semibold text-foreground">Summary</h3>
+              {result.ai_generated && (
+                <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/20 bg-amber-400/5 px-2 py-0.5 text-[10px] font-medium text-amber-500 ml-auto">
+                  <Cpu className="h-3 w-3" />
+                  AI generated
+                </span>
+              )}
             </div>
             <p className="text-sm leading-relaxed text-muted-foreground">{result.summary}</p>
           </div>
@@ -162,17 +192,43 @@ export function SearchBar() {
                 <h3 className="text-sm font-semibold text-foreground">
                   Sources ({result.references.length})
                 </h3>
+                {result.total_chunks && (
+                  <span className="text-[11px] text-muted-foreground/60 ml-auto">
+                    {result.total_chunks} chunk{result.total_chunks !== 1 ? "s" : ""} matched
+                  </span>
+                )}
               </div>
               <div className="space-y-3">
                 {result.references.map((ref, i) => (
-                  <div key={i} className="border-l-2 border-amber-400/20 pl-4 transition-colors hover:border-amber-400/40">
-                    <p className="text-xs font-medium text-foreground">
-                      {ref.document_title}
-                      <span className="ml-2 text-muted-foreground/60">
-                        (score: {ref.score})
-                      </span>
-                    </p>
-                    <p className="mt-1 text-sm text-muted-foreground line-clamp-3">{ref.content}</p>
+                  <div key={i}>
+                    <button
+                      onClick={() => toggleRef(i)}
+                      className="w-full text-left border-l-2 border-amber-400/20 pl-4 py-2 transition-colors hover:border-amber-400/40 rounded-r-lg hover:bg-muted/30"
+                    >
+                      <div className="flex items-center gap-2">
+                        <p className="text-xs font-medium text-foreground truncate">
+                          {ref.document_title}
+                        </p>
+                        <RelevanceBadge label={ref.relevance} />
+                        {expandedRefs.has(i) ? (
+                          <ChevronUp className="ml-auto h-3 w-3 shrink-0 text-muted-foreground" />
+                        ) : (
+                          <ChevronDown className="ml-auto h-3 w-3 shrink-0 text-muted-foreground" />
+                        )}
+                      </div>
+                      <p className="mt-1 text-sm text-muted-foreground line-clamp-2">
+                        {ref.excerpt}
+                      </p>
+                    </button>
+                    {expandedRefs.has(i) && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        className="mt-2 ml-4 rounded-lg bg-muted/30 p-3 text-sm text-muted-foreground leading-relaxed"
+                      >
+                        {ref.content}
+                      </motion.div>
+                    )}
                   </div>
                 ))}
               </div>

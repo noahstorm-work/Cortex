@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { createServerSupabaseClient } from "@/lib/supabase/server"
 import { chunkText } from "@/lib/chunking"
-import { generateEmbedding } from "@/lib/embeddings"
+import { generateEmbeddings } from "@/lib/embeddings"
 import { ocrImage, ocrPDF } from "@/lib/ocr"
 
 export async function POST(request: Request) {
@@ -85,17 +85,17 @@ export async function POST(request: Request) {
 
     const chunks = chunkText(text)
 
-    const batchSize = 3
+    const batchSize = 20
     for (let i = 0; i < chunks.length; i += batchSize) {
       const batch = chunks.slice(i, i + batchSize)
-      const embeddings = await Promise.all(batch.map(content => generateEmbedding(content)))
-      for (let j = 0; j < batch.length; j++) {
-        await adminClient.from("chunks").insert({
-          document_id,
-          content: batch[j],
-          embedding: embeddings[j],
-        })
-      }
+      const embeddings = await generateEmbeddings(batch)
+      const rows = batch.map((content, j) => ({
+        document_id,
+        content,
+        embedding: embeddings[j],
+      }))
+      const { error: insertError } = await adminClient.from("chunks").insert(rows)
+      if (insertError) throw new Error("Failed to insert chunks: " + insertError.message)
     }
 
     await adminClient.from("documents").update({ status: "ready" }).eq("id", document_id)

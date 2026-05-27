@@ -17,14 +17,22 @@ export interface Project {
   created_at: string
 }
 
+export interface SearchReference {
+  document_title: string
+  document_id: string
+  content: string
+  excerpt: string
+  score: number
+  relevance: "high" | "medium" | "low"
+}
+
 export interface SearchResponse {
+  query: string
   summary: string
   key_points: string[]
-  references: {
-    document_title: string
-    content: string
-    score: number
-  }[]
+  references: SearchReference[]
+  total_chunks?: number
+  ai_generated: boolean
   processing_documents?: boolean
 }
 

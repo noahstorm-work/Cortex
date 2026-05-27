@@ -1,40 +1,21 @@
 import type { ScoredChunk } from "./bm25"
 import type { SearchResponse } from "@/lib/types"
+import { generateAISummary } from "./summarize"
 
-export function buildResponse(results: ScoredChunk[]): SearchResponse {
-  if (results.length === 0) {
-    return {
-      summary: "No relevant documents found for your query.",
-      key_points: [],
-      references: [],
-    }
-  }
-
-  const allText = results.map((r) => r.content).join(" ")
-
-  const sentences = allText
-    .split(/[.?!]+/)
-    .map((s) => s.trim())
-    .filter((s) => s.length > 30)
-
-  const keyPoints = extractKeyPoints(sentences, 5)
-
-  const summary = sentences.length > 0
-    ? [sentences[0], ...keyPoints.slice(0, 3)].join(". ") + "."
-    : "Summary could not be generated."
-
-  return {
-    summary,
-    key_points: keyPoints,
-    references: results.map((r) => ({
-      document_title: r.document_title,
-      content: r.content,
-      score: Math.round(r.score * 100) / 100,
-    })),
-  }
+function buildExcerpt(content: string, maxLen: number = 200): string {
+  if (content.length <= maxLen) return content
+  const truncated = content.slice(0, maxLen)
+  const lastSpace = truncated.lastIndexOf(" ")
+  return (lastSpace > 0 ? truncated.slice(0, lastSpace) : truncated) + "..."
 }
 
-function extractKeyPoints(sentences: string[], count: number): string[] {
+function getRelevanceLabel(score: number): "high" | "medium" | "low" {
+  if (score >= 0.7) return "high"
+  if (score >= 0.4) return "medium"
+  return "low"
+}
+
+function extractiveKeyPoints(sentences: string[], count: number): string[] {
   const wordFreq: Record<string, number> = {}
   const stopWords = new Set([
     "the", "a", "an", "and", "or", "but", "in", "on", "at", "to",
@@ -64,10 +45,61 @@ function extractKeyPoints(sentences: string[], count: number): string[] {
       score: ranked.reduce(
         (sum, [word]) =>
           sum + (s.toLowerCase().includes(word) ? 1 : 0),
-        0
+        0,
       ),
     }))
     .sort((a, b) => b.score - a.score)
 
   return scored.slice(0, count).map((s) => s.sentence.trim())
+}
+
+export async function buildResponse(
+  query: string,
+  results: ScoredChunk[],
+): Promise<SearchResponse> {
+  if (results.length === 0) {
+    return {
+      query,
+      summary: "No relevant documents found for your query.",
+      key_points: [],
+      references: [],
+      ai_generated: false,
+    }
+  }
+
+  const allText = results.map((r) => r.content).join(" ")
+
+  const sentences = allText
+    .split(/[.?!]+/)
+    .map((s) => s.trim())
+    .filter((s) => s.length > 30)
+
+  const aiResult = await generateAISummary(query, results)
+
+  const keyPoints =
+    aiResult?.key_points.length
+      ? aiResult.key_points
+      : extractiveKeyPoints(sentences, 5)
+
+  const summary =
+    aiResult?.summary ||
+    (sentences.length > 0
+      ? sentences.slice(0, 3).join(". ") + "."
+      : "Summary could not be generated from the retrieved content.")
+
+  return {
+    query,
+    summary,
+    key_points: keyPoints,
+    total_chunks: results.length,
+    ai_generated: !!aiResult,
+    references: results.map((r) => ({
+      document_title: r.document_title,
+      document_id: r.document_id,
+      content: r.content,
+      excerpt: buildExcerpt(r.content),
+      score: Math.round(r.score * 100) / 100,
+      relevance: getRelevanceLabel(r.score),
+    })),
+  }
 }

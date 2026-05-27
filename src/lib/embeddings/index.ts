@@ -1,6 +1,8 @@
-const EMBEDDING_DIMENSIONS = 384
+import { generateOpenAIEmbedding, generateOpenAIEmbeddings, getOpenAIKey } from "./openai"
 
-export function hashToVector(text: string, dimensions: number = EMBEDDING_DIMENSIONS): number[] {
+const HASH_DIMENSIONS = 384
+
+export function hashToVector(text: string, dimensions: number = HASH_DIMENSIONS): number[] {
   const vector: number[] = new Array(dimensions).fill(0)
   const words = text.toLowerCase().split(/\s+/).filter(Boolean)
 
@@ -39,11 +41,21 @@ export function hashToVector(text: string, dimensions: number = EMBEDDING_DIMENS
 }
 
 export function isEmbedderFallback(): boolean {
-  return true
+  return !getOpenAIKey()
 }
 
 export async function generateEmbedding(text: string): Promise<number[]> {
-  return hashToVector(text)
+  if (getOpenAIKey()) {
+    return generateOpenAIEmbedding(text)
+  }
+  return hashToVector(text, HASH_DIMENSIONS)
+}
+
+export async function generateEmbeddings(texts: string[]): Promise<number[][]> {
+  if (getOpenAIKey()) {
+    return generateOpenAIEmbeddings(texts)
+  }
+  return texts.map((t) => hashToVector(t, HASH_DIMENSIONS))
 }
 
 export const generateQueryEmbedding = generateEmbedding

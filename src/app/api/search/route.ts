@@ -25,7 +25,7 @@ export async function POST(request: Request) {
 
   try {
     const results = await search(query, user.id, { project_id: project_id || undefined })
-    const response = buildResponse(results)
+    const response = await buildResponse(query, results)
 
     const { data: processingDocs } = await supabase
       .from("documents")
