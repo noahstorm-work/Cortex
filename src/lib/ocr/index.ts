@@ -15,22 +15,15 @@ export async function ocrImage(buffer: Buffer): Promise<string> {
 }
 
 export async function ocrPDF(buffer: Buffer): Promise<string> {
-  const sharpMod = await import("sharp")
-  const s = sharpMod.default || sharpMod
-  const pdf = s(buffer)
-  const metadata = await pdf.metadata()
-  const pages = metadata.pages || 1
+  const pdfjsLib = await import("pdfjs-dist/legacy/build/pdf")
+  const doc = await pdfjsLib.getDocument({ data: new Uint8Array(buffer) }).promise
 
-  const w = await getWorker()
   const pageTexts: string[] = []
-
-  for (let i = 0; i < pages; i++) {
-    const pageBuffer = await s(buffer, { page: i })
-      .png()
-      .toBuffer()
-
-    const { data } = await w.recognize(pageBuffer)
-    pageTexts.push(`--- Page ${i + 1} ---\n${data.text}`)
+  for (let i = 1; i <= doc.numPages; i++) {
+    const page = await doc.getPage(i)
+    const content = await page.getTextContent()
+    const text = content.items.map((item: any) => item.str).join(" ")
+    pageTexts.push(`--- Page ${i} ---\n${text}`)
   }
 
   return pageTexts.join("\n\n")
