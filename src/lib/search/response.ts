@@ -1,15 +1,5 @@
 import type { ScoredChunk } from "./bm25"
-
-export interface SearchResponse {
-  summary: string
-  key_points: string[]
-  references: {
-    document_title: string
-    content: string
-    score: number
-  }[]
-  processing_documents?: boolean
-}
+import type { SearchResponse } from "@/lib/types"
 
 export function buildResponse(results: ScoredChunk[]): SearchResponse {
   if (results.length === 0) {

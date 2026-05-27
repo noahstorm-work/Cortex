@@ -5,14 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { History, Search, Trash2, Loader2, Clock } from "lucide-react"
-
-interface SearchHistoryItem {
-  id: string
-  query: string
-  result_summary: string | null
-  source_count: number
-  created_at: string
-}
+import type { SearchHistoryItem } from "@/lib/types"
 
 export function SearchHistory() {
   const [history, setHistory] = useState<SearchHistoryItem[]>([])
@@ -110,7 +103,7 @@ export function SearchHistory() {
                     <Clock className="h-3 w-3" />
                     <span>{new Date(item.created_at).toLocaleString()}</span>
                     <span>·</span>
-                    <span>{item.source_count} sources</span>
+                    <span>{item.source_count ?? 0} sources</span>
                   </div>
                 </div>
               ))}

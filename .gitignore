@@ -42,5 +42,3 @@ next-env.d.ts
 
 .vercel
 
-# large ONNX/WASM model files - copied from node_modules during setup
-/public/wasm/

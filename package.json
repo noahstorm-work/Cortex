@@ -4,10 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "next dev --webpack",
-    "postinstall": "node -e \"try{require('fs').cpSync(require('path').join('node_modules','@xenova','transformers','dist'),'public/wasm',{recursive:true})}catch(e){console.error('copy wasm failed:',e.message)}\"",
-    "build": "node -e \"require('fs').cpSync(require('path').join('node_modules','@xenova','transformers','dist'),'public/wasm',{recursive:true})\" && next build",
+    "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@radix-ui/react-alert-dialog": "^1.1.15",
@@ -19,7 +20,6 @@
     "@radix-ui/react-slot": "^1.2.4",
     "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.106.2",
-    "@xenova/transformers": "^2.17.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "framer-motion": "^12.40.0",
@@ -41,7 +41,11 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.6",
+    "@testing-library/jest-dom": "^6",
+    "@testing-library/react": "^16",
+    "jsdom": "^25",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^3"
   }
 }

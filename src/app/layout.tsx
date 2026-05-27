@@ -22,8 +22,8 @@ const jetbrainsMono = JetBrains_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "Cortex Voice — AI Knowledge Workspace",
-  description: "Upload, process, and semantically search your documents with voice interaction.",
+  title: "Cortex — AI Knowledge Workspace",
+  description: "Upload, process, and semantically search your documents.",
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

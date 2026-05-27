@@ -1,6 +1,6 @@
 const EMBEDDING_DIMENSIONS = 384
 
-function hashToVector(text: string, dimensions: number = EMBEDDING_DIMENSIONS): number[] {
+export function hashToVector(text: string, dimensions: number = EMBEDDING_DIMENSIONS): number[] {
   const vector: number[] = new Array(dimensions).fill(0)
   const words = text.toLowerCase().split(/\s+/).filter(Boolean)
 
@@ -38,24 +38,12 @@ function hashToVector(text: string, dimensions: number = EMBEDDING_DIMENSIONS): 
   return vector
 }
 
-let embedder: any = null
-
-async function getEmbedder() {
-  if (!embedder) {
-    const { pipeline } = await import("@xenova/transformers")
-    embedder = await pipeline("feature-extraction", "Xenova/all-MiniLM-L6-v2")
-  }
-  return embedder
+export function isEmbedderFallback(): boolean {
+  return true
 }
 
 export async function generateEmbedding(text: string): Promise<number[]> {
-  try {
-    const extractor = await getEmbedder()
-    const result = await extractor(text, { pooling: "mean", normalize: true })
-    return Array.from(result.data)
-  } catch {
-    return hashToVector(text)
-  }
+  return hashToVector(text)
 }
 
 export const generateQueryEmbedding = generateEmbedding

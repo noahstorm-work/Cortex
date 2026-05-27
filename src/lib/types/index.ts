@@ -27,3 +27,11 @@ export interface SearchResponse {
   }[]
   processing_documents?: boolean
 }
+
+export interface SearchHistoryItem {
+  id: string
+  query: string
+  result_summary: string | null
+  source_count: number | null
+  created_at: string
+}

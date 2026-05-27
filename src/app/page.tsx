@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/client"
-import { Sparkles, ArrowRight, Loader2, Waves, FileUp, SearchIcon, Zap, Mic } from "lucide-react"
+import { Sparkles, ArrowRight, Loader2, Waves, FileUp, SearchIcon, Zap } from "lucide-react"
 
 export default function Home() {
   const router = useRouter()
@@ -58,8 +58,8 @@ export default function Home() {
         <div className="animate-fade-in-up max-w-2xl text-center">
           {/* Badge */}
           <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-amber-400/20 bg-amber-400/5 px-4 py-1.5">
-            <Mic className="h-3.5 w-3.5 text-amber-400" />
-            <span className="text-xs font-medium text-amber-400/80">Voice-powered knowledge workspace</span>
+            <Sparkles className="h-3.5 w-3.5 text-amber-400" />
+            <span className="text-xs font-medium text-amber-400/80">AI-powered knowledge workspace</span>
           </div>
 
           {/* Logo */}
@@ -78,12 +78,12 @@ export default function Home() {
           <h1 className="text-5xl font-bold tracking-tight sm:text-6xl lg:text-7xl">
             Think with
             <span className="block mt-1 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 bg-clip-text text-transparent">
-              Cortex Voice
+              Cortex
             </span>
           </h1>
 
           <p className="mt-6 text-lg leading-relaxed text-muted-foreground max-w-lg mx-auto">
-            Upload documents, ask questions with your voice, and get instant semantic answers from your personal knowledge base.
+            Upload documents, ask questions, and get instant semantic answers from your personal knowledge base.
           </p>
 
           {/* CTA Buttons */}
@@ -124,7 +124,7 @@ export default function Home() {
           <div className="mt-16 grid grid-cols-1 gap-4 sm:grid-cols-3">
             {[
               { icon: FileUp, label: "Upload documents", desc: "PDF, Word, images" },
-              { icon: Mic, label: "Voice search", desc: "Ask with your voice" },
+              { icon: SearchIcon, label: "Smart search", desc: "Semantic vector search" },
               { icon: Zap, label: "Semantic answers", desc: "AI-powered insights" },
             ].map((f, i) => {
               const Icon = f.icon
