@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { useSpeechRecognition } from "@/hooks/use-speech-recognition"
 import { useSpeechSynthesis } from "@/hooks/use-speech-synthesis"
 import { VoiceOrb } from "@/components/voice/voice-orb"
+import { WaveformVisualizer } from "@/components/voice/waveform-visualizer"
 import { X, Loader2 } from "lucide-react"
 import { useState, useRef, useEffect } from "react"
 import type { SearchResponse } from "@/lib/types"
@@ -13,7 +14,7 @@ interface VoiceButtonProps {
 }
 
 export function VoiceButton({ onSearchResult }: VoiceButtonProps) {
-  const { isListening, transcript, interimTranscript, error, modelLoading, modelProgress, usingLocalModel, audioLevel, toggle } = useSpeechRecognition()
+  const { isListening, transcript, interimTranscript, error, modelLoading, modelProgress, usingLocalModel, audioLevel, audioWave, toggle } = useSpeechRecognition()
   const { speaking, supported: ttsSupported, speak, stop: stopTts } = useSpeechSynthesis()
   const [expanded, setExpanded] = useState(false)
   const [searching, setSearching] = useState(false)
@@ -122,13 +123,16 @@ export function VoiceButton({ onSearchResult }: VoiceButtonProps) {
           <VoiceOrb isListening={isListening} onToggle={toggle} audioLevel={audioLevel} />
         )}
         {isListening && (
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-xs text-muted-foreground"
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            className="w-48 space-y-1"
           >
-            {interimTranscript || (usingLocalModel ? "Recording..." : "Listening...")}
-          </motion.p>
+            <WaveformVisualizer wave={audioWave} isListening={isListening} />
+            <p className="text-center text-xs text-muted-foreground">
+              {interimTranscript || (usingLocalModel ? "Recording..." : "Listening...")}
+            </p>
+          </motion.div>
         )}
         {usingLocalModel && isListening && (
           <span className="rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-medium text-amber-600">

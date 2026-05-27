@@ -14,6 +14,7 @@ interface SpeechRecognitionHook {
   modelProgress: number
   usingLocalModel: boolean
   audioLevel: number
+  audioWave: number[]
   start: () => void
   stop: () => void
   toggle: () => void
@@ -30,6 +31,9 @@ export function useSpeechRecognition(): SpeechRecognitionHook {
   const [modelLoading, setModelLoading] = useState(false)
   const [modelProgress, setModelProgress] = useState(0)
   const [audioLevel, setAudioLevel] = useState(0)
+  const [audioWave, setAudioWave] = useState<number[]>([])
+  const waveBufferRef = useRef<number[]>([])
+  const lastWaveUpdateRef = useRef(0)
   const recognitionRef = useRef<any>(null)
   const mediaRecorderRef = useRef<{
     stream: MediaStream
@@ -99,6 +103,8 @@ export function useSpeechRecognition(): SpeechRecognitionHook {
       const onAudioData = (input: Float32Array) => {
         if (!recording) return
         chunks.push(input)
+
+        // RMS for level/orb
         let sum = 0
         for (let i = 0; i < input.length; i++) {
           sum += input[i] * input[i]
@@ -106,6 +112,20 @@ export function useSpeechRecognition(): SpeechRecognitionHook {
         const rms = Math.sqrt(sum / input.length)
         if (rms > maxRms) maxRms = rms
         setAudioLevel(Math.min(rms * 50, 1))
+
+        // Decimate input to ~40 points for waveform
+        const step = Math.max(1, Math.floor(input.length / 40))
+        for (let i = 0; i < input.length; i += step) {
+          waveBufferRef.current.push(input[i])
+        }
+        waveBufferRef.current = waveBufferRef.current.slice(-500)
+
+        // Throttle waveform state to ~15fps
+        const now = Date.now()
+        if (now - lastWaveUpdateRef.current > 66) {
+          lastWaveUpdateRef.current = now
+          setAudioWave([...waveBufferRef.current])
+        }
       }
 
       try {
@@ -152,6 +172,7 @@ export function useSpeechRecognition(): SpeechRecognitionHook {
   const stopLocalRecording = useCallback(async () => {
     const recorder = mediaRecorderRef.current
     setAudioLevel(0)
+    setAudioWave([])
     if (!recorder || (recorder as any)._pending) {
       mediaRecorderRef.current = null
       setIsListening(false)
@@ -285,6 +306,8 @@ export function useSpeechRecognition(): SpeechRecognitionHook {
         if (!ok) return
       }
       setAudioLevel(0)
+      setAudioWave([])
+      waveBufferRef.current = []
       if (networkFailureRef.current) {
         startLocalRecording()
         return
@@ -354,6 +377,7 @@ export function useSpeechRecognition(): SpeechRecognitionHook {
     modelProgress,
     usingLocalModel,
     audioLevel,
+    audioWave,
     start,
     stop,
     toggle,
