@@ -35,7 +35,6 @@ export function useSpeechRecognition(): SpeechRecognitionHook {
     stream: MediaStream
     audioContext: AudioContext
     source: MediaStreamAudioSourceNode
-    processor: ScriptProcessorNode
     chunks: Float32Array[]
     maxRms: number
     stopRecording: () => void
@@ -91,17 +90,15 @@ export function useSpeechRecognition(): SpeechRecognitionHook {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
       const audioContext = new AudioContext()
       const source = audioContext.createMediaStreamSource(stream)
-      const sampleRate = audioContext.sampleRate
 
-      const processor = audioContext.createScriptProcessor(4096, 1, 1)
       const chunks: Float32Array[] = []
       let recording = true
       let maxRms = 0
+      let audioNode: AudioNode | null = null
 
-      processor.onaudioprocess = (e) => {
+      const onAudioData = (input: Float32Array) => {
         if (!recording) return
-        const input = e.inputBuffer.getChannelData(0)
-        chunks.push(new Float32Array(input))
+        chunks.push(input)
         let sum = 0
         for (let i = 0; i < input.length; i++) {
           sum += input[i] * input[i]
@@ -111,12 +108,24 @@ export function useSpeechRecognition(): SpeechRecognitionHook {
         setAudioLevel(Math.min(rms * 50, 1))
       }
 
-      source.connect(processor)
-      processor.connect(audioContext.destination)
+      try {
+        await audioContext.audioWorklet.addModule("/audio-processor.js")
+        const worklet = new AudioWorkletNode(audioContext, "audio-capture-processor")
+        worklet.port.onmessage = (e) => onAudioData(new Float32Array(e.data))
+        source.connect(worklet)
+        worklet.connect(audioContext.destination)
+        audioNode = worklet
+      } catch {
+        const processor = audioContext.createScriptProcessor(4096, 1, 1)
+        processor.onaudioprocess = (e) => onAudioData(e.inputBuffer.getChannelData(0))
+        source.connect(processor)
+        processor.connect(audioContext.destination)
+        audioNode = processor
+      }
 
       const stopRecording = () => {
         recording = false
-        processor.disconnect()
+        if (audioNode) audioNode.disconnect()
         source.disconnect()
         audioContext.close()
         stream.getTracks().forEach((t) => t.stop())
@@ -126,7 +135,6 @@ export function useSpeechRecognition(): SpeechRecognitionHook {
         stream,
         audioContext,
         source,
-        processor,
         chunks,
         maxRms,
         stopRecording,
@@ -331,12 +339,7 @@ export function useSpeechRecognition(): SpeechRecognitionHook {
   useEffect(() => {
     return () => {
       try { recognitionRef.current?.stop() } catch {}
-      try {
-        const rec = mediaRecorderRef.current
-        if (rec && typeof (rec as any).stopRecording === "function") {
-          rec.stopRecording()
-        }
-      } catch {}
+      mediaRecorderRef.current?.stopRecording()
     }
   }, [])
 
