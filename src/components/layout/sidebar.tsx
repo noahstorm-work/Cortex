@@ -16,12 +16,14 @@ import {
   Sparkles,
   Menu,
   ChevronRight,
+  History,
 } from "lucide-react"
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/documents", label: "Documents", icon: FileText },
   { href: "/search", label: "Search", icon: Search },
+  { href: "/history", label: "History", icon: History },
   { href: "/projects", label: "Projects", icon: FolderKanban },
 ]
 
