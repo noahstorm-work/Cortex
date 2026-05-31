@@ -121,15 +121,15 @@ export function DocumentList() {
         <div className="flex items-center justify-center rounded-2xl border border-border/50 bg-card/50 p-16">
           <div className="flex flex-col items-center gap-3">
             <div className="relative">
-              <Loader2 className="h-6 w-6 animate-spin text-amber-400" />
-              <div className="absolute inset-0 h-6 w-6 animate-spin-slow rounded-full border border-amber-400/20" />
+              <Loader2 className="h-6 w-6 animate-spin text-teal-400" />
+              <div className="absolute inset-0 h-6 w-6 animate-spin-slow rounded-full border border-teal-400/20" />
             </div>
             <p className="text-sm text-muted-foreground">Loading documents...</p>
           </div>
         </div>
       ) : documents.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-2xl border border-border/50 bg-card/50 p-16 text-center">
-          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-400/10 to-amber-600/10">
+          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-400/10 to-teal-600/10">
             <Inbox className="h-7 w-7 text-muted-foreground" />
           </div>
           <p className="text-sm font-medium text-foreground">No documents yet</p>
@@ -142,11 +142,11 @@ export function DocumentList() {
           {documents.map((doc, i) => (
             <div
               key={doc.id}
-              className={`group flex items-center justify-between rounded-2xl border border-border/50 bg-card/50 px-5 py-4 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 hover:border-amber-400/20 animate-fade-in-up stagger-${Math.min(i + 1, 8)}`}
+              className={`group flex items-center justify-between rounded-2xl border border-border/50 bg-card/50 px-5 py-4 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 hover:border-teal-400/20 animate-fade-in-up stagger-${Math.min(i + 1, 8)}`}
             >
               <div className="flex items-center gap-3 min-w-0 flex-1">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400/10 to-amber-600/10 group-hover:from-amber-400/20 group-hover:to-amber-600/20 transition-all duration-300">
-                  <FileText className="h-4.5 w-4.5 text-amber-400/70 group-hover:text-amber-400 transition-colors duration-300" />
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400/10 to-teal-600/10 group-hover:from-teal-400/20 group-hover:to-teal-600/20 transition-all duration-300">
+                  <FileText className="h-4.5 w-4.5 text-teal-400/70 group-hover:text-teal-400 transition-colors duration-300" />
                 </div>
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-foreground truncate">
@@ -158,11 +158,11 @@ export function DocumentList() {
                     </span>
                     <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium border ${
                       doc.status === 'ready' ? 'bg-emerald-400/10 text-emerald-500 border-emerald-400/20' :
-                      doc.status === 'processing' ? 'bg-amber-400/10 text-amber-500 border-amber-400/20' :
+                      doc.status === 'processing' ? 'bg-teal-400/10 text-teal-500 border-teal-400/20' :
                       doc.status === 'pending' ? 'bg-muted text-muted-foreground border-border/50' :
                       'bg-destructive/10 text-destructive border-destructive/20'
                     }`}>
-                      {doc.status === 'processing' && <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />}
+                      {doc.status === 'processing' && <span className="h-1.5 w-1.5 rounded-full bg-teal-400 animate-pulse" />}
                       {doc.status === 'pending' ? 'Pending' : doc.status === 'processing' ? 'Processing' : doc.status === 'ready' ? 'Ready' : 'Failed'}
                     </span>
                     {doc.project_name && (

@@ -94,8 +94,8 @@ export default function HistoryPage() {
       <div className="flex items-center justify-center py-16">
         <div className="flex flex-col items-center gap-3">
           <div className="relative">
-            <Loader2 className="h-6 w-6 animate-spin text-amber-400" />
-            <div className="absolute inset-0 h-6 w-6 animate-spin-slow rounded-full border border-amber-400/20" />
+            <Loader2 className="h-6 w-6 animate-spin text-teal-400" />
+            <div className="absolute inset-0 h-6 w-6 animate-spin-slow rounded-full border border-teal-400/20" />
           </div>
           <p className="text-sm text-muted-foreground">Loading history...</p>
         </div>
@@ -114,7 +114,7 @@ export default function HistoryPage() {
   if (!history || history.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center">
-        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-400/10 to-amber-600/10">
+        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-400/10 to-teal-600/10">
           <History className="h-8 w-8 text-muted-foreground" />
         </div>
         <p className="text-sm font-medium text-foreground">No search history yet</p>
@@ -123,7 +123,7 @@ export default function HistoryPage() {
         </p>
         <Link
           href="/search"
-          className="mt-5 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 px-5 py-2.5 text-sm font-medium text-white shadow-lg shadow-amber-500/20 transition-all duration-300 hover:shadow-xl hover:shadow-amber-500/30"
+          className="mt-5 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-teal-500 to-teal-600 px-5 py-2.5 text-sm font-medium text-white shadow-lg shadow-teal-500/20 transition-all duration-300 hover:shadow-xl hover:shadow-teal-500/30"
         >
           <Search className="h-4 w-4" />
           Search now
@@ -140,8 +140,8 @@ export default function HistoryPage() {
       <div className="flex items-start justify-between">
         <div>
           <div className="flex items-center gap-3 mb-1">
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400/20 to-amber-600/20">
-              <History className="h-4 w-4 text-amber-400" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400/20 to-teal-600/20">
+              <History className="h-4 w-4 text-teal-400" />
             </div>
             <h1 className="text-xl font-display tracking-tight">Search History</h1>
           </div>
@@ -167,8 +167,8 @@ export default function HistoryPage() {
             className={`group rounded-2xl border border-border/50 bg-card/50 p-5 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 animate-fade-in-up stagger-${Math.min(i + 1, 8)}`}
           >
             <div className="flex items-start gap-4">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400/10 to-amber-600/10 group-hover:from-amber-400/20 group-hover:to-amber-600/20 transition-all duration-300">
-                <History className="h-4 w-4 text-amber-400/70" />
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400/10 to-teal-600/10 group-hover:from-teal-400/20 group-hover:to-teal-600/20 transition-all duration-300">
+                <History className="h-4 w-4 text-teal-400/70" />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between gap-3">
@@ -193,16 +193,16 @@ export default function HistoryPage() {
                 <div className="flex items-center gap-1 mt-3 pt-3 border-t border-border/30">
                   <Link
                     href={`/search?q=${encodeURIComponent(item.query)}`}
-                    className="inline-flex items-center justify-center h-8 w-8 rounded-lg text-muted-foreground hover:text-amber-400 hover:bg-amber-400/10 transition-all duration-200"
+                    className="inline-flex items-center justify-center h-8 w-8 rounded-lg text-muted-foreground hover:text-teal-400 hover:bg-teal-400/10 transition-all duration-200"
                   >
                     <Search className="h-4 w-4" />
                   </Link>
                   <button
                     onClick={() => handleToggleSaved(item.id, item.saved)}
-                    className="inline-flex items-center justify-center h-8 w-8 rounded-lg text-muted-foreground hover:text-amber-400 hover:bg-amber-400/10 transition-all duration-200"
+                    className="inline-flex items-center justify-center h-8 w-8 rounded-lg text-muted-foreground hover:text-teal-400 hover:bg-teal-400/10 transition-all duration-200"
                   >
                     {item.saved ? (
-                      <BookmarkCheck className="h-4 w-4 text-amber-400" />
+                      <BookmarkCheck className="h-4 w-4 text-teal-400" />
                     ) : (
                       <Bookmark className="h-4 w-4" />
                     )}

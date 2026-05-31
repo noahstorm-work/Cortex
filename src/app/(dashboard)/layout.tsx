@@ -17,8 +17,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
     <div className="relative flex min-h-screen">
       {/* Ambient background */}
       <div className="fixed inset-0 -z-10">
-        <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-amber-500/[0.02]" />
-        <div className="absolute top-0 right-0 h-96 w-96 rounded-full bg-amber-400/[0.03] blur-[128px]" />
+        <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-teal-500/[0.02]" />
+        <div className="absolute top-0 right-0 h-96 w-96 rounded-full bg-teal-400/[0.03] blur-[128px]" />
         <div className="absolute bottom-0 left-0 h-96 w-96 rounded-full bg-violet-400/[0.02] blur-[128px]" />
       </div>
 

@@ -37,9 +37,9 @@ export default async function DashboardPage() {
   const stats = [
     {
       label: "Documents", value: data.totalDocuments, icon: FileText, href: "/documents",
-      gradient: "from-amber-400/20 via-amber-500/10 to-transparent",
-      iconBg: "from-amber-400 to-amber-600",
-      accent: "text-amber-400"
+      gradient: "from-teal-400/20 via-teal-500/10 to-transparent",
+      iconBg: "from-teal-400 to-teal-600",
+      accent: "text-teal-400"
     },
     {
       label: "Indexed Chunks", value: data.totalChunks, icon: Cpu, href: "/search",
@@ -66,7 +66,7 @@ export default async function DashboardPage() {
       {/* Header */}
       <div className="animate-fade-in-up">
         <div className="flex items-center gap-3 mb-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 shadow-lg shadow-amber-500/20">
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400 to-teal-600 shadow-lg shadow-teal-500/20">
             <Sparkles className="h-4 w-4 text-white" />
           </div>
           <h1 className="text-2xl font-display tracking-tight">Dashboard</h1>
@@ -86,7 +86,6 @@ export default async function DashboardPage() {
               href={stat.href}
               className={`group relative overflow-hidden rounded-2xl border border-border/50 bg-card/50 p-5 shadow-sm transition-all duration-500 hover:shadow-xl hover:-translate-y-0.5 animate-fade-in-up stagger-${i + 1}`}
             >
-              {/* Gradient mesh bg */}
               <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
               <div className="absolute -inset-[100%] bg-gradient-to-br from-transparent via-transparent to-white/5 dark:to-white/[0.02] opacity-0 group-hover:opacity-100 transition-opacity duration-700 rotate-45" />
 
@@ -109,8 +108,8 @@ export default async function DashboardPage() {
         <div className="rounded-2xl border border-border/50 bg-card/50 p-6 shadow-sm animate-fade-in-up stagger-5">
           <div className="mb-5 flex items-center justify-between">
             <h2 className="text-sm font-semibold text-foreground flex items-center gap-2.5">
-              <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-gradient-to-br from-amber-400/20 to-amber-600/20">
-                <FileText className="h-3.5 w-3.5 text-amber-400" />
+              <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-gradient-to-br from-teal-400/20 to-teal-600/20">
+                <FileText className="h-3.5 w-3.5 text-teal-400" />
               </div>
               Recent Uploads
             </h2>
@@ -127,7 +126,7 @@ export default async function DashboardPage() {
                   <span className="text-sm text-foreground/90 truncate">{doc.title}</span>
                   <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
                     doc.status === "ready" ? "bg-emerald-400/10 text-emerald-500 border border-emerald-400/20" :
-                    doc.status === "processing" ? "bg-amber-400/10 text-amber-500 border border-amber-400/20" :
+                    doc.status === "processing" ? "bg-teal-400/10 text-teal-500 border border-teal-400/20" :
                     doc.status === "failed" ? "bg-destructive/10 text-destructive border border-destructive/20" :
                     "bg-muted text-muted-foreground border border-border/50"
                   }`}>{doc.status}</span>
@@ -140,8 +139,8 @@ export default async function DashboardPage() {
         <div className="rounded-2xl border border-border/50 bg-card/50 p-6 shadow-sm animate-fade-in-up stagger-6">
           <div className="mb-5 flex items-center justify-between">
             <h2 className="text-sm font-semibold text-foreground flex items-center gap-2.5">
-              <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-gradient-to-br from-amber-400/20 to-amber-600/20">
-                <History className="h-3.5 w-3.5 text-amber-400" />
+              <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-gradient-to-br from-teal-400/20 to-teal-600/20">
+                <History className="h-3.5 w-3.5 text-teal-400" />
               </div>
               Recent Searches
             </h2>

@@ -65,14 +65,14 @@ export function Sidebar() {
       >
         <div className={cn(
           "flex h-7 w-7 items-center justify-center rounded-lg transition-all duration-300",
-          active ? "bg-gradient-to-br from-amber-400/20 to-amber-600/20" : "group-hover:bg-muted/50"
+          active ? "bg-gradient-to-br from-teal-400/20 to-teal-600/20" : "group-hover:bg-muted/50"
         )}>
-          <Icon className={cn("h-4 w-4 transition-all duration-300", active && "text-amber-400 scale-110")} />
+          <Icon className={cn("h-4 w-4 transition-all duration-300", active && "text-teal-400 scale-110")} />
         </div>
         <span className={cn(active && "font-semibold")}>{item.label}</span>
         {active && (
           <div className="ml-auto flex items-center gap-1">
-            <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse-glow" />
+            <span className="h-1.5 w-1.5 rounded-full bg-teal-400 animate-pulse-glow" />
           </div>
         )}
       </Link>
@@ -83,7 +83,7 @@ export function Sidebar() {
     <>
       <div className="flex h-14 items-center justify-between border-b border-border/60 px-4">
         <Link href="/dashboard" className="flex items-center gap-2.5 group">
-          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 shadow-lg shadow-amber-500/20 transition-all duration-300 group-hover:scale-105 group-hover:shadow-amber-500/30">
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400 to-teal-600 shadow-lg shadow-teal-500/20 transition-all duration-300 group-hover:scale-105 group-hover:shadow-teal-500/30">
             <Sparkles className="h-4.5 w-4.5 text-white" />
           </div>
           <span className="text-base font-display tracking-tight text-foreground">Cortex</span>
@@ -107,7 +107,7 @@ export function Sidebar() {
       </nav>
 
       <div className="border-t border-border/60 p-3">
-        <div className="rounded-2xl bg-gradient-to-br from-amber-400/[0.04] to-amber-600/[0.04] p-3">
+        <div className="rounded-2xl bg-gradient-to-br from-teal-400/[0.04] to-teal-600/[0.04] p-3">
           <p className="px-1 pb-2 text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground/50">
             Account
           </p>
@@ -142,7 +142,7 @@ export function Sidebar() {
           </SheetContent>
         </Sheet>
         <div className="ml-2 flex items-center gap-2.5">
-          <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 shadow-lg shadow-amber-500/20">
+          <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400 to-teal-600 shadow-lg shadow-teal-500/20">
             <Sparkles className="h-4 w-4 text-white" />
           </div>
           <span className="text-sm font-display tracking-tight">Cortex</span>

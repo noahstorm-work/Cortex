@@ -148,19 +148,19 @@ export function UploadArea({ onUploadComplete }: UploadAreaProps) {
           className={cn(
             "relative flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed p-10 transition-all duration-300",
             dragOver
-              ? "border-amber-400/60 bg-amber-400/5 scale-[1.02]"
-              : "border-border/50 hover:border-amber-400/30 hover:bg-muted/20"
+              ? "border-teal-400/60 bg-teal-400/5 scale-[1.02]"
+              : "border-border/50 hover:border-teal-400/30 hover:bg-muted/20"
           )}
         >
           <div className={cn(
             "mb-3 flex h-12 w-12 items-center justify-center rounded-2xl transition-all duration-300",
             dragOver
-              ? "bg-gradient-to-br from-amber-400/20 to-amber-600/20 scale-110"
+              ? "bg-gradient-to-br from-teal-400/20 to-teal-600/20 scale-110"
               : "bg-muted/50"
           )}>
             <Upload className={cn(
               "h-6 w-6 transition-all duration-300",
-              dragOver ? "text-amber-400 translate-y-[-2px]" : "text-muted-foreground"
+              dragOver ? "text-teal-400 translate-y-[-2px]" : "text-muted-foreground"
             )} />
           </div>
           <p className="text-sm font-medium text-foreground">
@@ -170,7 +170,7 @@ export function UploadArea({ onUploadComplete }: UploadAreaProps) {
             PDF, TXT, MD, CSV, DOCX, PNG, JPG, WEBP
           </p>
           {dragOver && (
-            <div className="absolute inset-0 rounded-2xl border-2 border-amber-400/20 animate-drag-pulse pointer-events-none" />
+            <div className="absolute inset-0 rounded-2xl border-2 border-teal-400/20 animate-drag-pulse pointer-events-none" />
           )}
           <input
             ref={inputRef}
@@ -191,8 +191,8 @@ export function UploadArea({ onUploadComplete }: UploadAreaProps) {
                   <div className="flex items-center gap-3 min-w-0">
                     <File className="h-4 w-4 shrink-0 text-muted-foreground" />
                     <span className="truncate text-sm text-foreground/90">{file.name}</span>
-                    {status?.state === "uploading" && <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin text-amber-400" />}
-                    {status?.state === "processing" && <span className="h-2 w-2 shrink-0 rounded-full bg-amber-400 animate-pulse" />}
+                    {status?.state === "uploading" && <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin text-teal-400" />}
+                    {status?.state === "processing" && <span className="h-2 w-2 shrink-0 rounded-full bg-teal-400 animate-pulse" />}
                     {status?.state === "done" && <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-500" />}
                     {status?.state === "error" && <AlertCircle className="h-3.5 w-3.5 shrink-0 text-destructive" />}
                   </div>
@@ -217,7 +217,7 @@ export function UploadArea({ onUploadComplete }: UploadAreaProps) {
               <Button
                 onClick={handleUpload}
                 disabled={uploading || fileStatuses.some((s) => s.state === "uploading" || s.state === "processing")}
-                className="w-full rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-lg shadow-amber-500/20 transition-all duration-300 hover:shadow-xl hover:shadow-amber-500/30 hover:scale-[1.01] active:scale-[0.99]"
+                className="w-full rounded-xl bg-gradient-to-r from-teal-500 to-teal-600 text-white shadow-lg shadow-teal-500/20 transition-all duration-300 hover:shadow-xl hover:shadow-teal-500/30 hover:scale-[1.01] active:scale-[0.99]"
               >
                 {uploading ? (
                   <span className="flex items-center gap-2">
@@ -234,7 +234,7 @@ export function UploadArea({ onUploadComplete }: UploadAreaProps) {
               <div className="flex gap-2">
                 <Button
                   onClick={() => { setFiles([]); setFileStatuses([]); onUploadComplete?.() }}
-                  className="flex-1 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-lg shadow-amber-500/20 transition-all duration-300 hover:shadow-xl"
+                  className="flex-1 rounded-xl bg-gradient-to-r from-teal-500 to-teal-600 text-white shadow-lg shadow-teal-500/20 transition-all duration-300 hover:shadow-xl"
                 >
                   Done
                 </Button>
