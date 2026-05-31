@@ -48,7 +48,7 @@ export default function RegisterPage() {
             </div>
           </div>
           <CardTitle className="text-xl font-semibold tracking-tight">Create account</CardTitle>
-          <CardDescription className="text-sm text-muted-foreground/70">Get started with Cortex Voice</CardDescription>
+          <CardDescription className="text-sm text-muted-foreground/70">Get started with Cortex</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleRegister} className="space-y-4">
@@ -106,18 +106,30 @@ export default function RegisterPage() {
             </Button>
           </form>
 
-          <div className="mt-6 text-center">
+          <div className="mt-6 text-center space-y-3">
+            <Button
+              onClick={async () => {
+                try {
+                  const res = await fetch("/api/auth/demo-login", { method: "POST" })
+                  if (res.ok) {
+                    router.push("/documents")
+                    router.refresh()
+                  }
+                } catch {}
+              }}
+              variant="outline"
+              className="w-full rounded-lg border-teal-400/30 bg-teal-400/5 text-teal-400 hover:bg-teal-400/10 hover:text-teal-300 transition-all duration-200"
+            >
+              <Sparkles className="mr-2 h-4 w-4" />
+              Try Demo
+            </Button>
+
             <p className="text-xs text-muted-foreground/60">
               Already have an account?{" "}
               <Link href="/login" className="font-medium text-teal-400 hover:text-teal-300 transition-colors">
                 Sign in
               </Link>
             </p>
-          </div>
-
-          <div className="mt-4 flex items-center justify-center gap-1.5">
-            <Waves className="h-3 w-3 text-teal-400/50" />
-            <span className="text-[10px] text-muted-foreground/40 uppercase tracking-wider">Cortex Voice</span>
           </div>
         </CardContent>
       </Card>
