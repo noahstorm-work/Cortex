@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useCallback, useRef } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { createClient } from "@/lib/supabase/client"
 import {
   Select,
@@ -22,7 +22,7 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
 } from "@/components/ui/alert-dialog"
-import { FileText, ExternalLink, Trash2, Loader2, Inbox } from "lucide-react"
+import { FileText, ExternalLink, Trash2, Loader2, Inbox, Sparkles } from "lucide-react"
 import type { Document, Project } from "@/lib/types"
 
 export function DocumentList() {
@@ -103,7 +103,7 @@ export function DocumentList() {
         <div className="flex items-center gap-2">
           <span className="text-xs font-medium text-muted-foreground">Filter:</span>
           <Select value={filterProject} onValueChange={setFilterProject}>
-            <SelectTrigger className="w-48">
+            <SelectTrigger className="w-48 glass rounded-xl">
               <SelectValue placeholder="All documents" />
             </SelectTrigger>
             <SelectContent>
@@ -118,76 +118,88 @@ export function DocumentList() {
       )}
 
       {loading ? (
-        <div className="flex items-center justify-center rounded-lg border bg-card p-12">
-          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+        <div className="flex items-center justify-center rounded-2xl border border-border/50 bg-card/50 p-16">
+          <div className="flex flex-col items-center gap-3">
+            <div className="relative">
+              <Loader2 className="h-6 w-6 animate-spin text-amber-400" />
+              <div className="absolute inset-0 h-6 w-6 animate-spin-slow rounded-full border border-amber-400/20" />
+            </div>
+            <p className="text-sm text-muted-foreground">Loading documents...</p>
+          </div>
         </div>
       ) : documents.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-lg border bg-card p-12 text-center">
-          <Inbox className="mb-2 h-8 w-8 text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">
-            No documents yet. Upload your first file above.
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-border/50 bg-card/50 p-16 text-center">
+          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-400/10 to-amber-600/10">
+            <Inbox className="h-7 w-7 text-muted-foreground" />
+          </div>
+          <p className="text-sm font-medium text-foreground">No documents yet</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Upload your first file above to get started.
           </p>
         </div>
       ) : (
         <div className="space-y-2">
-          {documents.map((doc) => (
+          {documents.map((doc, i) => (
             <div
               key={doc.id}
-              className="flex items-center justify-between rounded-lg border bg-card px-5 py-3"
+              className={`group flex items-center justify-between rounded-2xl border border-border/50 bg-card/50 px-5 py-4 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 hover:border-amber-400/20 animate-fade-in-up stagger-${Math.min(i + 1, 8)}`}
             >
-              <div className="flex items-center gap-3 min-w-0">
-                <FileText className="h-5 w-5 shrink-0 text-muted-foreground" />
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400/10 to-amber-600/10 group-hover:from-amber-400/20 group-hover:to-amber-600/20 transition-all duration-300">
+                  <FileText className="h-4.5 w-4.5 text-amber-400/70 group-hover:text-amber-400 transition-colors duration-300" />
+                </div>
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-foreground truncate">
                     {doc.title}
                   </p>
-                  <p className="text-xs text-muted-foreground">
-                    {new Date(doc.created_at).toLocaleDateString()}
-                    <span className={`ml-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium ${
-                      doc.status === 'ready' ? 'bg-emerald-400/10 text-emerald-500' :
-                      doc.status === 'processing' ? 'bg-amber-400/10 text-amber-500' :
-                      doc.status === 'pending' ? 'bg-muted text-muted-foreground' :
-                      'bg-destructive/10 text-destructive'
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="text-xs text-muted-foreground/60">
+                      {new Date(doc.created_at).toLocaleDateString()}
+                    </span>
+                    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium border ${
+                      doc.status === 'ready' ? 'bg-emerald-400/10 text-emerald-500 border-emerald-400/20' :
+                      doc.status === 'processing' ? 'bg-amber-400/10 text-amber-500 border-amber-400/20' :
+                      doc.status === 'pending' ? 'bg-muted text-muted-foreground border-border/50' :
+                      'bg-destructive/10 text-destructive border-destructive/20'
                     }`}>
                       {doc.status === 'processing' && <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />}
                       {doc.status === 'pending' ? 'Pending' : doc.status === 'processing' ? 'Processing' : doc.status === 'ready' ? 'Ready' : 'Failed'}
                     </span>
                     {doc.project_name && (
-                      <Badge variant="secondary" className="ml-2 text-[10px]">
+                      <Badge variant="secondary" className="text-[10px] rounded-full border border-border/50">
                         {doc.project_name}
                       </Badge>
                     )}
-                  </p>
+                  </div>
                 </div>
               </div>
-              <div className="flex items-center gap-2 shrink-0">
+              <div className="flex items-center gap-1 shrink-0 ml-4">
                 <a
                   href={doc.file_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+                  className="inline-flex items-center justify-center h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all duration-200"
                 >
-                  <ExternalLink className="h-3 w-3" />
-                  View
+                  <ExternalLink className="h-3.5 w-3.5" />
                 </a>
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-7 w-7" disabled={deleting === doc.id}>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" disabled={deleting === doc.id}>
                       {deleting === doc.id ? (
-                        <Loader2 className="h-3 w-3 animate-spin" />
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
                       ) : (
-                        <Trash2 className="h-3 w-3" />
+                        <Trash2 className="h-3.5 w-3.5 text-muted-foreground hover:text-destructive transition-colors" />
                       )}
                     </Button>
                   </AlertDialogTrigger>
-                  <AlertDialogContent>
+                  <AlertDialogContent className="glass-strong rounded-2xl">
                     <AlertDialogHeader>
                       <AlertDialogTitle>Delete document</AlertDialogTitle>
                       <AlertDialogDescription>Are you sure you want to delete "{doc.title}"? This cannot be undone.</AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction onClick={() => handleDelete(doc)}>Delete</AlertDialogAction>
+                      <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => handleDelete(doc)} className="rounded-xl bg-gradient-to-r from-destructive to-destructive/80">Delete</AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
                 </AlertDialog>
@@ -197,7 +209,7 @@ export function DocumentList() {
         </div>
       )}
       {hasMore && (
-        <Button variant="outline" className="w-full mt-4" onClick={() => setPage(p => p + 1)}>
+        <Button variant="outline" className="w-full mt-4 rounded-xl glass" onClick={() => setPage(p => p + 1)}>
           Load more
         </Button>
       )}

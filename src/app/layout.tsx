@@ -1,18 +1,19 @@
 import type { Metadata } from "next"
-import { Outfit, Inter, JetBrains_Mono } from "next/font/google"
+import { DM_Serif_Display, DM_Sans, JetBrains_Mono } from "next/font/google"
 import { ThemeProvider } from "@/components/ui/theme-provider"
 import { SonnerToast } from "@/components/ui/sonner-toast"
 import "./globals.css"
 
-const outfit = Outfit({
+const dmSerifDisplay = DM_Serif_Display({
   subsets: ["latin"],
-  variable: "--font-outfit",
+  weight: ["400"],
+  variable: "--font-dm-serif",
   display: "swap",
 })
 
-const inter = Inter({
+const dmSans = DM_Sans({
   subsets: ["latin"],
-  variable: "--font-inter",
+  variable: "--font-dm-sans",
   display: "swap",
 })
 
@@ -31,7 +32,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${outfit.variable} ${inter.variable} ${jetbrainsMono.variable} min-h-screen bg-background font-sans text-foreground antialiased`}
+        className={`${dmSerifDisplay.variable} ${dmSans.variable} ${jetbrainsMono.variable} min-h-screen bg-background font-sans text-foreground antialiased noise`}
       >
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           {children}

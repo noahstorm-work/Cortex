@@ -2,68 +2,31 @@
 
 import { createClient } from "@/lib/supabase/client"
 import Link from "next/link"
-import { 
-  History, 
-  Trash2, 
-  Bookmark, 
-  BookmarkCheck, 
-  Loader2, 
-  Search, 
+import {
+  History,
+  Bookmark,
+  BookmarkCheck,
+  Loader2,
+  Search,
   FileText,
-  CheckCircle2
+  Trash2,
+  Clipboard,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useState, useEffect } from "react"
+import { toast } from "sonner"
 
-export const dynamic = "force-dynamic"
-
-async function getSearchHistory() {
-  const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return null
-
-  const { data, error } = await supabase
-    .from("search_history")
-    .select("id, query, result_summary, source_count, created_at, saved")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false })
-
-  if (error) {
-    console.error("Failed to fetch search history:", error)
-    return []
-  }
-
-  return data
-}
-
-async function toggleSaved(id: string, currentSaved: boolean) {
-  const supabase = createClient()
-  const { error } = await supabase
-    .from("search_history")
-    .update({ saved: !currentSaved })
-    .eq("id", id)
-
-  if (error) {
-    console.error("Failed to toggle saved status:", error)
-    throw error
-  }
-}
-
-async function clearAllHistory() {
-  const supabase = createClient()
-  const { error } = await supabase
-    .from("search_history")
-    .delete()
-    .neq("saved", true) // Only delete unsaved searches
-
-  if (error) {
-    console.error("Failed to clear history:", error)
-    throw error
-  }
+interface HistoryItem {
+  id: string
+  query: string
+  result_summary: string | null
+  source_count: number | null
+  created_at: string
+  saved: boolean
 }
 
 export default function HistoryPage() {
-  const [history, setHistory] = useState<any[] | null>(null)
+  const [history, setHistory] = useState<HistoryItem[] | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -75,10 +38,18 @@ export default function HistoryPage() {
     setLoading(true)
     setError(null)
     try {
-      const data = await getSearchHistory()
-      if (data !== null) {
-        setHistory(data)
-      }
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { setHistory([]); return }
+
+      const { data, error: fetchError } = await supabase
+        .from("search_history")
+        .select("id, query, result_summary, source_count, created_at, saved")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+
+      if (fetchError) throw fetchError
+      setHistory(data || [])
     } catch (err) {
       setError("Failed to load search history")
     } finally {
@@ -88,141 +59,169 @@ export default function HistoryPage() {
 
   const handleToggleSaved = async (id: string, currentSaved: boolean) => {
     try {
-      await toggleSaved(id, currentSaved)
-      await loadHistory() // Refresh
-    } catch (err) {
-      setError("Failed to update saved status")
+      const supabase = createClient()
+      await supabase.from("search_history").update({ saved: !currentSaved }).eq("id", id)
+      await loadHistory()
+    } catch {
+      toast.error("Failed to update saved status")
     }
   }
 
-  const handleClearHistory = async () => {
-    if (!window.confirm("Clear all search history? This cannot be undone.")) return
+  const handleDelete = async (id: string) => {
     try {
-      await clearAllHistory()
-      await loadHistory() // Refresh
-    } catch (err) {
-      setError("Failed to clear history")
+      const supabase = createClient()
+      await supabase.from("search_history").delete().eq("id", id)
+      toast.success("Search entry deleted")
+      await loadHistory()
+    } catch {
+      toast.error("Failed to delete entry")
+    }
+  }
+
+  const handleClearAll = async () => {
+    try {
+      const supabase = createClient()
+      await supabase.from("search_history").delete().neq("saved", true)
+      toast.success("History cleared (saved searches preserved)")
+      await loadHistory()
+    } catch {
+      toast.error("Failed to clear history")
     }
   }
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      <div className="flex items-center justify-center py-16">
+        <div className="flex flex-col items-center gap-3">
+          <div className="relative">
+            <Loader2 className="h-6 w-6 animate-spin text-amber-400" />
+            <div className="absolute inset-0 h-6 w-6 animate-spin-slow rounded-full border border-amber-400/20" />
+          </div>
+          <p className="text-sm text-muted-foreground">Loading history...</p>
+        </div>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="p-6 text-destructive bg-destructive/5 rounded-lg border border-destructive/20">
+      <div className="rounded-2xl border border-destructive/20 bg-destructive/5 p-6 text-sm text-destructive">
         {error}
       </div>
     )
   }
 
-  if (!history) {
+  if (!history || history.length === 0) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <p className="text-muted-foreground">Loading...</p>
-      </div>
-    )
-  }
-
-  if (history.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center py-12 text-center">
-        <History className="h-8 w-8 text-muted-foreground mb-2" />
-        <p className="text-sm text-muted-foreground">
-          No search history yet. Your searches will appear here after you search for documents.
+      <div className="flex flex-col items-center justify-center py-16 text-center">
+        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-400/10 to-amber-600/10">
+          <History className="h-8 w-8 text-muted-foreground" />
+        </div>
+        <p className="text-sm font-medium text-foreground">No search history yet</p>
+        <p className="mt-1 text-sm text-muted-foreground max-w-sm">
+          Your searches will appear here after you search for documents.
         </p>
-        <Link href="/search" className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-foreground hover:text-amber-500">
+        <Link
+          href="/search"
+          className="mt-5 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 px-5 py-2.5 text-sm font-medium text-white shadow-lg shadow-amber-500/20 transition-all duration-300 hover:shadow-xl hover:shadow-amber-500/30"
+        >
+          <Search className="h-4 w-4" />
           Search now
-          <Search className="h-3 w-3" />
         </Link>
       </div>
     )
   }
 
+  const savedCount = history.filter((h) => h.saved).length
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold tracking-tight">Search History</h1>
-        <div className="flex items-center gap-2">
-          <Button 
-            variant="outline" 
-            onClick={handleClearHistory}
-            className="hover:text-destructive"
-          >
-            Clear History
-          </Button>
+    <div className="space-y-6 animate-fade-in-up">
+      {/* Header */}
+      <div className="flex items-start justify-between">
+        <div>
+          <div className="flex items-center gap-3 mb-1">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400/20 to-amber-600/20">
+              <History className="h-4 w-4 text-amber-400" />
+            </div>
+            <h1 className="text-xl font-display tracking-tight">Search History</h1>
+          </div>
+          <p className="text-xs text-muted-foreground/70 ml-[2.75rem]">
+            {history.length} searches · {savedCount} saved
+          </p>
         </div>
+        <Button
+          variant="outline"
+          onClick={handleClearAll}
+          className="rounded-xl border-border/50 hover:text-destructive transition-colors text-xs"
+        >
+          <Trash2 className="h-3.5 w-3.5 mr-1.5" />
+          Clear history
+        </Button>
       </div>
 
-      <div className="space-y-4">
-        {history.map((item) => (
-          <div key={item.id} className="rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm p-5">
+      {/* List */}
+      <div className="space-y-3">
+        {history.map((item, i) => (
+          <div
+            key={item.id}
+            className={`group rounded-2xl border border-border/50 bg-card/50 p-5 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 animate-fade-in-up stagger-${Math.min(i + 1, 8)}`}
+          >
             <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 flex h-9 w-9 items-center justify-center rounded-lg bg-amber-50">
-                <History className="h-4 w-4 text-amber-400" />
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400/10 to-amber-600/10 group-hover:from-amber-400/20 group-hover:to-amber-600/20 transition-all duration-300">
+                <History className="h-4 w-4 text-amber-400/70" />
               </div>
-              <div className="flex-1 space-y-2">
-                <div className="flex items-start gap-3">
-                  <p className="text-sm font-medium text-foreground line-clamp-2 max-w-[200px]">{item.query}</p>
-                  <div className="ml-auto flex items-center gap-2 text-xs">
-                    <span className="text-muted-foreground/60">
-                      {new Date(item.created_at).toLocaleDateString()} ·
-                      {new Date(item.created_at).toLocaleTimeString()}
-                    </span>
-                    {item.source_count > 0 && (
-                      <span className="flex items-center gap-1 text-muted-foreground/60">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-start justify-between gap-3">
+                  <p className="text-sm font-medium text-foreground truncate">{item.query}</p>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground/60 shrink-0">
+                    {(item.source_count ?? 0) > 0 && (
+                      <span className="hidden sm:inline-flex items-center gap-1">
                         <FileText className="h-3 w-3" />
-                        {item.source_count} source{item.source_count !== 1 ? "s" : ""}
+                        {item.source_count}
                       </span>
                     )}
+                    <span>{new Date(item.created_at).toLocaleDateString()}</span>
                   </div>
                 </div>
 
                 {item.result_summary && (
-                  <p className="text-sm text-muted-foreground/80 line-clamp-3 max-w-[300px]">{item.result_summary}</p>
+                  <p className="mt-1.5 text-sm text-muted-foreground/70 line-clamp-2 max-w-2xl">
+                    {item.result_summary}
+                  </p>
                 )}
 
-                <div className="flex items-center gap-3 pt-3 border-t border-border/50">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => {
-                      window.location.href = `/search?q=${encodeURIComponent(item.query)}`
-                    }}
-                    className="hover:text-amber-500"
+                <div className="flex items-center gap-1 mt-3 pt-3 border-t border-border/30">
+                  <Link
+                    href={`/search?q=${encodeURIComponent(item.query)}`}
+                    className="inline-flex items-center justify-center h-8 w-8 rounded-lg text-muted-foreground hover:text-amber-400 hover:bg-amber-400/10 transition-all duration-200"
                   >
                     <Search className="h-4 w-4" />
-                  </Button>
-
-                  <Button
-                    variant="ghost"
-                    size="icon"
+                  </Link>
+                  <button
                     onClick={() => handleToggleSaved(item.id, item.saved)}
-                    className="hover:text-amber-500"
+                    className="inline-flex items-center justify-center h-8 w-8 rounded-lg text-muted-foreground hover:text-amber-400 hover:bg-amber-400/10 transition-all duration-200"
                   >
                     {item.saved ? (
                       <BookmarkCheck className="h-4 w-4 text-amber-400" />
                     ) : (
-                      <Bookmark className="h-4 w-4 text-amber-400" />
+                      <Bookmark className="h-4 w-4" />
                     )}
-                  </Button>
-
-                  <Button
-                    variant="ghost"
-                    size="icon"
+                  </button>
+                  <button
                     onClick={() => {
-                      // Copy query to clipboard
                       navigator.clipboard.writeText(item.query)
+                      toast.success("Query copied to clipboard")
                     }}
-                    className="hover:text-muted-foreground"
+                    className="inline-flex items-center justify-center h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all duration-200"
                   >
-                    <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
-                  </Button>
+                    <Clipboard className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(item.id)}
+                    className="ml-auto inline-flex items-center justify-center h-8 w-8 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all duration-200"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
                 </div>
               </div>
             </div>
