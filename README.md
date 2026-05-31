@@ -27,6 +27,23 @@ Client → Next.js (Vercel) → Supabase (DB + Storage) → OpenAI (embeddings +
 - **Dark/light mode** — system-aware with manual override
 - **Toast notifications** — upload success/error feedback
 
+## Design System — Noir Intelligence
+
+Dark academic elegance meets modern AI sophistication.
+
+| Element | Choice |
+|---------|--------|
+| **Display font** | DM Serif Display — serif for authority |
+| **Body font** | DM Sans — geometric sans for readability |
+| **Mono font** | JetBrains Mono |
+| **Dark bg** | Warm charcoal (`hsl(240, 4%, 6%)`) |
+| **Light bg** | Warm off-white (`hsl(40, 20%, 95%)`) |
+| **Accent** | Amber (#f59e0b) — warmth and focus |
+| **Glass** | `backdrop-blur(16px)` with semi-transparent bg |
+| **Noise** | Subtle SVG grain overlay via `.noise` class |
+| **Radius** | `0.75rem` base, `rounded-2xl` on premium surfaces |
+| **Motion** | `cubic-bezier(0.16, 1, 0.3, 1)` — energetic ease-out |
+
 ## Tech Stack
 
 | Layer | Stack |
