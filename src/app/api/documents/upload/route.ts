@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { requireAuth } from "@/lib/supabase/auth-helper"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { uploadSchema } from "@/lib/validation/schemas"
+import { checkRateLimit, API_RATE_LIMIT } from "@/lib/rate-limit"
 
 const ALLOWED_EXTENSIONS = new Set([
   ".pdf", ".docx", ".doc", ".txt", ".png", ".jpg", ".jpeg", ".gif", ".webp",
@@ -13,6 +14,12 @@ function getFileExtension(fileName: string): string | null {
 }
 
 export async function POST(request: Request) {
+  const ip = request.headers.get("x-forwarded-for") || "unknown"
+  const { allowed } = checkRateLimit(`upload:${ip}`, API_RATE_LIMIT)
+  if (!allowed) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 })
+  }
+
   const auth = await requireAuth()
   if (auth.response) return auth.response
   const { supabase, user } = auth

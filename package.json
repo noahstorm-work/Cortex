@@ -23,7 +23,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "framer-motion": "^12.40.0",
-    "jsdom": "^25.0.1",
+
     "lucide-react": "^1.16.0",
     "mammoth": "^1.12.0",
     "next": "16.2.6",
@@ -43,6 +43,7 @@
     "@testing-library/jest-dom": "^6",
     "@testing-library/react": "^16",
     "@types/jsdom": "^28.0.3",
+    "jsdom": "^25.0.1",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

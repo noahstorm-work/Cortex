@@ -5,8 +5,16 @@ import { chunkText } from "@/lib/chunking"
 import { generateEmbeddings } from "@/lib/embeddings"
 import { ocrImage, ocrPDF } from "@/lib/ocr"
 import { processSchema } from "@/lib/validation/schemas"
+import { checkRateLimit, API_RATE_LIMIT } from "@/lib/rate-limit"
+import { extractStoragePath } from "@/lib/storage"
 
 export async function POST(request: Request) {
+  const ip = request.headers.get("x-forwarded-for") || "unknown"
+  const { allowed } = checkRateLimit(`process:${ip}`, API_RATE_LIMIT)
+  if (!allowed) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 })
+  }
+
   const cookieClient = await createServerSupabaseClient()
   const { data: { user } } = await cookieClient.auth.getUser()
 
@@ -31,12 +39,12 @@ export async function POST(request: Request) {
     )
   }
 
-  const { document_id, file_url } = parsed.data
+  const { document_id } = parsed.data
 
   try {
     const { data: doc } = await adminClient
       .from("documents")
-      .select("id")
+      .select("id, file_url, file_type")
       .eq("id", document_id)
       .eq("user_id", user.id)
       .single()
@@ -45,7 +53,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Document not found" }, { status: 404 })
     }
 
-    const storagePath = file_url.split("/public/documents/")[1]
+    const storagePath = extractStoragePath(doc.file_url)
     if (!storagePath) {
       throw new Error("Could not extract storage path from file URL")
     }
@@ -61,7 +69,7 @@ export async function POST(request: Request) {
     const buffer = Buffer.from(await fileData.arrayBuffer())
     let text: string
 
-    if (file_url.endsWith(".pdf")) {
+    if (doc.file_url.endsWith(".pdf")) {
       const pdfParse = (await import("pdf-parse")).default
       const pdfData = await pdfParse(Buffer.from(buffer))
       text = pdfData.text
@@ -69,11 +77,11 @@ export async function POST(request: Request) {
       if (text.trim().length < 50) {
         text = await ocrPDF(Buffer.from(buffer))
       }
-    } else if (file_url.endsWith(".docx")) {
+    } else if (doc.file_url.endsWith(".docx")) {
       const mammoth = await import("mammoth")
       const result = await mammoth.extractRawText({ buffer: Buffer.from(buffer) })
       text = result.value
-    } else if (/\.(png|jpg|jpeg|webp)$/i.test(file_url)) {
+    } else if (/\.(png|jpg|jpeg|webp)$/i.test(doc.file_url)) {
       text = await ocrImage(Buffer.from(buffer))
     } else {
       text = new TextDecoder("utf-8").decode(buffer)

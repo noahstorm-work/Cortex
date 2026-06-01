@@ -36,11 +36,3 @@ export function chunkText(rawText: string): string[] {
   return splitIntoChunks(cleaned)
 }
 
-import { createHash } from "crypto"
-
-export function chunkId(documentId: string, index: number): string {
-  const hash = createHash("md5")
-    .update(`${documentId}:${index}`)
-    .digest("hex")
-  return hash
-}

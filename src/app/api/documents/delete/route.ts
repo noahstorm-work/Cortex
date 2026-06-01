@@ -2,8 +2,16 @@ import { NextResponse } from "next/server"
 import { requireAuth } from "@/lib/supabase/auth-helper"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { deleteSchema } from "@/lib/validation/schemas"
+import { checkRateLimit, API_RATE_LIMIT } from "@/lib/rate-limit"
+import { extractStoragePath } from "@/lib/storage"
 
 export async function POST(request: Request) {
+  const ip = request.headers.get("x-forwarded-for") || "unknown"
+  const { allowed } = checkRateLimit(`delete:${ip}`, API_RATE_LIMIT)
+  if (!allowed) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 })
+  }
+
   const auth = await requireAuth()
   if (auth.response) return auth.response
   const { supabase, user } = auth
@@ -35,9 +43,9 @@ export async function POST(request: Request) {
 
   const admin = createAdminClient()
 
-  const filePath = doc.file_url.split("/storage/v1/object/documents/")[1]
-  if (filePath) {
-    await admin.storage.from("documents").remove([filePath])
+  const storagePath = extractStoragePath(doc.file_url)
+  if (storagePath) {
+    await admin.storage.from("documents").remove([storagePath])
   }
 
   const { error: deleteError } = await supabase

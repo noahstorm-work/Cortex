@@ -43,7 +43,6 @@ async function ocrPDFviaSVG(buffer: Buffer): Promise<string> {
   try {
     const pdfjsLib = await import("pdfjs-dist/legacy/build/pdf")
     const doc = await pdfjsLib.getDocument({ data: new Uint8Array(buffer) }).promise
-
     const sharpMod = await import("sharp")
     const s = sharpMod.default || sharpMod
     const w = await getWorker()
@@ -58,7 +57,7 @@ async function ocrPDFviaSVG(buffer: Buffer): Promise<string> {
       svgGfx.embedFonts = true
       const svg = await svgGfx.getSVG(opList, viewport)
 
-      const serializer = new XMLSerializer()
+      const serializer = new dom.window.XMLSerializer()
       const svgStr = serializer.serializeToString(svg as any)
 
       const pngBuf = await s(Buffer.from(svgStr)).png().toBuffer()

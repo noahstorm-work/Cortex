@@ -55,15 +55,17 @@ export default function Home() {
       />
 
       <div className="relative z-10 flex min-h-screen flex-col items-center justify-center px-4 py-20">
-        <div className="animate-fade-in-up max-w-2xl text-center">
+        <div className="animate-fade-in-up w-full max-w-2xl">
           {/* Badge */}
-          <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-teal-400/20 bg-teal-400/5 px-4 py-1.5">
-            <Sparkles className="h-3.5 w-3.5 text-teal-400" aria-hidden="true" />
-            <span className="text-xs font-medium text-teal-400/80">AI-powered knowledge workspace</span>
+          <div className="flex justify-center mb-8">
+            <div className="inline-flex items-center gap-2 rounded-full border border-teal-400/20 bg-teal-400/5 px-4 py-1.5">
+              <Sparkles className="h-3.5 w-3.5 text-teal-400" aria-hidden="true" />
+              <span className="text-xs font-medium text-teal-400/80">AI-powered knowledge workspace</span>
+            </div>
           </div>
 
           {/* Logo */}
-          <div className="mb-8 inline-flex items-center justify-center">
+          <div className="flex justify-center mb-8">
             <div className="relative">
               <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-400 to-teal-600 shadow-xl shadow-teal-500/20">
                 <Sparkles className="h-10 w-10 text-white" />
@@ -75,24 +77,24 @@ export default function Home() {
           </div>
 
           {/* Heading */}
-          <h1 className="text-5xl font-bold tracking-tight sm:text-6xl lg:text-7xl">
+          <h1 className="text-center text-5xl font-bold tracking-tight sm:text-6xl lg:text-7xl">
             Think with
             <span className="block mt-1 bg-gradient-to-r from-teal-400 via-teal-500 to-teal-600 bg-clip-text text-transparent">
               Cortex
             </span>
           </h1>
 
-          <p className="mt-6 text-lg leading-relaxed text-muted-foreground max-w-lg mx-auto">
+          <p className="mt-6 text-center text-lg leading-relaxed text-muted-foreground max-w-lg mx-auto">
             Upload documents, ask questions, and get instant semantic answers from your personal knowledge base.
           </p>
 
           {/* CTA Buttons */}
-          <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+          <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
             <Button
               onClick={handleDemoLogin}
               disabled={demoLoading}
               size="lg"
-              className="h-12 min-w-[180px] rounded-xl bg-gradient-to-r from-teal-500 to-teal-600 text-white shadow-lg shadow-teal-500/25 transition-all duration-300 hover:shadow-xl hover:shadow-teal-500/30 hover:scale-[1.02] active:scale-[0.98]"
+              className="h-12 w-full sm:w-auto min-w-[180px] rounded-xl bg-gradient-to-r from-teal-500 to-teal-600 text-white shadow-lg shadow-teal-500/25 transition-all duration-300 hover:shadow-xl hover:shadow-teal-500/30 hover:scale-[1.02] active:scale-[0.98]"
             >
               {demoLoading ? (
                 <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading demo...</>
@@ -100,20 +102,20 @@ export default function Home() {
                 <><Sparkles className="mr-2 h-4 w-4" /> Try Demo</>
               )}
             </Button>
-            <Link href="/login">
+            <Link href="/login" className="w-full sm:w-auto">
               <Button
                 variant="outline"
                 size="lg"
-                className="h-12 min-w-[160px] rounded-xl border-border bg-background/50 backdrop-blur-sm transition-all duration-300 hover:bg-accent/5 hover:border-teal-400/30 hover:shadow-md"
+                className="h-12 w-full sm:w-auto min-w-[160px] rounded-xl border-border bg-background/50 backdrop-blur-sm transition-all duration-300 hover:bg-accent/5 hover:border-teal-400/30 hover:shadow-md"
               >
                 Sign in <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
-            <Link href="/register">
+            <Link href="/register" className="w-full sm:w-auto">
               <Button
                 variant="ghost"
                 size="lg"
-                className="h-12 min-w-[160px] rounded-xl text-muted-foreground transition-all duration-300 hover:text-foreground hover:bg-muted/30"
+                className="h-12 w-full sm:w-auto min-w-[160px] rounded-xl text-muted-foreground transition-all duration-300 hover:text-foreground hover:bg-muted/30"
               >
                 Create account
               </Button>

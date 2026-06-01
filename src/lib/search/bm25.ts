@@ -24,7 +24,7 @@ export async function vectorSearch(
 
   let queryBuilder = supabase.rpc("match_chunks", {
     query_embedding: queryEmbedding,
-    match_threshold: 0.1,
+    match_threshold: 0.7,
     match_count: topK,
     user_id: userId,
   })

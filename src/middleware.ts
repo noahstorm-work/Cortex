@@ -3,9 +3,7 @@ import { updateSession } from "@/lib/supabase/middleware"
 
 export async function middleware(request: NextRequest) {
   if (request.nextUrl.pathname.startsWith("/api/")) {
-    const response = NextResponse.next()
-    response.headers.set("SameSite", "Strict")
-    return response
+    return NextResponse.next()
   }
   return await updateSession(request)
 }
