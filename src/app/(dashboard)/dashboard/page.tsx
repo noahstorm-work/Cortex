@@ -65,15 +65,17 @@ export default async function DashboardPage() {
     <div className="space-y-10">
       {/* Header */}
       <div className="animate-fade-in-up">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400 to-teal-600 shadow-lg shadow-teal-500/20">
-            <Sparkles className="h-4 w-4 text-white" />
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400 to-teal-600 shadow-lg shadow-teal-500/20">
+            <Sparkles className="h-4.5 w-4.5 text-white" />
           </div>
-          <h1 className="text-2xl font-display tracking-tight">Dashboard</h1>
+          <div>
+            <h1 className="text-xl font-display tracking-tight">Dashboard</h1>
+            <p className="text-sm text-muted-foreground/70">
+              Overview of your workspace activity.
+            </p>
+          </div>
         </div>
-        <p className="text-sm text-muted-foreground/70 ml-[2.75rem]">
-          Overview of your workspace activity.
-        </p>
       </div>
 
       {/* Stats Grid */}

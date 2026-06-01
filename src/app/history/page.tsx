@@ -135,24 +135,24 @@ export default function HistoryPage() {
   const savedCount = history.filter((h) => h.saved).length
 
   return (
-    <div className="space-y-6 animate-fade-in-up">
+    <div className="space-y-8 animate-fade-in-up">
       {/* Header */}
-      <div className="flex items-start justify-between">
-        <div>
-          <div className="flex items-center gap-3 mb-1">
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400/20 to-teal-600/20">
-              <History className="h-4 w-4 text-teal-400" />
-            </div>
-            <h1 className="text-xl font-display tracking-tight">Search History</h1>
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400/20 to-teal-600/20">
+            <History className="h-4.5 w-4.5 text-teal-400" />
           </div>
-          <p className="text-xs text-muted-foreground/70 ml-[2.75rem]">
-            {history.length} searches · {savedCount} saved
-          </p>
+          <div>
+            <h1 className="text-xl font-display tracking-tight">Search History</h1>
+            <p className="text-xs text-muted-foreground/70">
+              {history.length} searches · {savedCount} saved
+            </p>
+          </div>
         </div>
         <Button
           variant="outline"
           onClick={handleClearAll}
-          className="rounded-xl border-border/50 hover:text-destructive transition-colors text-xs"
+          className="shrink-0 rounded-xl border-border/50 hover:text-destructive transition-colors text-xs"
         >
           <Trash2 className="h-3.5 w-3.5 mr-1.5" />
           Clear history
