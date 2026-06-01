@@ -39,6 +39,9 @@ yarn-error.log*
 # tesseract.js language data
 *.traineddata
 
+# dev scripts
+/scripts/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
