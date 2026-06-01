@@ -10,6 +10,7 @@ import {
   FileText,
   Trash2,
   Clipboard,
+  ArrowRight,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Skeleton, HistoryListSkeleton } from "@/components/ui/skeleton"
@@ -107,13 +108,20 @@ export default function HistoryPage() {
     )
   }
 
-  if (error) {
-    return (
-      <div className="rounded-2xl border border-destructive/20 bg-destructive/5 p-6 text-sm text-destructive">
-        {error}
-      </div>
-    )
-  }
+   if (error) {
+     return (
+       <div className="rounded-2xl border border-destructive/20 bg-destructive/5 p-6 text-sm text-destructive">
+         {error}
+         <button
+           onClick={loadHistory}
+           className="mt-2 inline-flex items-center gap-2 text-xs font-medium text-teal-600 hover:text-teal-500"
+         >
+           Try again
+           <ArrowRight className="h-3 w-3" />
+         </button>
+       </div>
+     )
+   }
 
   if (!history || history.length === 0) {
     return (
@@ -140,102 +148,100 @@ export default function HistoryPage() {
 
   return (
     <div className="space-y-8 animate-fade-in-up">
-      {/* Header */}
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400/20 to-teal-600/20">
-            <History className="h-4.5 w-4.5 text-teal-400" />
-          </div>
-          <div>
-            <h1 className="text-xl font-display tracking-tight text-balance">Search History</h1>
-            <p className="text-xs text-muted-foreground/70">
-              {history.length} searches · {savedCount} saved
-            </p>
-          </div>
-        </div>
-        <Button
-          variant="outline"
-          onClick={handleClearAll}
-          className="shrink-0 rounded-xl border-border/50 hover:text-destructive transition-colors text-xs"
-        >
-          <Trash2 className="h-3.5 w-3.5 mr-1.5" />
-          Clear history
-        </Button>
-      </div>
+       {/* Header */}
+       <div className="flex items-start justify-between gap-4">
+         <div className="flex items-center gap-3">
+           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400/20 to-teal-600/20">
+             <History className="h-4.5 w-4.5 text-teal-400" aria-label="Search history" />
+           </div>
+           <div>
+             <h1 className="text-xl font-display tracking-tight text-balance">Search History</h1>
+             <p className="text-xs text-muted-foreground/70">
+               {history.length} searches · {savedCount} saved
+             </p>
+           </div>
+         </div>
+         <Button
+           variant="outline"
+           onClick={handleClearAll}
+           className="shrink-0 rounded-xl border-border/50 hover:text-destructive transition-colors text-xs"
+         >
+           <Trash2 className="h-3.5 w-3.5" aria-label="Clear history" />
+           Clear history
+         </Button>
+       </div>
 
-      {/* List */}
-      <div className="space-y-3">
-        {history.map((item, i) => (
-          <div
-            key={item.id}
-            className={`group rounded-2xl border border-border/50 bg-card/50 p-5 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 animate-fade-in-up stagger-${Math.min(i + 1, 8)}`}
-          >
-            <div className="flex items-start gap-4">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400/10 to-teal-600/10 group-hover:from-teal-400/20 group-hover:to-teal-600/20 transition-all duration-300">
-                <History className="h-4 w-4 text-teal-400/70" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-start justify-between gap-3">
-                  <p className="text-sm font-medium text-foreground truncate">{item.query}</p>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground/60 shrink-0">
-                    {(item.source_count ?? 0) > 0 && (
-                      <span className="hidden sm:inline-flex items-center gap-1">
-                        <FileText className="h-3 w-3" />
-                        {item.source_count}
-                      </span>
-                    )}
-                    <span>{new Date(item.created_at).toLocaleDateString()}</span>
-                  </div>
-                </div>
+       {/* List */}
+       <div className="space-y-4">
+         {history.map((item, i) => (
+           <div
+             key={item.id}
+             className={`group rounded-2xl border border-border/50 bg-card/50 p-6 shadow-sm transition-[transform,box-shadow] duration-300 hover:shadow-md hover:-translate-y-1 animate-fade-in-up stagger-${Math.min(i + 1, 8)}`}
+           >
+             <div className="flex items-start gap-5">
+               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400/10 to-teal-600/10 group-hover:from-teal-400/20 group-hover:to-teal-600/20 transition-[transform,background-color] duration-200">
+                 <History className="h-5 w-5 text-teal-400/60" aria-label="History" />
+               </div>
+               <div className="flex-1 min-w-0">
+                 <div className="flex items-baseline justify-between gap-4">
+                   <p className="text-base font-medium text-foreground truncate max-w-[200px]">{item.query}</p>
+                   <div className="flex items-center gap-3 text-xs text-muted-foreground/50">
+                     {(item.source_count ?? 0) > 0 && (
+                       <span className="hidden sm:inline-flex items-center gap-2">
+                         <FileText className="h-4 w-4" />
+                         <span className="text-xs">{item.source_count}</span>
+                       </span>
+                     )}
+                     <span className="text-xs">{new Date(item.created_at).toLocaleDateString()}</span>
+                   </div>
+                 </div>
 
-                {item.result_summary && (
-                  <p className="mt-1.5 text-sm text-muted-foreground/70 line-clamp-2 max-w-2xl">
-                    {item.result_summary}
-                  </p>
-                )}
+                 {item.result_summary && (
+                   <p className="mt-2 text-sm text-muted-foreground/60 line-clamp-2">{item.result_summary}</p>
+                 )}
 
-                <div className="flex items-center gap-1 mt-3 pt-3 border-t border-border/30">
-                  <Link
-                    href={`/search?q=${encodeURIComponent(item.query)}`}
-                    aria-label="Search for this query"
-                    className="inline-flex items-center justify-center h-8 w-8 rounded-lg text-muted-foreground hover:text-teal-400 hover:bg-teal-400/10 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400/40"
-                  >
-                    <Search className="h-4 w-4" aria-hidden="true" />
-                  </Link>
-                  <button
-                    onClick={() => handleToggleSaved(item.id, item.saved)}
-                    aria-label={item.saved ? "Unsave bookmark" : "Save bookmark"}
-                    className="inline-flex items-center justify-center h-8 w-8 rounded-lg text-muted-foreground hover:text-teal-400 hover:bg-teal-400/10 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400/40"
-                  >
-                    {item.saved ? (
-                      <BookmarkCheck className="h-4 w-4 text-teal-400" aria-hidden="true" />
-                    ) : (
-                      <Bookmark className="h-4 w-4" aria-hidden="true" />
-                    )}
-                  </button>
-                  <button
-                    onClick={() => {
-                      navigator.clipboard.writeText(item.query)
-                      toast.success("Query copied to clipboard")
-                    }}
-                    aria-label="Copy query to clipboard"
-                    className="inline-flex items-center justify-center h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400/40"
-                  >
-                    <Clipboard className="h-3.5 w-3.5" aria-hidden="true" />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(item.id)}
-                    aria-label={`Delete search entry for "${item.query}"`}
-                    className="ml-auto inline-flex items-center justify-center h-8 w-8 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400/40"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
+                 <div className="flex items-center gap-3 mt-4 pt-4 border-t border-border/50">
+                   <Link
+                     href={`/search?q=${encodeURIComponent(item.query)}`}
+                     aria-label="Search for this query"
+                     className="flex items-center justify-center h-9 w-9 rounded-lg text-muted-foreground hover:text-teal-400 hover:bg-teal-400/10 focus-visible:ring-2 focus-visible:ring-teal-400/40 transition-colors duration-200"
+                   >
+                     <Search className="h-4 w-4" aria-hidden="true" />
+                   </Link>
+                   <button
+                     onClick={() => handleToggleSaved(item.id, item.saved)}
+                     aria-label={item.saved ? "Unsave bookmark" : "Save bookmark"}
+                     className="flex items-center justify-center h-9 w-9 rounded-lg text-muted-foreground hover:text-teal-400 hover:bg-teal-400/10 focus-visible:ring-2 focus-visible:ring-teal-400/40 transition-colors duration-200"
+                   >
+                     {item.saved ? (
+                       <BookmarkCheck className="h-4 w-4" aria-hidden="true" />
+                     ) : (
+                       <Bookmark className="h-4 w-4" aria-hidden="true" />
+                     )}
+                   </button>
+                   <button
+                     onClick={() => {
+                       navigator.clipboard.writeText(item.query)
+                       toast.success("Query copied to clipboard")
+                     }}
+                     aria-label="Copy query to clipboard"
+                     className="flex items-center justify-center h-9 w-9 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 focus-visible:ring-2 focus-visible:ring-teal-400/40 transition-colors duration-200"
+                   >
+                     <Clipboard className="h-4 w-4" aria-hidden="true" />
+                   </button>
+                   <button
+                     onClick={() => handleDelete(item.id)}
+                     aria-label="Delete search entry"
+                     className="ml-auto flex items-center justify-center h-9 w-9 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 focus-visible:ring-2 focus-visible:ring-teal-400/40 transition-colors duration-200"
+                   >
+                     <Trash2 className="h-4 w-4" aria-hidden="true" />
+                   </button>
+                 </div>
+               </div>
+             </div>
+           </div>
+         ))}
+       </div>
     </div>
   )
 }
