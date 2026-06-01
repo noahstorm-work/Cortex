@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef, FormEvent, KeyboardEvent } from "react"
 import {
   Select,
   SelectContent,
@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { motion } from "framer-motion"
-import { Search, Loader2, BookOpen, List, FileText, Sparkles, Cpu, ChevronDown, ChevronUp } from "lucide-react"
+import { Search, Loader2, BookOpen, List, FileText, Sparkles, Cpu, ChevronDown, ChevronUp, ChevronRight } from "lucide-react"
 import type { SearchResponse, Project } from "@/lib/types"
 import { createClient } from "@/lib/supabase/client"
 
@@ -40,6 +40,11 @@ export function SearchBar({ onSearchComplete }: SearchBarProps = {}) {
   const [projects, setProjects] = useState<Project[]>([])
   const [selectedProject, setSelectedProject] = useState("")
   const [expandedRefs, setExpandedRefs] = useState<Set<number>>(new Set())
+  // Autocomplete state
+  const [suggestions, setSuggestions] = useState<string[]>([])
+  const [suggestionLoading, setSuggestionLoading] = useState(false)
+  const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1)
+  const suggestionDebounceTimeout = useRef<NodeJS.Timeout | null>(null)
   const supabase = createClient()
 
   useEffect(() => {
@@ -56,9 +61,97 @@ export function SearchBar({ onSearchComplete }: SearchBarProps = {}) {
     })
   }, [supabase])
 
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!query.trim()) return
+  // Autocomplete functionality
+  useEffect(() => {
+    // Clear existing timeout
+    if (suggestionDebounceTimeout.current) {
+      clearTimeout(suggestionDebounceTimeout.current)
+    }
+
+    // Set new timeout for debouncing
+    if (query.trim().length >= 2) {
+      suggestionDebounceTimeout.current = setTimeout(async () => {
+        setSuggestionLoading(true)
+        try {
+          const res = await fetch("/api/search-suggestions", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              query: query.trim(),
+              limit: 5,
+            }),
+          })
+
+          if (!res.ok) {
+            throw new Error("Failed to fetch suggestions")
+          }
+
+          const data = await res.json()
+          setSuggestions(data.suggestions || [])
+          setSelectedSuggestionIndex(-1) // Reset selection when new suggestions arrive
+        } catch (err) {
+          console.error("Autocomplete error:", err)
+          setSuggestions([])
+        } finally {
+          setSuggestionLoading(false)
+        }
+      }, 300) // 300ms debounce
+    } else {
+      // Clear suggestions if query too short
+      setSuggestions([])
+      setSelectedSuggestionIndex(-1)
+    }
+
+    // Cleanup function
+    return () => {
+      if (suggestionDebounceTimeout.current) {
+        clearTimeout(suggestionDebounceTimeout.current)
+      }
+    }
+  }, [query])
+
+  // Handle keydown events for suggestion navigation
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (suggestions.length === 0) return
+
+    switch (e.key) {
+      case "ArrowDown":
+        e.preventDefault()
+        setSelectedSuggestionIndex((prev) =>
+          prev >= suggestions.length - 1 ? 0 : prev + 1
+        )
+        break
+      case "ArrowUp":
+        e.preventDefault()
+        setSelectedSuggestionIndex((prev) =>
+          prev <= 0 ? suggestions.length - 1 : prev - 1
+        )
+        break
+      case "Enter":
+        e.preventDefault()
+        if (selectedSuggestionIndex >= 0 && selectedSuggestionIndex < suggestions.length) {
+          setQuery(suggestions[selectedSuggestionIndex])
+          setSuggestions([])
+          setSelectedSuggestionIndex(-1)
+            // Trigger search with the selected suggestion
+            handleSearch()
+        }
+        break
+      case "Escape":
+        e.preventDefault()
+        setSuggestions([])
+        setSelectedSuggestionIndex(-1)
+        break
+      default:
+        break
+    }
+  }
+
+   const handleSearch = async (e: React.FormEvent | null = null) => {
+     if (e) {
+       e.preventDefault()
+     }
+     if (!query.trim()) return
 
     setSearching(true)
     setError(null)
@@ -110,9 +203,42 @@ export function SearchBar({ onSearchComplete }: SearchBarProps = {}) {
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={handleKeyDown}
             placeholder="Search your documents…"
             className="h-11 pl-10 rounded-2xl border-border/50 bg-card/50 backdrop-blur-sm text-sm transition-all duration-300 focus:border-teal-400/40 focus:ring-2 focus:ring-teal-400/10 focus:bg-card/80"
           />
+          {suggestionLoading && !suggestions.length && (
+            <div className="absolute left-0 right-0 bottom-0 h-2 animate-pulse bg-gradient-to-r from-teal-400 via-teal-500 to-teal-600 rounded-b-xl"></div>
+          )}
+          {(!suggestionLoading || suggestions.length) && suggestions.length > 0 && (
+            <div className="absolute left-0 right-0 mt-2 w-full rounded-b-xl bg-card/90 backdrop-blur border border-border/50 z-20 max-h-48 overflow-y-auto">
+              {suggestions.map((suggestion, index) => (
+                <div
+                  key={suggestion}
+                  className={`
+                    flex items-center px-4 py-2 text-sm
+                    ${selectedSuggestionIndex === index
+                      ? "bg-teal-50/50 text-teal-600"
+                      : "hover:bg-muted/50 text-muted-foreground"
+                    }
+                    transition-colors duration-150
+                  `}
+                  onClick={() => {
+                    setQuery(suggestion)
+                    setSuggestions([])
+                    setSelectedSuggestionIndex(-1)
+                    // Trigger search with the selected suggestion
+                    handleSearch()
+                  }}
+                >
+                  <span className="flex-1">{suggestion}</span>
+                  {selectedSuggestionIndex === index && (
+                    <ChevronRight className="h-3 w-3 text-teal-600" />
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
         {projects.length > 0 && (
           <Select value={selectedProject} onValueChange={setSelectedProject}>
