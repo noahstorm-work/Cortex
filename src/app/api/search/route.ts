@@ -37,7 +37,7 @@ export async function POST(request: Request) {
       response.processing_documents = true
     }
 
-    await supabase.from("search_history").insert({
+    supabase.from("search_history").insert({
       user_id: user.id,
       query: query.trim(),
       result_summary: response.summary?.slice(0, 200),

@@ -32,12 +32,10 @@ export default function HistoryPage() {
 
   useEffect(() => {
     loadHistory()
-    const interval = setInterval(() => loadHistory(true), 5000)
-    return () => clearInterval(interval)
   }, [])
 
-  const loadHistory = async (polling = false) => {
-    if (!polling) setLoading(true)
+  const loadHistory = async () => {
+    setLoading(true)
     setError(null)
     try {
       const supabase = createClient()
@@ -52,10 +50,10 @@ export default function HistoryPage() {
 
       if (fetchError) throw fetchError
       setHistory(data || [])
-    } catch {
+    } catch (err) {
       setError("Failed to load search history")
     } finally {
-      if (!polling) setLoading(false)
+      setLoading(false)
     }
   }
 
