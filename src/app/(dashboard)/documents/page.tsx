@@ -21,7 +21,7 @@ export default function DocumentsPage() {
               <FileText className="h-4.5 w-4.5 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-semibold tracking-tight">Documents</h1>
+              <h1 className="text-xl font-display tracking-tight text-balance">Documents</h1>
               <p className="text-sm text-muted-foreground/70">
                 Upload and manage your documents for semantic search.
               </p>

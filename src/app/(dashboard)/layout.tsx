@@ -2,6 +2,7 @@ import { redirect } from "next/navigation"
 import { createServerSupabaseClient } from "@/lib/supabase/server"
 import { Sidebar } from "@/components/layout/sidebar"
 import { ErrorBoundary } from "@/components/ui/error-boundary"
+import { PageTransition } from "@/components/ui/page-transition"
 
 export const dynamic = "force-dynamic"
 
@@ -26,7 +27,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
       <main className="flex-1 overflow-auto pt-14 md:pt-0">
         <div className="mx-auto max-w-6xl px-6 py-8 md:px-8">
           <ErrorBoundary>
-            {children}
+            <PageTransition>
+              {children}
+            </PageTransition>
           </ErrorBoundary>
         </div>
       </main>

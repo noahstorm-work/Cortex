@@ -57,7 +57,7 @@ export function Sidebar() {
         key={item.href}
         href={item.href}
         className={cn(
-          "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-300",
+          "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400/40",
           active
             ? "glass-strong text-foreground shadow-sm"
             : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
@@ -67,7 +67,7 @@ export function Sidebar() {
           "flex h-7 w-7 items-center justify-center rounded-lg transition-all duration-300",
           active ? "bg-gradient-to-br from-teal-400/20 to-teal-600/20" : "group-hover:bg-muted/50"
         )}>
-          <Icon className={cn("h-4 w-4 transition-all duration-300", active && "text-teal-400 scale-110")} />
+          <Icon className={cn("h-4 w-4 transition-all duration-300", active && "text-teal-400 scale-110")} aria-hidden="true" />
         </div>
         <span className={cn(active && "font-semibold")}>{item.label}</span>
         {active && (
@@ -84,7 +84,7 @@ export function Sidebar() {
       <div className="flex h-14 items-center justify-between border-b border-border/60 px-4">
         <Link href="/dashboard" className="flex items-center gap-2.5 group">
           <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400 to-teal-600 shadow-lg shadow-teal-500/20 transition-all duration-300 group-hover:scale-105 group-hover:shadow-teal-500/30">
-            <Sparkles className="h-4.5 w-4.5 text-white" />
+            <Sparkles className="h-4.5 w-4.5 text-white" aria-hidden="true" />
           </div>
           <span className="text-base font-display tracking-tight text-foreground">Cortex</span>
         </Link>
@@ -113,7 +113,7 @@ export function Sidebar() {
           </p>
           <button
             onClick={handleSignOut}
-            className="flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-xs font-medium text-muted-foreground transition-all duration-300 hover:bg-background/50 hover:text-foreground"
+            className="flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-xs font-medium text-muted-foreground transition-all duration-300 hover:bg-background/50 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400/40"
           >
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-muted/50">
               <LogOut className="h-3.5 w-3.5" />
@@ -128,7 +128,7 @@ export function Sidebar() {
   return (
     <>
       {/* Mobile Header */}
-      <div className="md:hidden fixed top-0 left-0 right-0 z-50 flex h-14 items-center border-b border-border/60 bg-background/80 backdrop-blur-2xl px-4">
+      <div className="md:hidden fixed top-0 left-0 right-0 z-50 flex h-14 items-center border-b border-border/60 bg-background/80 backdrop-blur-2xl px-4" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
         <Sheet>
           <SheetTrigger asChild>
             <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl">

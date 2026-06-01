@@ -12,7 +12,7 @@ export default function SearchPage() {
           <Search className="h-4.5 w-4.5 text-white" />
         </div>
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">Semantic Search</h1>
+          <h1 className="text-xl font-display tracking-tight text-balance">Semantic Search</h1>
           <p className="text-sm text-muted-foreground/70">
             Search across your documents using vector similarity.
           </p>

@@ -1,20 +1,26 @@
 import { NextResponse } from "next/server"
 import { requireAuth } from "@/lib/supabase/auth-helper"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { deleteSchema } from "@/lib/validation/schemas"
 
 export async function POST(request: Request) {
   const auth = await requireAuth()
   if (auth.response) return auth.response
   const { supabase, user } = auth
 
-  const { document_id } = await request.json()
-
-  if (!document_id) {
-    return NextResponse.json(
-      { error: "document_id is required" },
-      { status: 400 }
-    )
+  let body: unknown
+  try {
+    body = await request.json()
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 })
   }
+
+  const parsed = deleteSchema.safeParse(body)
+  if (!parsed.success) {
+    return NextResponse.json({ error: "Invalid request" }, { status: 400 })
+  }
+
+  const { document_id } = parsed.data
 
   const { data: doc, error: fetchError } = await supabase
     .from("documents")
@@ -41,7 +47,8 @@ export async function POST(request: Request) {
     .eq("user_id", user.id)
 
   if (deleteError) {
-    return NextResponse.json({ error: deleteError.message }, { status: 500 })
+    console.error("Delete error:", deleteError)
+    return NextResponse.json({ error: "Delete failed" }, { status: 500 })
   }
 
   return NextResponse.json({ success: true })

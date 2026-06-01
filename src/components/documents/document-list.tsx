@@ -22,8 +22,19 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
 } from "@/components/ui/alert-dialog"
-import { FileText, ExternalLink, Trash2, Loader2, Inbox, Sparkles } from "lucide-react"
+import { FileText, FileImage, FileSpreadsheet, FileCode, ExternalLink, Trash2, Loader2, Inbox, Sparkles } from "lucide-react"
+import { Skeleton, DocumentListSkeleton } from "@/components/ui/skeleton"
 import type { Document, Project } from "@/lib/types"
+
+function getFileIcon(title: string) {
+  const ext = title.split(".").pop()?.toLowerCase()
+  switch (ext) {
+    case "png": case "jpg": case "jpeg": case "webp": return FileImage
+    case "csv": case "xlsx": return FileSpreadsheet
+    case "json": case "xml": case "yaml": case "yml": return FileCode
+    default: return FileText
+  }
+}
 
 export function DocumentList() {
   const [documents, setDocuments] = useState<(Document & { project_name?: string })[]>([])
@@ -118,23 +129,15 @@ export function DocumentList() {
       )}
 
       {loading ? (
-        <div className="flex items-center justify-center rounded-2xl border border-border/50 bg-card/50 p-16">
-          <div className="flex flex-col items-center gap-3">
-            <div className="relative">
-              <Loader2 className="h-6 w-6 animate-spin text-teal-400" />
-              <div className="absolute inset-0 h-6 w-6 animate-spin-slow rounded-full border border-teal-400/20" />
-            </div>
-            <p className="text-sm text-muted-foreground">Loading documents...</p>
-          </div>
-        </div>
+        <DocumentListSkeleton />
       ) : documents.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-2xl border border-border/50 bg-card/50 p-16 text-center">
           <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-400/10 to-teal-600/10">
-            <Inbox className="h-7 w-7 text-muted-foreground" />
+            <Inbox className="h-7 w-7 text-muted-foreground" aria-hidden="true" />
           </div>
           <p className="text-sm font-medium text-foreground">No documents yet</p>
           <p className="mt-1 text-sm text-muted-foreground">
-            Upload your first file above to get started.
+            Upload a document above to get started.
           </p>
         </div>
       ) : (
@@ -146,7 +149,7 @@ export function DocumentList() {
             >
               <div className="flex items-center gap-3 min-w-0 flex-1">
                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400/10 to-teal-600/10 group-hover:from-teal-400/20 group-hover:to-teal-600/20 transition-all duration-300">
-                  <FileText className="h-4.5 w-4.5 text-teal-400/70 group-hover:text-teal-400 transition-colors duration-300" />
+                  {(() => { const Icon = getFileIcon(doc.title); return <Icon className="h-4.5 w-4.5 text-teal-400/70 group-hover:text-teal-400 transition-colors duration-300" />; })()}
                 </div>
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-foreground truncate">
@@ -178,13 +181,14 @@ export function DocumentList() {
                   href={doc.file_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all duration-200"
+                  aria-label={`Open ${doc.title}`}
+                  className="inline-flex items-center justify-center h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400/40"
                 >
-                  <ExternalLink className="h-3.5 w-3.5" />
+                  <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
                 </a>
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" disabled={deleting === doc.id}>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg focus-visible:ring-2 focus-visible:ring-teal-400/40" disabled={deleting === doc.id}>
                       {deleting === doc.id ? (
                         <Loader2 className="h-3.5 w-3.5 animate-spin" />
                       ) : (

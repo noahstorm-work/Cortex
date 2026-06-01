@@ -68,6 +68,10 @@ export async function vectorSearch(
   return textFallbackSearch(query, userId, options)
 }
 
+function escapeLike(value: string): string {
+  return value.replace(/[%_]/g, "\\$&")
+}
+
 async function textFallbackSearch(
   query: string,
   userId: string,
@@ -83,7 +87,7 @@ async function textFallbackSearch(
     .from("chunks")
     .select("id, document_id, content, documents!inner(title, user_id, project_id)")
     .eq("documents.user_id", userId)
-    .or(words.map((w) => `content.ilike.%${w}%`).join(","))
+    .or(words.map((w) => `content.ilike.%${escapeLike(w)}%`).join(","))
     .limit(topK)
 
   if (options?.project_id) {

@@ -4,38 +4,41 @@ import { createServerSupabaseClient } from "@/lib/supabase/server"
 import { chunkText } from "@/lib/chunking"
 import { generateEmbeddings } from "@/lib/embeddings"
 import { ocrImage, ocrPDF } from "@/lib/ocr"
+import { processSchema } from "@/lib/validation/schemas"
 
 export async function POST(request: Request) {
-  let user: { id: string } | null = null
-
   const cookieClient = await createServerSupabaseClient()
-  const { data: { user: cookieUser } } = await cookieClient.auth.getUser()
-  user = cookieUser
+  const { data: { user } } = await cookieClient.auth.getUser()
+
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
 
   const adminClient = createAdminClient()
 
-  const body = await request.json()
-  const { document_id, file_url, user_id } = body
+  let body: unknown
+  try {
+    body = await request.json()
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 })
+  }
 
-  if (!document_id || !file_url) {
+  const parsed = processSchema.safeParse(body)
+  if (!parsed.success) {
     return NextResponse.json(
-      { error: "document_id and file_url are required" },
+      { error: "Invalid request" },
       { status: 400 }
     )
   }
 
-  if (!user && !user_id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
-
-  const effectiveUserId = user?.id || user_id
+  const { document_id, file_url } = parsed.data
 
   try {
     const { data: doc } = await adminClient
       .from("documents")
       .select("id")
       .eq("id", document_id)
-      .eq("user_id", effectiveUserId)
+      .eq("user_id", user.id)
       .single()
 
     if (!doc) {
@@ -108,7 +111,7 @@ export async function POST(request: Request) {
     try { await adminClient.from("documents").update({ status: "failed" }).eq("id", document_id) } catch {}
     console.error("Process error:", error)
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Failed to process document" },
+      { error: "Failed to process document" },
       { status: 500 }
     )
   }

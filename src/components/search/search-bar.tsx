@@ -98,12 +98,14 @@ export function SearchBar() {
     <div className="space-y-6">
       <form onSubmit={handleSearch} className="flex gap-2">
         <div className="relative flex-1">
-          <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/40" />
+          <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/40" aria-hidden="true" />
+          <label htmlFor="search-input" className="sr-only">Search documents</label>
           <Input
+            id="search-input"
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search your documents..."
+            placeholder="Search your documents…"
             className="h-11 pl-10 rounded-2xl border-border/50 bg-card/50 backdrop-blur-sm text-sm transition-all duration-300 focus:border-teal-400/40 focus:ring-2 focus:ring-teal-400/10 focus:bg-card/80"
           />
         </div>

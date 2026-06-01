@@ -10,7 +10,7 @@ export default function ProjectsPage() {
           <FolderKanban className="h-4.5 w-4.5 text-white" />
         </div>
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">Projects</h1>
+          <h1 className="text-xl font-display tracking-tight text-balance">Projects</h1>
           <p className="text-sm text-muted-foreground/70">
             Organize your documents into projects.
           </p>

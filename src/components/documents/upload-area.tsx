@@ -145,8 +145,12 @@ export function UploadArea({ onUploadComplete }: UploadAreaProps) {
           onDragLeave={() => setDragOver(false)}
           onDrop={handleDrop}
           onClick={() => inputRef.current?.click()}
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") inputRef.current?.click() }}
+          role="button"
+          tabIndex={0}
+          aria-label="Upload documents. Click or drag and drop files."
           className={cn(
-            "relative flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed p-10 transition-all duration-300",
+            "relative flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed p-10 transition-all duration-300 outline-none focus-visible:border-teal-400/60 focus-visible:ring-2 focus-visible:ring-teal-400/20",
             dragOver
               ? "border-teal-400/60 bg-teal-400/5 scale-[1.02]"
               : "border-border/50 hover:border-teal-400/30 hover:bg-muted/20"
@@ -161,7 +165,7 @@ export function UploadArea({ onUploadComplete }: UploadAreaProps) {
             <Upload className={cn(
               "h-6 w-6 transition-all duration-300",
               dragOver ? "text-teal-400 translate-y-[-2px]" : "text-muted-foreground"
-            )} />
+            )} aria-hidden="true" />
           </div>
           <p className="text-sm font-medium text-foreground">
             {dragOver ? "Drop files here" : "Drop files here or click to browse"}
@@ -179,6 +183,7 @@ export function UploadArea({ onUploadComplete }: UploadAreaProps) {
             accept=".pdf,.txt,.md,.csv,.docx,.png,.jpg,.jpeg,.webp"
             onChange={handleFileSelect}
             className="hidden"
+            aria-hidden="true"
           />
         </div>
 
@@ -202,9 +207,10 @@ export function UploadArea({ onUploadComplete }: UploadAreaProps) {
                         setFiles((prev) => prev.filter((_, j) => j !== i))
                         setFileStatuses((prev) => prev.filter((s) => s.name !== file.name))
                       }}
-                      className="shrink-0 text-muted-foreground hover:text-foreground transition-colors"
+                      aria-label={`Remove ${file.name}`}
+                      className="shrink-0 text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400/40 rounded-lg"
                     >
-                      <X className="h-4 w-4" />
+                      <X className="h-4 w-4" aria-hidden="true" />
                     </button>
                   ) : status.state === "error" ? (
                     <span className="text-[11px] text-destructive truncate max-w-[160px]">{status.error}</span>

@@ -1,30 +1,36 @@
 import { NextResponse } from "next/server"
 import { requireAuth } from "@/lib/supabase/auth-helper"
 import { search, buildResponse } from "@/lib/search"
+import { searchSchema } from "@/lib/validation/schemas"
+import { checkRateLimit, SEARCH_RATE_LIMIT } from "@/lib/rate-limit"
 
 export async function POST(request: Request) {
+  const ip = request.headers.get("x-forwarded-for") || "unknown"
+  const { allowed } = checkRateLimit(`search:${ip}`, SEARCH_RATE_LIMIT)
+  if (!allowed) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 })
+  }
+
   const auth = await requireAuth()
   if (auth.response) return auth.response
   const { supabase, user } = auth
 
-  const { query, project_id } = await request.json()
-
-  if (!query || typeof query !== "string") {
-    return NextResponse.json(
-      { error: "query is required" },
-      { status: 400 }
-    )
+  let body: unknown
+  try {
+    body = await request.json()
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 })
   }
 
-  if (query.trim().length < 2) {
-    return NextResponse.json(
-      { error: "Query must be at least 2 characters" },
-      { status: 400 }
-    )
+  const parsed = searchSchema.safeParse(body)
+  if (!parsed.success) {
+    return NextResponse.json({ error: "Invalid request" }, { status: 400 })
   }
+
+  const { query, project_id } = parsed.data
 
   try {
-    const results = await search(query, user.id, { project_id: project_id || undefined })
+    const results = await search(query, user.id, { project_id })
     const response = await buildResponse(query, results)
 
     const { data: processingDocs } = await supabase

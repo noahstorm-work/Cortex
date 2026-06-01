@@ -1,4 +1,4 @@
-import type { Metadata } from "next"
+import type { Metadata, Viewport } from "next"
 import { DM_Serif_Display, DM_Sans, JetBrains_Mono } from "next/font/google"
 import { ThemeProvider } from "@/components/ui/theme-provider"
 import { SonnerToast } from "@/components/ui/sonner-toast"
@@ -26,6 +26,13 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "Cortex — AI Knowledge Workspace",
   description: "Upload, process, and semantically search your documents.",
+}
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f1ede4" },
+    { media: "(prefers-color-scheme: dark)", color: "#0a0f12" },
+  ],
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -58,7 +58,7 @@ export default function Home() {
         <div className="animate-fade-in-up max-w-2xl text-center">
           {/* Badge */}
           <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-teal-400/20 bg-teal-400/5 px-4 py-1.5">
-            <Sparkles className="h-3.5 w-3.5 text-teal-400" />
+            <Sparkles className="h-3.5 w-3.5 text-teal-400" aria-hidden="true" />
             <span className="text-xs font-medium text-teal-400/80">AI-powered knowledge workspace</span>
           </div>
 
