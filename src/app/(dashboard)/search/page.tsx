@@ -1,10 +1,15 @@
-"use client"
-
+import { useState } from "react"
 import { SearchBar } from "@/components/search/search-bar"
 import { SearchHistory } from "@/components/search/search-history"
 import { Search } from "lucide-react"
 
 export default function SearchPage() {
+  const [searchTrigger, setSearchTrigger] = useState(0)
+
+  const handleSearchComplete = () => {
+    setSearchTrigger(prev => prev + 1)
+  }
+
   return (
     <div className="space-y-8 animate-fade-in-up">
       <div className="flex items-center gap-3">
@@ -19,9 +24,9 @@ export default function SearchPage() {
         </div>
       </div>
 
-      <SearchBar />
+      <SearchBar onSearchComplete={handleSearchComplete} />
 
-      <SearchHistory />
+      <SearchHistory refetchTrigger={searchTrigger} />
     </div>
   )
 }

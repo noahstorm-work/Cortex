@@ -8,7 +8,7 @@ import { History, Search, Trash2, Loader2, Clock } from "lucide-react"
 import { Skeleton, SearchHistorySkeleton } from "@/components/ui/skeleton"
 import type { SearchHistoryItem } from "@/lib/types"
 
-export function SearchHistory() {
+export function SearchHistory({ refetchTrigger }: { refetchTrigger?: any } = {}) {
   const [history, setHistory] = useState<SearchHistoryItem[]>([])
   const [loading, setLoading] = useState(true)
   const [clearing, setClearing] = useState(false)
@@ -30,7 +30,7 @@ export function SearchHistory() {
 
   useEffect(() => {
     fetchHistory()
-  }, [])
+  }, [refetchTrigger])
 
   const handleClear = async () => {
     setClearing(true)

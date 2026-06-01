@@ -28,7 +28,11 @@ function RelevanceBadge({ label }: { label: "high" | "medium" | "low" }) {
   )
 }
 
-export function SearchBar() {
+interface SearchBarProps {
+  onSearchComplete?: () => void
+}
+
+export function SearchBar({ onSearchComplete }: SearchBarProps = {}) {
   const [query, setQuery] = useState("")
   const [searching, setSearching] = useState(false)
   const [result, setResult] = useState<SearchResponse | null>(null)
@@ -78,6 +82,7 @@ export function SearchBar() {
 
       const data: SearchResponse = await res.json()
       setResult(data)
+      onSearchComplete?.()
     } catch (err) {
       setError(err instanceof Error ? err.message : "Search failed")
     } finally {
