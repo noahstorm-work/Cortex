@@ -6,8 +6,8 @@ export default function ProjectsPage() {
   return (
     <div className="space-y-8 animate-fade-in-up">
       <div className="flex items-center gap-3">
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400 to-teal-600 shadow-sm">
-          <FolderKanban className="h-4 w-4 text-white" />
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400 to-teal-600 shadow-sm">
+          <FolderKanban className="h-4 w-4 text-white" aria-hidden="true" />
         </div>
         <div>
           <h1 className="text-xl font-display tracking-tight text-balance">Projects</h1>

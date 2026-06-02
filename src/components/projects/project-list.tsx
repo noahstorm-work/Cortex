@@ -92,7 +92,7 @@ export function ProjectList() {
     return (
       <div className="flex flex-col items-center justify-center rounded-2xl border border-border/50 bg-card/50 p-12 text-center">
         <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-400/10 to-teal-600/10">
-          <FolderKanban className="h-6 w-6 text-teal-400/60" aria-hidden="true" />
+          <FolderKanban className="h-6 w-6 text-muted-foreground" aria-hidden="true" />
         </div>
         <p className="text-sm font-medium text-foreground">No projects yet</p>
         <p className="mt-1 text-xs text-muted-foreground">Create one above to organize your documents.</p>
@@ -127,7 +127,7 @@ export function ProjectList() {
                 </span>
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-7 w-7 rounded-lg" disabled={deleting === project.id}>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg focus-visible:ring-2 focus-visible:ring-teal-400/40" disabled={deleting === project.id}>
                       {deleting === project.id ? (
                         <Loader2 className="h-3 w-3 animate-spin" />
                       ) : (

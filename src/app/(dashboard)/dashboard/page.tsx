@@ -63,19 +63,17 @@ export default async function DashboardPage() {
   ]
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-8 animate-fade-in-up">
       {/* Header */}
-      <div className="animate-fade-in-up">
-        <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400 to-teal-600 shadow-lg shadow-teal-500/20">
-            <Sparkles className="h-4 w-4 text-white" />
-          </div>
-          <div>
-            <h1 className="text-xl font-display tracking-tight text-balance">Dashboard</h1>
-            <p className="text-sm text-muted-foreground/70">
-              Overview of your workspace activity.
-            </p>
-          </div>
+      <div className="flex items-center gap-3">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400 to-teal-600 shadow-sm">
+          <Sparkles className="h-4 w-4 text-white" aria-hidden="true" />
+        </div>
+        <div>
+          <h1 className="text-xl font-display tracking-tight text-balance">Dashboard</h1>
+          <p className="text-sm text-muted-foreground/70">
+            Overview of your workspace activity.
+          </p>
         </div>
       </div>
 
@@ -85,13 +83,8 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <div className="rounded-2xl border border-border/50 bg-card/50 p-6 shadow-sm animate-fade-in-up stagger-5">
           <div className="mb-5 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-foreground flex items-center gap-2.5">
-              <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-gradient-to-br from-teal-400/20 to-teal-600/20">
-                <FileText className="h-3.5 w-3.5 text-teal-400" />
-              </div>
-              Recent Uploads
-            </h2>
-            <Link href="/documents" className="text-xs text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1 group">
+            <h2 className="text-sm font-medium text-foreground/80 tracking-wide uppercase">Recent Uploads</h2>
+            <Link href="/documents" className="text-xs text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1 focus-visible:ring-2 focus-visible:ring-teal-400/40 rounded-lg group">
               View all <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
             </Link>
           </div>
@@ -101,7 +94,7 @@ export default async function DashboardPage() {
             <div className="space-y-2">
               {data.recentDocuments.map((doc) => (
                 <div key={doc.id} className="group flex items-center justify-between rounded-xl bg-muted/30 px-4 py-2.5 transition-all duration-300 hover:bg-muted/50">
-                  <span className="text-sm text-foreground/90 truncate">{doc.title}</span>
+                  <span className="text-sm font-medium text-foreground truncate">{doc.title}</span>
                   <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
                     doc.status === "ready" ? "bg-emerald-400/10 text-emerald-500 border border-emerald-400/20" :
                     doc.status === "processing" ? "bg-teal-400/10 text-teal-500 border border-teal-400/20" :
@@ -116,13 +109,8 @@ export default async function DashboardPage() {
 
         <div className="rounded-2xl border border-border/50 bg-card/50 p-6 shadow-sm animate-fade-in-up stagger-6">
           <div className="mb-5 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-foreground flex items-center gap-2.5">
-              <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-gradient-to-br from-teal-400/20 to-teal-600/20">
-                <History className="h-3.5 w-3.5 text-teal-400" />
-              </div>
-              Recent Searches
-            </h2>
-            <Link href="/search" className="text-xs text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1 group">
+            <h2 className="text-sm font-medium text-foreground/80 tracking-wide uppercase">Recent Searches</h2>
+            <Link href="/search" className="text-xs text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1 focus-visible:ring-2 focus-visible:ring-teal-400/40 rounded-lg group">
               View all <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
             </Link>
           </div>
@@ -133,9 +121,9 @@ export default async function DashboardPage() {
               {data.recentSearches.map((s) => (
                 <div key={s.id} className="group flex items-center gap-3 rounded-xl bg-muted/30 px-4 py-2.5 transition-all duration-300 hover:bg-muted/50">
                   <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-muted/50">
-                    <Search className="h-3 w-3 shrink-0 text-muted-foreground" />
+                    <Search className="h-3 w-3 shrink-0 text-muted-foreground" aria-hidden="true" />
                   </div>
-                  <span className="text-sm text-foreground/90 truncate flex-1">{s.query}</span>
+                  <span className="text-sm font-medium text-foreground truncate flex-1">{s.query}</span>
                   <span className="text-[10px] text-muted-foreground/50 shrink-0">
                     {new Date(s.created_at).toLocaleDateString()}
                   </span>

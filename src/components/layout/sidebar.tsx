@@ -16,7 +16,6 @@ import {
   Sparkles,
   Menu,
   History,
-  ChevronRight,
 } from "lucide-react"
 import { useEffect, useState } from "react"
 
@@ -30,7 +29,7 @@ const navItems = [
 
 const navGroups = [
   { label: "Workspace", items: navItems.slice(0, 3) },
-  { label: "History", items: navItems.slice(3) },
+  { label: "More", items: navItems.slice(3) },
 ]
 
 export function Sidebar() {
@@ -38,8 +37,14 @@ export function Sidebar() {
   const router = useRouter()
   const supabase = createClient()
   const [mounted, setMounted] = useState(false)
+  const [mobileOpen, setMobileOpen] = useState(false)
 
   useEffect(() => { setMounted(true) }, [])
+
+  // Close mobile sheet on navigation
+  useEffect(() => {
+    setMobileOpen(false)
+  }, [pathname])
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
@@ -49,12 +54,11 @@ export function Sidebar() {
 
   const isActive = (href: string) => pathname.startsWith(href)
 
-  const NavItem = ({ item, mobile }: { item: typeof navItems[number]; mobile?: boolean }) => {
+  const NavItem = ({ item }: { item: typeof navItems[number] }) => {
     const active = isActive(item.href)
     const Icon = item.icon
     return (
       <Link
-        key={item.href}
         href={item.href}
         className={cn(
           "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400/40",
@@ -79,7 +83,7 @@ export function Sidebar() {
     )
   }
 
-  const SidebarContent = ({ mobile }: { mobile?: boolean }) => (
+  const SidebarContent = () => (
     <>
       <div className="flex h-14 items-center justify-between border-b border-border/60 px-4">
         <Link href="/dashboard" className="flex items-center gap-2.5 group">
@@ -88,7 +92,7 @@ export function Sidebar() {
           </div>
           <span className="text-base font-display tracking-tight text-foreground">Cortex</span>
         </Link>
-        {!mobile && <ThemeToggle />}
+        <ThemeToggle />
       </div>
 
       <nav className="flex-1 space-y-5 overflow-y-auto px-3 py-6">
@@ -99,7 +103,7 @@ export function Sidebar() {
             </p>
             <div className="space-y-1">
               {group.items.map((item) => (
-                <NavItem key={item.href} item={item} mobile={mobile} />
+                <NavItem key={item.href} item={item} />
               ))}
             </div>
           </div>
@@ -129,7 +133,7 @@ export function Sidebar() {
     <>
       {/* Mobile Header */}
       <div className="md:hidden fixed top-0 left-0 right-0 z-50 flex h-14 items-center border-b border-border/60 bg-background/80 backdrop-blur-2xl px-4" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
-        <Sheet>
+        <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
           <SheetTrigger asChild>
             <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl">
               <Menu className="h-5 w-5" />
@@ -138,7 +142,7 @@ export function Sidebar() {
           <SheetContent side="left" className="w-64 p-0 border-r-0 bg-background/95 backdrop-blur-2xl">
             <SheetTitle className="sr-only">Navigation menu</SheetTitle>
             <SheetDescription className="sr-only">Navigate to different sections of Cortex</SheetDescription>
-            <SidebarContent mobile />
+            <SidebarContent />
           </SheetContent>
         </Sheet>
         <div className="ml-2 flex items-center gap-2.5">
