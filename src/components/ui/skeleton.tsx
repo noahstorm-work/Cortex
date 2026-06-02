@@ -36,18 +36,18 @@ export function HistoryListSkeleton() {
   return (
     <div className="space-y-3">
       {[1, 2, 3].map((i) => (
-        <div key={i} className="rounded-2xl border border-border/50 bg-card/50 p-5 shadow-sm">
-          <div className="flex items-start gap-4">
-            <Skeleton className="h-9 w-9 rounded-xl shrink-0" />
-            <div className="flex-1 space-y-2">
-              <Skeleton className="h-4 w-2/5" />
-              <Skeleton className="h-3 w-4/5" />
-              <div className="flex gap-2 pt-3 mt-3 border-t border-border/30">
-                <Skeleton className="h-8 w-8 rounded-lg" />
-                <Skeleton className="h-8 w-8 rounded-lg" />
-                <Skeleton className="h-8 w-8 rounded-lg ml-auto" />
-              </div>
-            </div>
+        <div key={i} className="rounded-xl border border-border/40 bg-card p-5 shadow-xs">
+          <div className="flex items-start justify-between gap-4 mb-3">
+            <Skeleton className="h-4 w-2/5 flex-1" />
+            <Skeleton className="h-3 w-16 shrink-0" />
+          </div>
+          <Skeleton className="h-3 w-4/5 mb-4" />
+          <div className="flex items-center gap-1 pt-3 border-t border-border/30">
+            <Skeleton className="h-7 w-14 rounded-md" />
+            <Skeleton className="h-7 w-14 rounded-md" />
+            <Skeleton className="h-7 w-14 rounded-md" />
+            <div className="flex-1" />
+            <Skeleton className="h-7 w-14 rounded-md" />
           </div>
         </div>
       ))}
