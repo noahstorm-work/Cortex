@@ -1,6 +1,11 @@
+import type { Metadata } from "next"
 import { FolderKanban } from "lucide-react"
 import { CreateProjectForm } from "@/components/projects/create-project-form"
 import { ProjectList } from "@/components/projects/project-list"
+
+export const metadata: Metadata = {
+  title: "Projects",
+}
 
 export default function ProjectsPage() {
   return (

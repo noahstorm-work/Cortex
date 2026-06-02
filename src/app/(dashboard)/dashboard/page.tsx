@@ -1,9 +1,14 @@
+import type { Metadata } from "next"
 import { createServerSupabaseClient } from "@/lib/supabase/server"
 import { FileText, Search, History, ArrowRight, Sparkles } from "lucide-react"
 import Link from "next/link"
 import { StatsCards } from "@/components/dashboard/stats-cards"
 
 export const dynamic = "force-dynamic"
+
+export const metadata: Metadata = {
+  title: "Dashboard",
+}
 
 async function getDashboardData(userId: string) {
   const supabase = await createServerSupabaseClient()

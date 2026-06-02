@@ -12,13 +12,16 @@ import {
   Clipboard,
   ArrowRight,
   AlertTriangle,
+  Loader2,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Skeleton, HistoryListSkeleton } from "@/components/ui/skeleton"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { toast } from "sonner"
 
 import type { SearchHistoryItem } from "@/lib/types"
+
+const PAGE_SIZE = 20
 
 interface HistoryItem extends SearchHistoryItem {
   saved: boolean
@@ -26,14 +29,13 @@ interface HistoryItem extends SearchHistoryItem {
 
 export default function HistoryPage() {
   const [history, setHistory] = useState<HistoryItem[] | null>(null)
+  const [page, setPage] = useState(0)
+  const [hasMore, setHasMore] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    loadHistory()
-  }, [])
-
-  const loadHistory = async () => {
+  const loadHistory = useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
@@ -46,44 +48,87 @@ export default function HistoryPage() {
         .select("id, query, result_summary, source_count, created_at, saved")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
+        .range(0, PAGE_SIZE - 1)
 
       if (fetchError) throw fetchError
       setHistory(data || [])
+      setHasMore((data?.length ?? 0) === PAGE_SIZE)
+      setPage(0)
     } catch {
       setError("Failed to load search history")
     } finally {
       setLoading(false)
     }
+  }, [])
+
+  useEffect(() => {
+    loadHistory()
+  }, [loadHistory])
+
+  const loadMore = async () => {
+    if (loadingMore || !hasMore) return
+    setLoadingMore(true)
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
+      const nextPage = page + 1
+      const from = nextPage * PAGE_SIZE
+      const to = from + PAGE_SIZE - 1
+
+      const { data, error: fetchError } = await supabase
+        .from("search_history")
+        .select("id, query, result_summary, source_count, created_at, saved")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .range(from, to)
+
+      if (fetchError) throw fetchError
+      if (data) setHistory(prev => prev ? [...prev, ...data] : data)
+      setHasMore(data?.length === PAGE_SIZE)
+      setPage(nextPage)
+    } catch {
+      toast.error("Failed to load more history")
+    } finally {
+      setLoadingMore(false)
+    }
   }
 
   const handleToggleSaved = async (id: string, currentSaved: boolean) => {
+    const newSaved = !currentSaved
+    setHistory(prev => prev ? prev.map(h => h.id === id ? { ...h, saved: newSaved } : h) : prev)
     try {
       const supabase = createClient()
-      await supabase.from("search_history").update({ saved: !currentSaved }).eq("id", id)
-      await loadHistory()
+      await supabase.from("search_history").update({ saved: newSaved }).eq("id", id)
     } catch {
+      setHistory(prev => prev ? prev.map(h => h.id === id ? { ...h, saved: currentSaved } : h) : prev)
       toast.error("Failed to update saved status")
     }
   }
 
   const handleDelete = async (id: string) => {
+    const prevHistory = history
+    setHistory(prev => prev ? prev.filter(h => h.id !== id) : prev)
+    toast.success("Search entry deleted")
     try {
       const supabase = createClient()
       await supabase.from("search_history").delete().eq("id", id)
-      toast.success("Search entry deleted")
-      await loadHistory()
     } catch {
+      setHistory(prevHistory)
       toast.error("Failed to delete entry")
     }
   }
 
   const handleClearAll = async () => {
+    const prevHistory = history
+    setHistory(prev => prev ? prev.filter(h => !h.saved) : prev)
     try {
       const supabase = createClient()
       await supabase.from("search_history").delete().neq("saved", true)
       toast.success("History cleared (saved searches preserved)")
-      await loadHistory()
     } catch {
+      setHistory(prevHistory)
       toast.error("Failed to clear history")
     }
   }
@@ -149,7 +194,6 @@ export default function HistoryPage() {
 
   return (
     <div className="space-y-8 animate-fade-in-up">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400 to-teal-600 shadow-sm">
@@ -173,7 +217,6 @@ export default function HistoryPage() {
         </Button>
       </div>
 
-      {/* List */}
       <div className="space-y-3">
         {history.map((item, i) => (
           <div
@@ -246,6 +289,24 @@ export default function HistoryPage() {
           </div>
         ))}
       </div>
+
+      {hasMore && (
+        <div className="flex justify-center pt-2">
+          <Button
+            variant="outline"
+            onClick={loadMore}
+            disabled={loadingMore}
+            className="h-9 rounded-xl border-border/50 text-sm gap-2"
+          >
+            {loadingMore ? (
+              <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+            ) : (
+              <ArrowRight className="h-4 w-4 rotate-90" aria-hidden="true" />
+            )}
+            {loadingMore ? "Loading..." : "Load more"}
+          </Button>
+        </div>
+      )}
     </div>
   )
 }

@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import { redirect } from "next/navigation"
 import { createServerSupabaseClient } from "@/lib/supabase/server"
 import { Sidebar } from "@/components/layout/sidebar"
@@ -5,6 +6,13 @@ import { ErrorBoundary } from "@/components/ui/error-boundary"
 import { PageTransition } from "@/components/ui/page-transition"
 
 export const dynamic = "force-dynamic"
+
+export const metadata: Metadata = {
+  title: {
+    template: "%s — Cortex",
+    default: "Cortex",
+  },
+}
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createServerSupabaseClient()

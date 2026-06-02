@@ -2,20 +2,20 @@ import type { ScoredChunk } from "./bm25"
 import type { SearchResponse } from "@/lib/types"
 import { generateAISummary } from "./summarize"
 
-function buildExcerpt(content: string, maxLen: number = 200): string {
+export function buildExcerpt(content: string, maxLen: number = 200): string {
   if (content.length <= maxLen) return content
   const truncated = content.slice(0, maxLen)
   const lastSpace = truncated.lastIndexOf(" ")
   return (lastSpace > 0 ? truncated.slice(0, lastSpace) : truncated) + "..."
 }
 
-function getRelevanceLabel(score: number): "high" | "medium" | "low" {
+export function getRelevanceLabel(score: number): "high" | "medium" | "low" {
   if (score >= 0.7) return "high"
   if (score >= 0.4) return "medium"
   return "low"
 }
 
-function extractiveKeyPoints(sentences: string[], count: number): string[] {
+export function extractiveKeyPoints(sentences: string[], count: number): string[] {
   const wordFreq: Record<string, number> = {}
   const stopWords = new Set([
     "the", "a", "an", "and", "or", "but", "in", "on", "at", "to",

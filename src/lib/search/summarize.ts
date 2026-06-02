@@ -66,7 +66,7 @@ KEY POINTS:
   return parseSummary(text)
 }
 
-function parseSummary(text: string): SummaryResult {
+export function parseSummary(text: string): SummaryResult {
   const summaryMatch = text.match(/SUMMARY:\s*([\s\S]*?)(?=\nKEY POINTS:)/)
   const pointsMatch = text.match(/KEY POINTS:\s*([\s\S]*)$/)
 
