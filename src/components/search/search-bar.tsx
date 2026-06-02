@@ -45,6 +45,7 @@ export function SearchBar({ onSearchComplete }: SearchBarProps = {}) {
   const [suggestionLoading, setSuggestionLoading] = useState(false)
   const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1)
   const suggestionDebounceTimeout = useRef<NodeJS.Timeout | null>(null)
+  const abortControllerRef = useRef<AbortController | null>(null)
   const supabase = createClient()
 
   useEffect(() => {
@@ -63,14 +64,17 @@ export function SearchBar({ onSearchComplete }: SearchBarProps = {}) {
 
   // Autocomplete functionality
   useEffect(() => {
-    // Clear existing timeout
     if (suggestionDebounceTimeout.current) {
       clearTimeout(suggestionDebounceTimeout.current)
     }
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+    }
 
-    // Set new timeout for debouncing
     if (query.trim().length >= 2) {
       suggestionDebounceTimeout.current = setTimeout(async () => {
+        const controller = new AbortController()
+        abortControllerRef.current = controller
         setSuggestionLoading(true)
         try {
           const res = await fetch("/api/search-suggestions", {
@@ -80,6 +84,7 @@ export function SearchBar({ onSearchComplete }: SearchBarProps = {}) {
               query: query.trim(),
               limit: 5,
             }),
+            signal: controller.signal,
           })
 
           if (!res.ok) {
@@ -88,24 +93,26 @@ export function SearchBar({ onSearchComplete }: SearchBarProps = {}) {
 
           const data = await res.json()
           setSuggestions(data.suggestions || [])
-          setSelectedSuggestionIndex(-1) // Reset selection when new suggestions arrive
+          setSelectedSuggestionIndex(-1)
         } catch (err) {
+          if (err instanceof DOMException && err.name === "AbortError") return
           console.error("Autocomplete error:", err)
           setSuggestions([])
         } finally {
           setSuggestionLoading(false)
         }
-      }, 300) // 300ms debounce
+      }, 300)
     } else {
-      // Clear suggestions if query too short
       setSuggestions([])
       setSelectedSuggestionIndex(-1)
     }
 
-    // Cleanup function
     return () => {
       if (suggestionDebounceTimeout.current) {
         clearTimeout(suggestionDebounceTimeout.current)
+      }
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort()
       }
     }
   }, [query])
@@ -133,9 +140,8 @@ export function SearchBar({ onSearchComplete }: SearchBarProps = {}) {
           setQuery(suggestions[selectedSuggestionIndex])
           setSuggestions([])
           setSelectedSuggestionIndex(-1)
-            // Trigger search with the selected suggestion
-            handleSearch()
         }
+        handleSearch()
         break
       case "Escape":
         e.preventDefault()
@@ -147,11 +153,11 @@ export function SearchBar({ onSearchComplete }: SearchBarProps = {}) {
     }
   }
 
-   const handleSearch = async (e: React.FormEvent | null = null) => {
-     if (e) {
-       e.preventDefault()
-     }
-     if (!query.trim()) return
+  const handleSearch = async (e: React.FormEvent | null = null) => {
+    if (e) {
+      e.preventDefault()
+    }
+    if (!query.trim() || searching) return
 
     setSearching(true)
     setError(null)
@@ -200,6 +206,11 @@ export function SearchBar({ onSearchComplete }: SearchBarProps = {}) {
           <label htmlFor="search-input" className="sr-only">Search documents</label>
           <Input
             id="search-input"
+            role="combobox"
+            aria-expanded={suggestions.length > 0}
+            aria-controls="search-suggestions-list"
+            aria-activedescendant={selectedSuggestionIndex >= 0 ? `suggestion-${selectedSuggestionIndex}` : undefined}
+            aria-autocomplete="list"
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -210,11 +221,19 @@ export function SearchBar({ onSearchComplete }: SearchBarProps = {}) {
           {suggestionLoading && !suggestions.length && (
             <div className="absolute left-0 right-0 bottom-0 h-2 animate-pulse bg-gradient-to-r from-teal-400 via-teal-500 to-teal-600 rounded-b-xl"></div>
           )}
-          {(!suggestionLoading || suggestions.length) && suggestions.length > 0 && (
-            <div className="absolute left-0 right-0 mt-2 w-full rounded-b-xl bg-card/90 backdrop-blur border border-border/50 z-20 max-h-48 overflow-y-auto">
+          {suggestions.length > 0 && (
+            <div
+              id="search-suggestions-list"
+              role="listbox"
+              aria-label="Search suggestions"
+              className="absolute left-0 right-0 mt-2 w-full rounded-b-xl bg-card/90 backdrop-blur border border-border/50 z-20 max-h-48 overflow-y-auto"
+            >
               {suggestions.map((suggestion, index) => (
                 <div
                   key={suggestion}
+                  id={`suggestion-${index}`}
+                  role="option"
+                  aria-selected={selectedSuggestionIndex === index}
                   className={`
                     flex items-center px-4 py-2 text-sm
                     ${selectedSuggestionIndex === index
@@ -227,7 +246,6 @@ export function SearchBar({ onSearchComplete }: SearchBarProps = {}) {
                     setQuery(suggestion)
                     setSuggestions([])
                     setSelectedSuggestionIndex(-1)
-                    // Trigger search with the selected suggestion
                     handleSearch()
                   }}
                 >
@@ -271,6 +289,10 @@ export function SearchBar({ onSearchComplete }: SearchBarProps = {}) {
           {error}
         </motion.div>
       )}
+
+      <div aria-live="polite" className="sr-only">
+        {result ? `Found ${result.references.length} sources` : error || ""}
+      </div>
 
       {result && (
         <motion.div

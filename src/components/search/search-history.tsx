@@ -8,21 +8,24 @@ import { History, Search, Trash2, Loader2, Clock } from "lucide-react"
 import { Skeleton, SearchHistorySkeleton } from "@/components/ui/skeleton"
 import type { SearchHistoryItem } from "@/lib/types"
 
-export function SearchHistory({ refetchTrigger }: { refetchTrigger?: any } = {}) {
+export function SearchHistory({ refetchTrigger }: { refetchTrigger?: number } = {}) {
   const [history, setHistory] = useState<SearchHistoryItem[]>([])
   const [loading, setLoading] = useState(true)
   const [clearing, setClearing] = useState(false)
+  const [fetchError, setFetchError] = useState<string | null>(null)
 
   const fetchHistory = async () => {
     setLoading(true)
+    setFetchError(null)
     try {
       const res = await fetch("/api/search-history")
-      if (res.ok) {
-        const data = await res.json()
-        setHistory(data)
+      if (!res.ok) {
+        throw new Error("Failed to load search history")
       }
+      const data = await res.json()
+      setHistory(data)
     } catch {
-      // silently fail
+      setFetchError("Could not load search history")
     } finally {
       setLoading(false)
     }
@@ -34,9 +37,17 @@ export function SearchHistory({ refetchTrigger }: { refetchTrigger?: any } = {})
 
   const handleClear = async () => {
     setClearing(true)
-    await fetch("/api/search-history", { method: "DELETE" })
-    setHistory([])
-    setClearing(false)
+    try {
+      const res = await fetch("/api/search-history", { method: "DELETE" })
+      if (!res.ok) {
+        throw new Error("Failed to clear history")
+      }
+      setHistory([])
+    } catch {
+      setFetchError("Could not clear history")
+    } finally {
+      setClearing(false)
+    }
   }
 
   if (loading) {
@@ -50,6 +61,28 @@ export function SearchHistory({ refetchTrigger }: { refetchTrigger?: any } = {})
         </CardHeader>
         <CardContent className="p-0">
           <SearchHistorySkeleton />
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (fetchError) {
+    return (
+      <Card className="border border-border/50 bg-card/50 shadow-sm">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-sm">
+            <History className="h-4 w-4 text-teal-400" aria-hidden="true" />
+            Search History
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div role="alert" aria-live="polite" className="text-xs text-destructive">{fetchError}</div>
+          <button
+            onClick={fetchHistory}
+            className="mt-2 text-xs font-medium text-teal-600 hover:text-teal-500 focus-visible:ring-2 focus-visible:ring-teal-400/40 rounded-lg transition-colors"
+          >
+            Try again
+          </button>
         </CardContent>
       </Card>
     )

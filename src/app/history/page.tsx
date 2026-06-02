@@ -11,18 +11,16 @@ import {
   Trash2,
   Clipboard,
   ArrowRight,
+  AlertTriangle,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Skeleton, HistoryListSkeleton } from "@/components/ui/skeleton"
 import { useState, useEffect } from "react"
 import { toast } from "sonner"
 
-interface HistoryItem {
-  id: string
-  query: string
-  result_summary: string | null
-  source_count: number | null
-  created_at: string
+import type { SearchHistoryItem } from "@/lib/types"
+
+interface HistoryItem extends SearchHistoryItem {
   saved: boolean
 }
 
@@ -108,20 +106,23 @@ export default function HistoryPage() {
     )
   }
 
-   if (error) {
-     return (
-       <div className="rounded-2xl border border-destructive/20 bg-destructive/5 p-6 text-sm text-destructive">
-         {error}
-         <button
-           onClick={loadHistory}
-           className="mt-2 inline-flex items-center gap-2 text-xs font-medium text-teal-600 hover:text-teal-500"
-         >
-           Try again
-           <ArrowRight className="h-3 w-3" />
-         </button>
-       </div>
-     )
-   }
+  if (error) {
+    return (
+      <div role="alert" aria-live="polite" className="rounded-2xl border border-destructive/20 bg-destructive/5 p-6 text-sm text-destructive">
+        <div className="flex items-center gap-2">
+          <AlertTriangle className="h-4 w-4 shrink-0" aria-hidden="true" />
+          <span>{error}</span>
+        </div>
+        <button
+          onClick={loadHistory}
+          className="mt-3 inline-flex items-center gap-2 text-xs font-medium text-teal-600 hover:text-teal-500 focus-visible:ring-2 focus-visible:ring-teal-400/40 rounded-lg transition-colors"
+        >
+          Try again
+          <ArrowRight className="h-3 w-3" aria-hidden="true" />
+        </button>
+      </div>
+    )
+  }
 
   if (!history || history.length === 0) {
     return (
@@ -152,7 +153,7 @@ export default function HistoryPage() {
        <div className="flex items-start justify-between gap-4">
          <div className="flex items-center gap-3">
            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400/20 to-teal-600/20">
-             <History className="h-4.5 w-4.5 text-teal-400" aria-label="Search history" />
+             <History className="h-4 w-4 text-teal-400" aria-hidden="true" />
            </div>
            <div>
              <h1 className="text-xl font-display tracking-tight text-balance">Search History</h1>
@@ -166,8 +167,8 @@ export default function HistoryPage() {
            onClick={handleClearAll}
            className="shrink-0 rounded-xl border-border/50 hover:text-destructive transition-colors text-xs"
          >
-           <Trash2 className="h-3.5 w-3.5" aria-label="Clear history" />
-           Clear history
+            <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+            Clear history
          </Button>
        </div>
 
@@ -180,11 +181,11 @@ export default function HistoryPage() {
            >
              <div className="flex items-start gap-5">
                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400/10 to-teal-600/10 group-hover:from-teal-400/20 group-hover:to-teal-600/20 transition-[transform,background-color] duration-200">
-                 <History className="h-5 w-5 text-teal-400/60" aria-label="History" />
+                  <History className="h-5 w-5 text-teal-400/60" aria-hidden="true" />
                </div>
                <div className="flex-1 min-w-0">
                  <div className="flex items-baseline justify-between gap-4">
-                   <p className="text-base font-medium text-foreground truncate max-w-[200px]">{item.query}</p>
+                    <p className="text-base font-medium text-foreground truncate" title={item.query}>{item.query}</p>
                    <div className="flex items-center gap-3 text-xs text-muted-foreground/50">
                      {(item.source_count ?? 0) > 0 && (
                        <span className="hidden sm:inline-flex items-center gap-2">

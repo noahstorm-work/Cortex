@@ -39,3 +39,8 @@ export const SEARCH_RATE_LIMIT: RateLimitConfig = {
   windowMs: 60 * 1000,
   max: 20,
 }
+
+export const SUGGESTION_RATE_LIMIT: RateLimitConfig = {
+  windowMs: 60 * 1000,
+  max: 60,
+}

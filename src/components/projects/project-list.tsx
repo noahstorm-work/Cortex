@@ -111,7 +111,7 @@ export function ProjectList() {
             >
               <div className="flex items-center gap-3">
                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400/10 to-teal-600/10">
-                  <FolderKanban className="h-4.5 w-4.5 text-teal-400/70" />
+                  <FolderKanban className="h-4 w-4 text-teal-400/70" />
                 </div>
                 <div>
                   <p className="text-sm font-medium text-foreground">{project.name}</p>

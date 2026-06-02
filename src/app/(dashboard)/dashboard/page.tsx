@@ -1,5 +1,5 @@
 import { createServerSupabaseClient } from "@/lib/supabase/server"
-import { LayoutDashboard, FileText, Cpu, Search, History, ArrowRight, Sparkles } from "lucide-react"
+import { FileText, Search, History, ArrowRight, Sparkles } from "lucide-react"
 import Link from "next/link"
 import { StatsCards } from "@/components/dashboard/stats-cards"
 
@@ -37,25 +37,25 @@ export default async function DashboardPage() {
 
   const stats = [
     {
-      label: "Documents", value: data.totalDocuments, icon: FileText, href: "/documents",
+      label: "Documents", value: data.totalDocuments, href: "/documents",
       gradient: "from-teal-400/20 via-teal-500/10 to-transparent",
       iconBg: "from-teal-400 to-teal-600",
       accent: "text-teal-400"
     },
     {
-      label: "Indexed Chunks", value: data.totalChunks, icon: Cpu, href: "/search",
+      label: "Indexed Chunks", value: data.totalChunks, href: "/search",
       gradient: "from-violet-400/20 via-violet-500/10 to-transparent",
       iconBg: "from-violet-400 to-violet-600",
       accent: "text-violet-400"
     },
     {
-      label: "Searches", value: data.totalSearches, icon: Search, href: "/search",
+      label: "Searches", value: data.totalSearches, href: "/search",
       gradient: "from-emerald-400/20 via-emerald-500/10 to-transparent",
       iconBg: "from-emerald-400 to-emerald-600",
       accent: "text-emerald-400"
     },
     {
-      label: "Projects", value: "—", icon: LayoutDashboard, href: "/projects",
+      label: "Projects", value: "—", href: "/projects",
       gradient: "from-blue-400/20 via-blue-500/10 to-transparent",
       iconBg: "from-blue-400 to-blue-600",
       accent: "text-blue-400"
@@ -68,7 +68,7 @@ export default async function DashboardPage() {
       <div className="animate-fade-in-up">
         <div className="flex items-center gap-3">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400 to-teal-600 shadow-lg shadow-teal-500/20">
-            <Sparkles className="h-4.5 w-4.5 text-white" />
+            <Sparkles className="h-4 w-4 text-white" />
           </div>
           <div>
             <h1 className="text-xl font-display tracking-tight text-balance">Dashboard</h1>

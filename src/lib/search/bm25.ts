@@ -68,7 +68,7 @@ export async function vectorSearch(
   return textFallbackSearch(query, userId, options)
 }
 
-function escapeLike(value: string): string {
+export function escapeLike(value: string): string {
   return value.replace(/[%_]/g, "\\$&")
 }
 

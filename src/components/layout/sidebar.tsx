@@ -84,7 +84,7 @@ export function Sidebar() {
       <div className="flex h-14 items-center justify-between border-b border-border/60 px-4">
         <Link href="/dashboard" className="flex items-center gap-2.5 group">
           <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400 to-teal-600 shadow-lg shadow-teal-500/20 transition-all duration-300 group-hover:scale-105 group-hover:shadow-teal-500/30">
-            <Sparkles className="h-4.5 w-4.5 text-white" aria-hidden="true" />
+            <Sparkles className="h-4 w-4 text-white" aria-hidden="true" />
           </div>
           <span className="text-base font-display tracking-tight text-foreground">Cortex</span>
         </Link>

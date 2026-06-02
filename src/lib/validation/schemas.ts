@@ -51,3 +51,8 @@ export const assignDocumentSchema = z.object({
   document_id: z.string().uuid(),
   project_id: z.string().uuid().nullable().optional(),
 })
+
+export const searchSuggestionsSchema = z.object({
+  query: z.string().min(2).max(500),
+  limit: z.number().int().min(1).max(20).optional().default(5),
+})
