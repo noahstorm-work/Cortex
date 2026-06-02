@@ -90,13 +90,16 @@ export default function HistoryPage() {
 
   if (loading) {
     return (
-      <div className="space-y-6 animate-fade-in-up">
-        <div className="flex items-center justify-between">
-          <div>
-            <Skeleton className="h-5 w-40" />
-            <Skeleton className="h-3 w-24 mt-1.5" />
+      <div className="space-y-8 animate-fade-in-up">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <Skeleton className="h-9 w-9 rounded-xl shrink-0" />
+            <div>
+              <Skeleton className="h-5 w-40" />
+              <Skeleton className="h-3 w-24 mt-1.5" />
+            </div>
           </div>
-          <Skeleton className="h-8 w-16 rounded-lg" />
+          <Skeleton className="h-8 w-28 rounded-xl shrink-0" />
         </div>
         <HistoryListSkeleton />
       </div>
@@ -123,20 +126,20 @@ export default function HistoryPage() {
 
   if (!history || history.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-center">
-        <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-muted/50">
-          <History className="h-6 w-6 text-muted-foreground/50" aria-hidden="true" />
+      <div className="flex flex-col items-center justify-center py-16 text-center">
+        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-400/10 to-teal-600/10">
+          <History className="h-8 w-8 text-muted-foreground" aria-hidden="true" />
         </div>
         <p className="text-sm font-medium text-foreground">No searches yet</p>
-        <p className="mt-1 text-xs text-muted-foreground/70 max-w-[240px]">
-          Your search history will appear here.
+        <p className="mt-1 text-sm text-muted-foreground max-w-sm">
+          Try searching above—your queries will appear here.
         </p>
         <Link
           href="/search"
-          className="mt-5 inline-flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-teal-700 transition-colors"
+          className="mt-5 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-teal-500 to-teal-600 px-5 py-2.5 text-sm font-medium text-white shadow-lg shadow-teal-500/20 transition-all duration-300 hover:shadow-xl hover:shadow-teal-500/30"
         >
           <Search className="h-4 w-4" aria-hidden="true" />
-          Go to search
+          Search now
         </Link>
       </div>
     )
@@ -145,96 +148,99 @@ export default function HistoryPage() {
   const savedCount = history.filter((h) => h.saved).length
 
   return (
-    <div className="space-y-6 animate-fade-in-up">
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight">Search History</h1>
-          <p className="text-xs text-muted-foreground/70 mt-0.5">
-            {history.length} searches · {savedCount} saved
-          </p>
+    <div className="space-y-8 animate-fade-in-up">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400 to-teal-600 shadow-sm">
+            <History className="h-4 w-4 text-white" aria-hidden="true" />
+          </div>
+          <div>
+            <h1 className="text-xl font-display tracking-tight text-balance">Search History</h1>
+            <p className="text-sm text-muted-foreground/70">
+              {history.length} searches · {savedCount} saved
+            </p>
+          </div>
         </div>
         <Button
           variant="outline"
           size="sm"
           onClick={handleClearAll}
-          className="h-8 rounded-lg text-xs text-muted-foreground hover:text-destructive hover:border-destructive/50"
+          className="h-8 rounded-lg border-border/50 text-xs hover:text-destructive transition-colors"
         >
           <Trash2 className="h-3.5 w-3.5 mr-1.5" aria-hidden="true" />
-          Clear
+          Clear history
         </Button>
       </div>
 
+      {/* List */}
       <div className="space-y-3">
         {history.map((item, i) => (
           <div
             key={item.id}
-            className={`group rounded-xl border border-border/40 bg-card p-5 shadow-xs transition-all duration-200 hover:shadow-sm hover:border-border/60 animate-fade-in-up stagger-${Math.min(i + 1, 8)}`}
+            className={`group flex items-center justify-between rounded-2xl border border-border/50 bg-card/50 px-5 py-4 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 animate-fade-in-up stagger-${Math.min(i + 1, 8)}`}
           >
-            <div className="flex items-start justify-between gap-4 mb-3">
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-foreground truncate" title={item.query}>
-                  {item.query}
-                </p>
+            <div className="flex items-center gap-3 min-w-0 flex-1">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400/10 to-teal-600/10 group-hover:from-teal-400/20 group-hover:to-teal-600/20 transition-all duration-300">
+                <History className="h-4 w-4 text-teal-400/70 group-hover:text-teal-400 transition-colors duration-300" aria-hidden="true" />
               </div>
-              <div className="flex items-center gap-2 shrink-0">
-                {(item.source_count ?? 0) > 0 && (
-                  <span className="hidden sm:inline-flex items-center gap-1 text-[11px] text-muted-foreground/60">
-                    <FileText className="h-3.5 w-3.5" aria-hidden="true" />
-                    {item.source_count}
-                  </span>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-sm font-medium text-foreground truncate" title={item.query}>{item.query}</p>
+                  <div className="flex items-center gap-2 shrink-0">
+                    {(item.source_count ?? 0) > 0 && (
+                      <span className="hidden sm:inline-flex items-center gap-1 text-xs text-muted-foreground/60">
+                        <FileText className="h-3 w-3" aria-hidden="true" />
+                        <span>{item.source_count}</span>
+                      </span>
+                    )}
+                    <span className="text-xs text-muted-foreground/60">
+                      {new Date(item.created_at).toLocaleDateString()}
+                    </span>
+                  </div>
+                </div>
+
+                {item.result_summary && (
+                  <p className="mt-1 text-xs text-muted-foreground/60 line-clamp-1">{item.result_summary}</p>
                 )}
-                <span className="text-[11px] text-muted-foreground/60">
-                  {new Date(item.created_at).toLocaleDateString()}
-                </span>
               </div>
             </div>
 
-            {item.result_summary && (
-              <p className="text-sm text-muted-foreground/70 line-clamp-2 mb-4">
-                {item.result_summary}
-              </p>
-            )}
-
-            <div className="flex items-center gap-1 pt-3 border-t border-border/30">
+            <div className="flex items-center gap-1 shrink-0 ml-4">
               <Link
                 href={`/search?q=${encodeURIComponent(item.query)}`}
                 aria-label="Search for this query"
-                className="inline-flex items-center gap-1.5 h-7 px-2 rounded-md text-[11px] font-medium text-muted-foreground hover:text-teal-600 hover:bg-teal-50 dark:hover:bg-teal-950 focus-visible:ring-2 focus-visible:ring-teal-400/40 transition-colors"
+                className="inline-flex items-center justify-center h-8 w-8 rounded-lg text-muted-foreground hover:text-teal-400 hover:bg-teal-400/10 focus-visible:ring-2 focus-visible:ring-teal-400/40 transition-all duration-200"
               >
-                <Search className="h-3 w-3" aria-hidden="true" />
-                Search
+                <Search className="h-3.5 w-3.5" aria-hidden="true" />
               </Link>
               <button
                 onClick={() => handleToggleSaved(item.id, item.saved)}
                 aria-label={item.saved ? "Unsave bookmark" : "Save bookmark"}
-                className="inline-flex items-center gap-1.5 h-7 px-2 rounded-md text-[11px] font-medium text-muted-foreground hover:text-teal-600 hover:bg-teal-50 dark:hover:bg-teal-950 focus-visible:ring-2 focus-visible:ring-teal-400/40 transition-colors"
+                className="inline-flex items-center justify-center h-8 w-8 rounded-lg text-muted-foreground hover:text-teal-400 hover:bg-teal-400/10 focus-visible:ring-2 focus-visible:ring-teal-400/40 transition-all duration-200"
               >
                 {item.saved ? (
-                  <BookmarkCheck className="h-3 w-3" aria-hidden="true" />
+                  <BookmarkCheck className="h-3.5 w-3.5" aria-hidden="true" />
                 ) : (
-                  <Bookmark className="h-3 w-3" aria-hidden="true" />
+                  <Bookmark className="h-3.5 w-3.5" aria-hidden="true" />
                 )}
-                {item.saved ? "Saved" : "Save"}
               </button>
               <button
                 onClick={() => {
                   navigator.clipboard.writeText(item.query)
-                  toast.success("Copied to clipboard")
+                  toast.success("Query copied to clipboard")
                 }}
                 aria-label="Copy query to clipboard"
-                className="inline-flex items-center gap-1.5 h-7 px-2 rounded-md text-[11px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 focus-visible:ring-2 focus-visible:ring-teal-400/40 transition-colors"
+                className="inline-flex items-center justify-center h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 focus-visible:ring-2 focus-visible:ring-teal-400/40 transition-all duration-200"
               >
-                <Clipboard className="h-3 w-3" aria-hidden="true" />
-                Copy
+                <Clipboard className="h-3.5 w-3.5" aria-hidden="true" />
               </button>
-              <div className="flex-1" />
               <button
                 onClick={() => handleDelete(item.id)}
                 aria-label="Delete search entry"
-                className="inline-flex items-center gap-1.5 h-7 px-2 rounded-md text-[11px] font-medium text-muted-foreground hover:text-destructive hover:bg-destructive/5 focus-visible:ring-2 focus-visible:ring-teal-400/40 transition-colors"
+                className="inline-flex items-center justify-center h-8 w-8 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 focus-visible:ring-2 focus-visible:ring-teal-400/40 transition-all duration-200"
               >
-                <Trash2 className="h-3 w-3" aria-hidden="true" />
-                Delete
+                <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
               </button>
             </div>
           </div>
