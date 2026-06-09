@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import { requireAuth } from "@/lib/supabase/auth-helper"
 import { search, buildResponse } from "@/lib/search"
 import { searchSchema } from "@/lib/validation/schemas"
-import { checkRateLimit, SEARCH_RATE_LIMIT } from "@/lib/rate-limit"
+import { checkRateLimit, SEARCH_RATE_LIMIT, SUMMARY_RATE_LIMIT } from "@/lib/rate-limit"
 
 export async function POST(request: Request) {
   const ip = request.headers.get("x-forwarded-for") || "unknown"
@@ -31,7 +31,9 @@ export async function POST(request: Request) {
 
   try {
     const results = await search(query, user.id, { project_id })
-    const response = await buildResponse(query, results)
+
+    const { allowed: summaryAllowed } = checkRateLimit(`summary:${ip}`, SUMMARY_RATE_LIMIT)
+    const response = await buildResponse(query, results, !summaryAllowed)
 
     const { data: processingDocs } = await supabase
       .from("documents")

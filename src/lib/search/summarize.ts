@@ -1,4 +1,4 @@
-import { getOpenAIKey } from "@/lib/embeddings/openai"
+import { getGroqKey } from "@/lib/embeddings/groq"
 import type { ScoredChunk } from "./bm25"
 
 interface SummaryResult {
@@ -10,7 +10,7 @@ export async function generateAISummary(
   query: string,
   chunks: ScoredChunk[],
 ): Promise<SummaryResult | null> {
-  const key = getOpenAIKey()
+  const key = getGroqKey()
   if (!key) return null
 
   const context = chunks
@@ -40,14 +40,14 @@ KEY POINTS:
 - point 2
 - point 3`
 
-  const res = await fetch("https://api.openai.com/v1/chat/completions", {
+  const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${key}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "gpt-4o-mini",
+      model: "llama-3.3-70b-versatile",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt },

@@ -14,6 +14,7 @@ import { motion } from "framer-motion"
 import { Search, Loader2, BookOpen, List, FileText, Sparkles, Cpu, ChevronDown, ChevronUp, ChevronRight } from "lucide-react"
 import type { SearchResponse, Project } from "@/lib/types"
 import { createClient } from "@/lib/supabase/client"
+import { SearchExport } from "./search-export"
 
 function RelevanceBadge({ label }: { label: "high" | "medium" | "low" }) {
   const styles = {
@@ -322,6 +323,7 @@ export function SearchBar({ onSearchComplete }: SearchBarProps = {}) {
                   AI generated
                 </span>
               )}
+              <SearchExport results={result} />
             </div>
             <p className="text-sm leading-relaxed text-muted-foreground/90">{result.summary}</p>
           </div>

@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { FileText, FileImage, FileSpreadsheet, FileCode, ExternalLink, Trash2, Loader2, Inbox, Sparkles } from "lucide-react"
 import { Skeleton, DocumentListSkeleton } from "@/components/ui/skeleton"
+import { DocumentPreview } from "@/components/ui/document-preview"
 import type { Document, Project } from "@/lib/types"
 
 function getFileIcon(title: string) {
@@ -44,6 +45,8 @@ export function DocumentList() {
   const [filterProject, setFilterProject] = useState("")
   const [page, setPage] = useState(0)
   const [hasMore, setHasMore] = useState(false)
+  const [previewDoc, setPreviewDoc] = useState<Document | null>(null)
+  const [previewOpen, setPreviewOpen] = useState(false)
   const supabase = createClient()
 
   const fetchDocuments = useCallback(async () => {
@@ -146,6 +149,10 @@ export function DocumentList() {
             <div
               key={doc.id}
               className={`group flex items-center justify-between rounded-2xl border border-border/50 bg-card/50 px-5 py-4 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 hover:border-teal-400/20 animate-fade-in-up stagger-${Math.min(i + 1, 8)}`}
+              onClick={() => { setPreviewDoc(doc); setPreviewOpen(true) }}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setPreviewDoc(doc); setPreviewOpen(true) } }}
             >
               <div className="flex items-center gap-3 min-w-0 flex-1">
                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400/10 to-teal-600/10 group-hover:from-teal-400/20 group-hover:to-teal-600/20 transition-all duration-300">
@@ -217,6 +224,12 @@ export function DocumentList() {
           Load more
         </Button>
       )}
+
+      <DocumentPreview
+        document={previewDoc}
+        open={previewOpen}
+        onOpenChange={setPreviewOpen}
+      />
     </div>
   )
 }

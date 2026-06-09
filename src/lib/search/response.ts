@@ -56,6 +56,7 @@ export function extractiveKeyPoints(sentences: string[], count: number): string[
 export async function buildResponse(
   query: string,
   results: ScoredChunk[],
+  skipAISummary: boolean = false,
 ): Promise<SearchResponse> {
   if (results.length === 0) {
     return {
@@ -74,7 +75,7 @@ export async function buildResponse(
     .map((s) => s.trim())
     .filter((s) => s.length > 30)
 
-  const aiResult = await generateAISummary(query, results)
+  const aiResult = skipAISummary ? null : await generateAISummary(query, results)
 
   const keyPoints =
     aiResult?.key_points.length

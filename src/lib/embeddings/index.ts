@@ -1,4 +1,4 @@
-import { generateOpenAIEmbedding, generateOpenAIEmbeddings, getOpenAIKey } from "./openai"
+import { generateGroqEmbedding, generateGroqEmbeddings, getGroqKey } from "./groq"
 
 const HASH_DIMENSIONS = 384
 
@@ -41,19 +41,19 @@ export function hashToVector(text: string, dimensions: number = HASH_DIMENSIONS)
 }
 
 export function isEmbedderFallback(): boolean {
-  return !getOpenAIKey()
+  return !getGroqKey()
 }
 
 export async function generateEmbedding(text: string): Promise<number[]> {
-  if (getOpenAIKey()) {
-    return generateOpenAIEmbedding(text)
+  if (getGroqKey()) {
+    return generateGroqEmbedding(text)
   }
   return hashToVector(text, HASH_DIMENSIONS)
 }
 
 export async function generateEmbeddings(texts: string[]): Promise<number[][]> {
-  if (getOpenAIKey()) {
-    return generateOpenAIEmbeddings(texts)
+  if (getGroqKey()) {
+    return generateGroqEmbeddings(texts)
   }
   return texts.map((t) => hashToVector(t, HASH_DIMENSIONS))
 }

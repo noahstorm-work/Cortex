@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { generateEmbedding, hashToVector } from "../index"
+import { generateEmbedding, hashToVector, isEmbedderFallback } from "../index"
 
 describe("hashToVector", () => {
   it("produces a vector of 384 dimensions", () => {
@@ -27,8 +27,14 @@ describe("hashToVector", () => {
   })
 })
 
+describe("isEmbedderFallback", () => {
+  it("returns true when GROQ_API_KEY is not set", () => {
+    expect(isEmbedderFallback()).toBe(true)
+  })
+})
+
 describe("generateEmbedding", () => {
-  it("produces hash vector", async () => {
+  it("produces hash vector when no API key", async () => {
     const vec = await generateEmbedding("hello world")
     expect(vec.length).toBe(384)
     const magnitude = Math.sqrt(vec.reduce((sum, v) => sum + v * v, 0))

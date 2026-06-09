@@ -44,3 +44,8 @@ export const SUGGESTION_RATE_LIMIT: RateLimitConfig = {
   windowMs: 60 * 1000,
   max: 60,
 }
+
+export const SUMMARY_RATE_LIMIT: RateLimitConfig = {
+  windowMs: 60 * 1000,
+  max: 10,
+}
