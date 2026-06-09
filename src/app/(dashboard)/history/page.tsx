@@ -13,15 +13,21 @@ import {
   ArrowRight,
   AlertTriangle,
   Loader2,
+  Filter,
+  X,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { Skeleton, HistoryListSkeleton } from "@/components/ui/skeleton"
-import { useState, useEffect, useCallback } from "react"
+import { ErrorBoundary } from "@/components/ui/error-boundary"
+import { useState, useEffect, useCallback, useMemo } from "react"
 import { toast } from "sonner"
 
 import type { SearchHistoryItem } from "@/lib/types"
 
 const PAGE_SIZE = 20
+
+type FilterMode = "all" | "today" | "week" | "saved"
 
 interface HistoryItem extends SearchHistoryItem {
   saved: boolean
@@ -34,6 +40,9 @@ export default function HistoryPage() {
   const [loading, setLoading] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [filter, setFilter] = useState<FilterMode>("all")
+  const [searchQuery, setSearchQuery] = useState("")
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
 
   const loadHistory = useCallback(async () => {
     setLoading(true)
@@ -64,6 +73,24 @@ export default function HistoryPage() {
   useEffect(() => {
     loadHistory()
   }, [loadHistory])
+
+  const filtered = useMemo(() => {
+    if (!history) return []
+    const now = new Date()
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    const weekStart = new Date(todayStart)
+    weekStart.setDate(weekStart.getDate() - weekStart.getDay())
+
+    return history.filter((item) => {
+      if (searchQuery && !item.query.toLowerCase().includes(searchQuery.toLowerCase())) return false
+      if (filter === "all") return true
+      if (filter === "saved") return item.saved
+      const d = new Date(item.created_at)
+      if (filter === "today") return d >= todayStart
+      if (filter === "week") return d >= weekStart
+      return true
+    })
+  }, [history, filter, searchQuery])
 
   const loadMore = async () => {
     if (loadingMore || !hasMore) return
@@ -131,6 +158,33 @@ export default function HistoryPage() {
       setHistory(prevHistory)
       toast.error("Failed to clear history")
     }
+  }
+
+  const handleBulkDelete = async () => {
+    const ids = Array.from(selectedIds)
+    if (ids.length === 0) return
+    const prevHistory = history
+    setHistory(prev => prev ? prev.filter(h => !selectedIds.has(h.id)) : prev)
+    setSelectedIds(new Set())
+    toast.success(`${ids.length} entry${ids.length > 1 ? "ies" : "y"} deleted`)
+    try {
+      const supabase = createClient()
+      for (const id of ids) {
+        await supabase.from("search_history").delete().eq("id", id)
+      }
+    } catch {
+      setHistory(prevHistory)
+      toast.error("Failed to delete entries")
+    }
+  }
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
   }
 
   if (loading) {
@@ -206,88 +260,157 @@ export default function HistoryPage() {
             </p>
           </div>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleClearAll}
-          className="h-8 rounded-lg border-border/50 text-xs hover:text-destructive transition-colors"
-        >
-          <Trash2 className="h-3.5 w-3.5 mr-1.5" aria-hidden="true" />
-          Clear history
-        </Button>
+        <div className="flex items-center gap-2">
+          {selectedIds.size > 0 && (
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={handleBulkDelete}
+              className="h-8 rounded-lg text-xs"
+            >
+              <Trash2 className="h-3.5 w-3.5 mr-1.5" aria-hidden="true" />
+              Delete {selectedIds.size}
+            </Button>
+          )}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleClearAll}
+            className="h-8 rounded-lg border-border/50 text-xs hover:text-destructive transition-colors"
+          >
+            <Trash2 className="h-3.5 w-3.5 mr-1.5" aria-hidden="true" />
+            Clear history
+          </Button>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="relative flex-1 min-w-[160px] max-w-xs">
+          <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground/40" aria-hidden="true" />
+          <Input
+            placeholder="Filter queries…"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="h-9 pl-8 pr-8 rounded-xl text-sm border-border/50"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </div>
+        <div className="flex gap-1">
+          {(["all", "today", "week", "saved"] as FilterMode[]).map((f) => (
+            <button
+              key={f}
+              onClick={() => setFilter(f)}
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                filter === f
+                  ? "bg-teal-400/10 text-teal-500"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+              }`}
+            >
+              {f === "all" ? "All" : f === "today" ? "Today" : f === "week" ? "This Week" : "Saved"}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="space-y-3">
-        {history.map((item, i) => (
-          <div
-            key={item.id}
-            className={`group flex items-center justify-between rounded-2xl border border-border/50 bg-card/50 px-5 py-4 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 animate-fade-in-up stagger-${Math.min(i + 1, 8)}`}
-          >
-            <div className="flex items-center gap-3 min-w-0 flex-1">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400/10 to-teal-600/10 group-hover:from-teal-400/20 group-hover:to-teal-600/20 transition-all duration-300">
-                <History className="h-4 w-4 text-teal-400/70 group-hover:text-teal-400 transition-colors duration-300" aria-hidden="true" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center justify-between gap-3">
-                  <p className="text-sm font-medium text-foreground truncate" title={item.query}>{item.query}</p>
-                  <div className="flex items-center gap-2 shrink-0">
-                    {(item.source_count ?? 0) > 0 && (
-                      <span className="hidden sm:inline-flex items-center gap-1 text-xs text-muted-foreground/60">
-                        <FileText className="h-3 w-3" aria-hidden="true" />
-                        <span>{item.source_count}</span>
-                      </span>
-                    )}
-                    <span className="text-xs text-muted-foreground/60">
-                      {new Date(item.created_at).toLocaleDateString()}
-                    </span>
-                  </div>
-                </div>
-
-                {item.result_summary && (
-                  <p className="mt-1 text-xs text-muted-foreground/60 line-clamp-1">{item.result_summary}</p>
-                )}
-              </div>
+        {filtered.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-xl bg-muted/50">
+              <Filter className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
             </div>
-
-            <div className="flex items-center gap-1 shrink-0 ml-4">
-              <Link
-                href={`/search?q=${encodeURIComponent(item.query)}`}
-                aria-label="Search for this query"
-                className="inline-flex items-center justify-center h-8 w-8 rounded-lg text-muted-foreground hover:text-teal-400 hover:bg-teal-400/10 focus-visible:ring-2 focus-visible:ring-teal-400/40 transition-all duration-200"
-              >
-                <Search className="h-3.5 w-3.5" aria-hidden="true" />
-              </Link>
-              <button
-                onClick={() => handleToggleSaved(item.id, item.saved)}
-                aria-label={item.saved ? "Unsave bookmark" : "Save bookmark"}
-                className="inline-flex items-center justify-center h-8 w-8 rounded-lg text-muted-foreground hover:text-teal-400 hover:bg-teal-400/10 focus-visible:ring-2 focus-visible:ring-teal-400/40 transition-all duration-200"
-              >
-                {item.saved ? (
-                  <BookmarkCheck className="h-3.5 w-3.5" aria-hidden="true" />
-                ) : (
-                  <Bookmark className="h-3.5 w-3.5" aria-hidden="true" />
-                )}
-              </button>
-              <button
-                onClick={() => {
-                  navigator.clipboard.writeText(item.query)
-                  toast.success("Query copied to clipboard")
-                }}
-                aria-label="Copy query to clipboard"
-                className="inline-flex items-center justify-center h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 focus-visible:ring-2 focus-visible:ring-teal-400/40 transition-all duration-200"
-              >
-                <Clipboard className="h-3.5 w-3.5" aria-hidden="true" />
-              </button>
-              <button
-                onClick={() => handleDelete(item.id)}
-                aria-label="Delete search entry"
-                className="inline-flex items-center justify-center h-8 w-8 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 focus-visible:ring-2 focus-visible:ring-teal-400/40 transition-all duration-200"
-              >
-                <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
-              </button>
-            </div>
+            <p className="text-sm text-muted-foreground">No history entries match this filter.</p>
           </div>
-        ))}
+        ) : (
+          filtered.map((item, i) => (
+            <div
+              key={item.id}
+              className={`group flex items-center justify-between rounded-2xl border px-5 py-4 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 animate-fade-in-up stagger-${Math.min(i + 1, 8)} ${
+                selectedIds.has(item.id) ? "border-teal-400/40 bg-teal-400/5" : "border-border/50 bg-card/50"
+              }`}
+            >
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                <button
+                  onClick={() => toggleSelect(item.id)}
+                  aria-label={selectedIds.has(item.id) ? "Deselect" : "Select"}
+                  className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border transition-all ${
+                    selectedIds.has(item.id)
+                      ? "bg-teal-500 border-teal-500"
+                      : "border-muted-foreground/30 hover:border-teal-400/50"
+                  }`}
+                >
+                  {selectedIds.has(item.id) && <span className="text-[10px] text-white font-bold">✓</span>}
+                </button>
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400/10 to-teal-600/10 group-hover:from-teal-400/20 group-hover:to-teal-600/20 transition-all duration-300">
+                  <History className="h-4 w-4 text-teal-400/70 group-hover:text-teal-400 transition-colors duration-300" aria-hidden="true" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-sm font-medium text-foreground truncate" title={item.query}>{item.query}</p>
+                    <div className="flex items-center gap-2 shrink-0">
+                      {(item.source_count ?? 0) > 0 && (
+                        <span className="hidden sm:inline-flex items-center gap-1 text-xs text-muted-foreground/60">
+                          <FileText className="h-3 w-3" aria-hidden="true" />
+                          <span>{item.source_count}</span>
+                        </span>
+                      )}
+                      <span className="text-xs text-muted-foreground/60">
+                        {new Date(item.created_at).toLocaleDateString()}
+                      </span>
+                    </div>
+                  </div>
+                  {item.result_summary && (
+                    <p className="mt-1 text-xs text-muted-foreground/60 line-clamp-1">{item.result_summary}</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-1 shrink-0 ml-4">
+                <Link
+                  href={`/search?q=${encodeURIComponent(item.query)}`}
+                  aria-label="Search for this query"
+                  className="inline-flex items-center justify-center h-8 w-8 rounded-lg text-muted-foreground hover:text-teal-400 hover:bg-teal-400/10 focus-visible:ring-2 focus-visible:ring-teal-400/40 transition-all duration-200"
+                >
+                  <Search className="h-3.5 w-3.5" aria-hidden="true" />
+                </Link>
+                <button
+                  onClick={() => handleToggleSaved(item.id, item.saved)}
+                  aria-label={item.saved ? "Unsave bookmark" : "Save bookmark"}
+                  className="inline-flex items-center justify-center h-8 w-8 rounded-lg text-muted-foreground hover:text-teal-400 hover:bg-teal-400/10 focus-visible:ring-2 focus-visible:ring-teal-400/40 transition-all duration-200"
+                >
+                  {item.saved ? (
+                    <BookmarkCheck className="h-3.5 w-3.5" aria-hidden="true" />
+                  ) : (
+                    <Bookmark className="h-3.5 w-3.5" aria-hidden="true" />
+                  )}
+                </button>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(item.query)
+                    toast.success("Query copied to clipboard")
+                  }}
+                  aria-label="Copy query to clipboard"
+                  className="inline-flex items-center justify-center h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 focus-visible:ring-2 focus-visible:ring-teal-400/40 transition-all duration-200"
+                >
+                  <Clipboard className="h-3.5 w-3.5" aria-hidden="true" />
+                </button>
+                <button
+                  onClick={() => handleDelete(item.id)}
+                  aria-label="Delete search entry"
+                  className="inline-flex items-center justify-center h-8 w-8 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 focus-visible:ring-2 focus-visible:ring-teal-400/40 transition-all duration-200"
+                >
+                  <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+                </button>
+              </div>
+            </div>
+          ))
+        )}
       </div>
 
       {hasMore && (

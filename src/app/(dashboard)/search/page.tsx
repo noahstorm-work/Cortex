@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { SearchBar } from "@/components/search/search-bar"
 import { SearchHistory } from "@/components/search/search-history"
+import { ErrorBoundary } from "@/components/ui/error-boundary"
 import { Search } from "lucide-react"
 
 export default function SearchPage() {
@@ -26,9 +27,13 @@ export default function SearchPage() {
         </div>
       </div>
 
-      <SearchBar onSearchComplete={handleSearchComplete} />
+      <ErrorBoundary>
+        <SearchBar onSearchComplete={handleSearchComplete} />
+      </ErrorBoundary>
 
-      <SearchHistory refetchTrigger={searchTrigger} />
+      <ErrorBoundary>
+        <SearchHistory refetchTrigger={searchTrigger} />
+      </ErrorBoundary>
     </div>
   )
 }

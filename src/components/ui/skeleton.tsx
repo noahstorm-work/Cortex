@@ -97,3 +97,47 @@ export function SearchHistorySkeleton() {
     </div>
   )
 }
+
+export function SearchResultsSkeleton() {
+  return (
+    <div className="space-y-5">
+      <div className="rounded-2xl border border-border/50 bg-card/50 p-6 shadow-sm">
+        <div className="flex items-center gap-2 mb-3">
+          <Skeleton className="h-7 w-7 rounded-xl" />
+          <Skeleton className="h-4 w-24" />
+        </div>
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-4/5 mt-2" />
+        <Skeleton className="h-4 w-3/5 mt-2" />
+      </div>
+      <div className="rounded-2xl border border-border/50 bg-card/50 p-6 shadow-sm">
+        <div className="flex items-center gap-2 mb-3">
+          <Skeleton className="h-7 w-7 rounded-xl" />
+          <Skeleton className="h-4 w-20" />
+        </div>
+        <div className="space-y-2">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="flex gap-2">
+              <Skeleton className="h-1.5 w-1.5 rounded-full shrink-0 mt-1.5" />
+              <Skeleton className="h-4 flex-1" />
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="rounded-2xl border border-border/50 bg-card/50 p-6 shadow-sm">
+        <div className="flex items-center gap-2 mb-3">
+          <Skeleton className="h-7 w-7 rounded-xl" />
+          <Skeleton className="h-4 w-28" />
+        </div>
+        <div className="space-y-3">
+          {[1, 2].map((i) => (
+            <div key={i} className="border-l-2 border-muted pl-4 py-2">
+              <Skeleton className="h-3 w-40" />
+              <Skeleton className="h-4 w-full mt-1" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}

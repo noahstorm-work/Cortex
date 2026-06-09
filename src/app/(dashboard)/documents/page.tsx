@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react"
 import { UploadArea } from "@/components/documents/upload-area"
 import { DocumentList } from "@/components/documents/document-list"
+import { ErrorBoundary } from "@/components/ui/error-boundary"
 import { FileText, UploadCloud } from "lucide-react"
 
 export default function DocumentsPage() {
@@ -34,13 +35,17 @@ export default function DocumentsPage() {
         </div>
       </div>
 
-      <UploadArea onUploadComplete={handleUploadComplete} />
+      <ErrorBoundary>
+        <UploadArea onUploadComplete={handleUploadComplete} />
+      </ErrorBoundary>
 
       <div>
         <h2 className="mb-4 text-sm font-medium text-foreground/80 tracking-wide uppercase">
           Your documents
         </h2>
-        <DocumentList key={refreshKey} />
+        <ErrorBoundary>
+          <DocumentList key={refreshKey} />
+        </ErrorBoundary>
       </div>
     </div>
   )

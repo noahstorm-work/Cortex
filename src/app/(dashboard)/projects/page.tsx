@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { FolderKanban } from "lucide-react"
 import { CreateProjectForm } from "@/components/projects/create-project-form"
 import { ProjectList } from "@/components/projects/project-list"
+import { ErrorBoundary } from "@/components/ui/error-boundary"
 
 export const metadata: Metadata = {
   title: "Projects",
@@ -24,7 +25,9 @@ export default function ProjectsPage() {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="lg:col-span-1">
-          <CreateProjectForm />
+          <ErrorBoundary>
+            <CreateProjectForm />
+          </ErrorBoundary>
         </div>
         <div className="lg:col-span-2">
           <div className="mb-4 flex items-center justify-between">
@@ -32,7 +35,9 @@ export default function ProjectsPage() {
               Your projects
             </h2>
           </div>
-          <ProjectList />
+          <ErrorBoundary>
+            <ProjectList />
+          </ErrorBoundary>
         </div>
       </div>
     </div>
