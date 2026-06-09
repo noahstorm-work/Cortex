@@ -247,6 +247,7 @@ export default function HistoryPage() {
   const savedCount = history.filter((h) => h.saved).length
 
   return (
+    <ErrorBoundary>
     <div className="space-y-8 animate-fade-in-up">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -431,5 +432,6 @@ export default function HistoryPage() {
         </div>
       )}
     </div>
+    </ErrorBoundary>
   )
 }

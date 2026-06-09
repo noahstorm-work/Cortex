@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { createServerSupabaseClient } from "@/lib/supabase/server"
 import { FileText, Search, History, ArrowRight, Sparkles } from "lucide-react"
 import Link from "next/link"
+import { ErrorBoundary } from "@/components/ui/error-boundary"
 import { StatsCards } from "@/components/dashboard/stats-cards"
 
 export const dynamic = "force-dynamic"
@@ -82,10 +83,13 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      <StatsCards stats={stats} />
+      <ErrorBoundary>
+        <StatsCards stats={stats} />
+      </ErrorBoundary>
 
       {/* Activity Section */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <ErrorBoundary>
         <div className="rounded-2xl border border-border/50 bg-card/50 p-6 shadow-sm animate-fade-in-up stagger-5">
           <div className="mb-5 flex items-center justify-between">
             <h2 className="text-sm font-medium text-foreground/80 tracking-wide uppercase">Recent Uploads</h2>
@@ -111,7 +115,9 @@ export default async function DashboardPage() {
             </div>
           )}
         </div>
+        </ErrorBoundary>
 
+        <ErrorBoundary>
         <div className="rounded-2xl border border-border/50 bg-card/50 p-6 shadow-sm animate-fade-in-up stagger-6">
           <div className="mb-5 flex items-center justify-between">
             <h2 className="text-sm font-medium text-foreground/80 tracking-wide uppercase">Recent Searches</h2>
@@ -137,6 +143,7 @@ export default async function DashboardPage() {
             </div>
           )}
         </div>
+        </ErrorBoundary>
       </div>
     </div>
   )
