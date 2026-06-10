@@ -20,21 +20,16 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Skeleton, HistoryListSkeleton } from "@/components/ui/skeleton"
 import { ErrorBoundary } from "@/components/ui/error-boundary"
-import { useState, useEffect, useCallback, useMemo } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { toast } from "sonner"
+import { useSearchHistoryFilter, type FilterMode } from "@/lib/hooks/use-search-history-filter"
 
 import type { SearchHistoryItem } from "@/lib/types"
 
 const PAGE_SIZE = 20
 
-type FilterMode = "all" | "today" | "week" | "saved"
-
-interface HistoryItem extends SearchHistoryItem {
-  saved: boolean
-}
-
 export default function HistoryPage() {
-  const [history, setHistory] = useState<HistoryItem[] | null>(null)
+  const [history, setHistory] = useState<SearchHistoryItem[] | null>(null)
   const [page, setPage] = useState(0)
   const [hasMore, setHasMore] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -74,23 +69,7 @@ export default function HistoryPage() {
     loadHistory()
   }, [loadHistory])
 
-  const filtered = useMemo(() => {
-    if (!history) return []
-    const now = new Date()
-    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-    const weekStart = new Date(todayStart)
-    weekStart.setDate(weekStart.getDate() - weekStart.getDay())
-
-    return history.filter((item) => {
-      if (searchQuery && !item.query.toLowerCase().includes(searchQuery.toLowerCase())) return false
-      if (filter === "all") return true
-      if (filter === "saved") return item.saved
-      const d = new Date(item.created_at)
-      if (filter === "today") return d >= todayStart
-      if (filter === "week") return d >= weekStart
-      return true
-    })
-  }, [history, filter, searchQuery])
+  const filtered = useSearchHistoryFilter(history ?? [], filter, searchQuery)
 
   const loadMore = async () => {
     if (loadingMore || !hasMore) return

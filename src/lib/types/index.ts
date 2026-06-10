@@ -42,4 +42,5 @@ export interface SearchHistoryItem {
   result_summary: string | null
   source_count: number | null
   created_at: string
+  saved?: boolean
 }

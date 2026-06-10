@@ -1,18 +1,17 @@
 "use client"
 
-import { useEffect, useState, useMemo } from "react"
+import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Input } from "@/components/ui/input"
 import { History, Search, Trash2, Loader2, Clock, Filter, X } from "lucide-react"
-import { Skeleton, SearchHistorySkeleton } from "@/components/ui/skeleton"
+import { SearchHistorySkeleton } from "@/components/ui/skeleton"
+import { useSearchHistoryFilter, type FilterMode } from "@/lib/hooks/use-search-history-filter"
 import type { SearchHistoryItem } from "@/lib/types"
 
-type FilterMode = "all" | "today" | "week" | "saved"
-
 export function SearchHistory({ refetchTrigger }: { refetchTrigger?: number } = {}) {
-  const [history, setHistory] = useState<SearchHistoryItem[] & { saved?: boolean }[]>([])
+  const [history, setHistory] = useState<SearchHistoryItem[]>([])
   const [loading, setLoading] = useState(true)
   const [clearing, setClearing] = useState(false)
   const [fetchError, setFetchError] = useState<string | null>(null)
@@ -40,22 +39,7 @@ export function SearchHistory({ refetchTrigger }: { refetchTrigger?: number } = 
     fetchHistory()
   }, [refetchTrigger])
 
-  const filtered = useMemo(() => {
-    const now = new Date()
-    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-    const weekStart = new Date(todayStart)
-    weekStart.setDate(weekStart.getDate() - weekStart.getDay())
-
-    return history.filter((item) => {
-      if (searchQuery && !item.query.toLowerCase().includes(searchQuery.toLowerCase())) return false
-      if (filter === "all") return true
-      if (filter === "saved") return (item as any).saved
-      const d = new Date(item.created_at)
-      if (filter === "today") return d >= todayStart
-      if (filter === "week") return d >= weekStart
-      return true
-    })
-  }, [history, filter, searchQuery])
+  const filtered = useSearchHistoryFilter(history, filter, searchQuery)
 
   const handleClear = async () => {
     setClearing(true)
@@ -203,7 +187,7 @@ export function SearchHistory({ refetchTrigger }: { refetchTrigger?: number } = 
                     <p className="text-sm font-medium text-foreground/80 truncate group-hover:text-foreground transition-colors">
                       {item.query}
                     </p>
-                    {(item as any).saved && (
+                    {item.saved && (
                       <span className="text-[10px] font-medium text-teal-500 ml-auto">Saved</span>
                     )}
                   </div>
