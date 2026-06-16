@@ -28,6 +28,7 @@ export function DocumentPreview({ document, open, onOpenChange }: DocumentPrevie
 
   useEffect(() => {
     if (!document || !open) return
+    const doc = document
 
     setLoadingMeta(true)
     const supabase = createClient()
@@ -37,9 +38,9 @@ export function DocumentPreview({ document, open, onOpenChange }: DocumentPrevie
         supabase
           .from("chunks")
           .select("id", { count: "exact", head: true })
-          .eq("document_id", document.id),
-        document.project_id
-          ? supabase.from("projects").select("name").eq("id", document.project_id).single()
+          .eq("document_id", doc.id),
+        doc.project_id
+          ? supabase.from("projects").select("name").eq("id", doc.project_id).single()
           : Promise.resolve({ data: null }),
       ])
 
