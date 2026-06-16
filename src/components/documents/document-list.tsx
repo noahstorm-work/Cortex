@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState, useCallback } from "react"
+import dynamic from "next/dynamic"
 import { createClient } from "@/lib/supabase/client"
 import {
   Select,
@@ -24,8 +25,14 @@ import {
 } from "@/components/ui/alert-dialog"
 import { FileText, FileImage, FileSpreadsheet, FileCode, ExternalLink, Trash2, Loader2, Inbox, Sparkles } from "lucide-react"
 import { Skeleton, DocumentListSkeleton } from "@/components/ui/skeleton"
-import { DocumentPreview } from "@/components/ui/document-preview"
 import type { Document, Project } from "@/lib/types"
+
+const DocumentPreview = dynamic(
+  () => import("@/components/ui/document-preview").then((mod) => mod.DocumentPreview),
+  {
+    loading: () => null,
+  }
+)
 
 function getFileIcon(title: string) {
   const ext = title.split(".").pop()?.toLowerCase()
