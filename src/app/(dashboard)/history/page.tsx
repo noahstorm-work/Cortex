@@ -360,7 +360,7 @@ export default function HistoryPage() {
                   <Search className="h-3.5 w-3.5" aria-hidden="true" />
                 </Link>
                 <button
-                  onClick={() => handleToggleSaved(item.id, item.saved)}
+                  onClick={() => handleToggleSaved(item.id, item.saved ?? false)}
                   aria-label={item.saved ? "Unsave bookmark" : "Save bookmark"}
                   className="inline-flex items-center justify-center h-8 w-8 rounded-lg text-muted-foreground hover:text-teal-400 hover:bg-teal-400/10 focus-visible:ring-2 focus-visible:ring-teal-400/40 transition-all duration-200"
                 >

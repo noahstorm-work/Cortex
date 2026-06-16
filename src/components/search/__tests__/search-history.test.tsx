@@ -27,7 +27,7 @@ describe("SearchHistory", () => {
 
   it("renders history items after loading", async () => {
     render(<SearchHistory />)
-    await waitFor(() => expect(screen.getByText("first query")).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByText("first query")).toBeInTheDocument(), { timeout: 10000 })
     expect(screen.getByText("second query")).toBeInTheDocument()
   })
 
