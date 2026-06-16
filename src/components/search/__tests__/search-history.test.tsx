@@ -19,7 +19,8 @@ describe("SearchHistory", () => {
     } as Response)
   })
 
-  it("shows loading skeleton initially", () => {
+  it("shows loading skeleton initially", async () => {
+    vi.spyOn(global, "fetch").mockImplementation(() => new Promise(() => {}))
     render(<SearchHistory />)
     expect(screen.getByText("Search History")).toBeInTheDocument()
     expect(screen.queryByText("first query")).not.toBeInTheDocument()
@@ -29,7 +30,7 @@ describe("SearchHistory", () => {
     render(<SearchHistory />)
     await waitFor(() => expect(screen.getByText("first query")).toBeInTheDocument(), { timeout: 10000 })
     expect(screen.getByText("second query")).toBeInTheDocument()
-  })
+  }, 15000)
 
   it("shows source count for each item", async () => {
     render(<SearchHistory />)

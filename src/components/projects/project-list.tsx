@@ -105,9 +105,17 @@ export function ProjectList() {
       {projects.map((project) => (
         <Card key={project.id} className="border border-border/50 bg-card/50 shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md">
           <CardContent className="p-0">
-            <button
+            <div
+              role="button"
+              tabIndex={0}
               onClick={() => setExpandedId(expandedId === project.id ? null : project.id)}
-              className="flex w-full items-center justify-between px-5 py-3 text-left transition-all duration-200 hover:bg-muted/20"
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault()
+                  setExpandedId(expandedId === project.id ? null : project.id)
+                }
+              }}
+              className="flex w-full items-center justify-between px-5 py-3 text-left transition-all duration-200 hover:bg-muted/20 cursor-pointer"
             >
               <div className="flex items-center gap-3">
                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400/10 to-teal-600/10">
@@ -147,7 +155,7 @@ export function ProjectList() {
                   </AlertDialogContent>
                 </AlertDialog>
               </div>
-            </button>
+            </div>
 
             {expandedId === project.id && (
               <div className="border-t border-border/30 px-5 py-3">

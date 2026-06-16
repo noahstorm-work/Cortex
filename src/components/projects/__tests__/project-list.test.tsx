@@ -58,7 +58,7 @@ describe("ProjectList", () => {
     ]
   })
 
-  it("shows loading skeleton initially", () => {
+  it("shows loading skeleton initially", async () => {
     render(<ProjectList />)
     expect(screen.queryByText("Test Project")).not.toBeInTheDocument()
   })
