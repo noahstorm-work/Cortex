@@ -24,6 +24,12 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <div className="relative flex min-h-screen">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[60] focus:rounded-xl focus:bg-background focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-teal-400/40"
+      >
+        Skip to main content
+      </a>
       {/* Ambient background */}
       <div className="fixed inset-0 -z-10">
         <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-teal-500/[0.02]" />
@@ -32,7 +38,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       </div>
 
       <Sidebar />
-      <main className="flex-1 overflow-auto pt-14 md:pt-0">
+      <main id="main-content" className="flex-1 overflow-auto pt-14 md:pt-0">
         <div className="mx-auto max-w-6xl px-6 py-8 md:px-8">
           <ErrorBoundary>
             <PageTransition>

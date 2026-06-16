@@ -188,7 +188,7 @@ export function UploadArea({ onUploadComplete }: UploadAreaProps) {
         </div>
 
         {files.length > 0 && (
-          <div className="mt-5 space-y-2">
+          <div className="mt-5 space-y-2" aria-live="polite" aria-atomic="false">
             {files.map((file, i) => {
               const status = fileStatuses.find((s) => s.name === file.name)
               return (
@@ -223,6 +223,7 @@ export function UploadArea({ onUploadComplete }: UploadAreaProps) {
               <Button
                 onClick={handleUpload}
                 disabled={uploading || fileStatuses.some((s) => s.state === "uploading" || s.state === "processing")}
+                aria-busy={uploading}
                 className="w-full rounded-xl bg-gradient-to-r from-teal-500 to-teal-600 text-white shadow-lg shadow-teal-500/20 transition-all duration-300 hover:shadow-xl hover:shadow-teal-500/30 hover:scale-[1.01] active:scale-[0.99]"
               >
                 {uploading ? (

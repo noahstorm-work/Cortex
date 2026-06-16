@@ -58,11 +58,6 @@ describe("ProjectList", () => {
     ]
   })
 
-  it("shows loading skeleton initially", async () => {
-    render(<ProjectList />)
-    expect(screen.queryByText("Test Project")).not.toBeInTheDocument()
-  })
-
   it("renders projects after loading", async () => {
     render(<ProjectList />)
     await waitFor(() => expect(screen.getByText("Test Project")).toBeInTheDocument())

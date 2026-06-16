@@ -72,18 +72,21 @@ describe("SearchBar", () => {
 
   it("renders search input and button", async () => {
     render(<SearchBar />)
+    await waitFor(() => {})
     expect(screen.getByLabelText(/search documents/i)).toBeInTheDocument()
     expect(screen.getByRole("button", { name: /search/i })).toBeInTheDocument()
   })
 
   it("disables search button when query is empty", async () => {
     render(<SearchBar />)
+    await waitFor(() => {})
     const btn = screen.getByRole("button", { name: /search/i })
     expect(btn).toBeDisabled()
   })
 
   it("enables search button when query is typed", async () => {
     render(<SearchBar />)
+    await waitFor(() => {})
     const input = screen.getByRole("combobox")
     fireEvent.change(input, { target: { value: "hello" } })
     expect(screen.getByRole("button", { name: /search/i })).not.toBeDisabled()

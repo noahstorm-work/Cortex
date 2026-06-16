@@ -117,7 +117,7 @@ export function DocumentList() {
         <div className="flex items-center gap-2">
           <span className="text-xs font-medium text-muted-foreground">Filter:</span>
           <Select value={filterProject} onValueChange={setFilterProject}>
-            <SelectTrigger className="w-48 glass rounded-xl">
+            <SelectTrigger className="w-48 glass rounded-xl" aria-label="Filter documents by project">
               <SelectValue placeholder="All documents" />
             </SelectTrigger>
             <SelectContent>
@@ -153,6 +153,7 @@ export function DocumentList() {
               role="button"
               tabIndex={0}
               onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setPreviewDoc(doc); setPreviewOpen(true) } }}
+              aria-label={`Preview ${doc.title}`}
             >
               <div className="flex items-center gap-3 min-w-0 flex-1">
                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400/10 to-teal-600/10 group-hover:from-teal-400/20 group-hover:to-teal-600/20 transition-all duration-300">
@@ -195,7 +196,7 @@ export function DocumentList() {
                 </a>
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg focus-visible:ring-2 focus-visible:ring-teal-400/40" disabled={deleting === doc.id}>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg focus-visible:ring-2 focus-visible:ring-teal-400/40" disabled={deleting === doc.id} aria-label={`Delete ${doc.title}`}>
                       {deleting === doc.id ? (
                         <Loader2 className="h-3.5 w-3.5 animate-spin" />
                       ) : (

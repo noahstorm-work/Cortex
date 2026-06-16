@@ -60,6 +60,7 @@ export function Sidebar() {
     return (
       <Link
         href={item.href}
+        aria-current={active ? "page" : undefined}
         className={cn(
           "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400/40",
           active
@@ -135,7 +136,7 @@ export function Sidebar() {
       <div className="md:hidden fixed top-0 left-0 right-0 z-50 flex h-14 items-center border-b border-border/60 bg-background/80 backdrop-blur-2xl px-4" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
           <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl">
+            <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl" aria-label="Open navigation menu">
               <Menu className="h-5 w-5" />
             </Button>
           </SheetTrigger>
