@@ -72,6 +72,7 @@ export function CreateProjectForm() {
           <Button
             type="submit"
             disabled={creating || !name.trim()}
+            aria-busy={creating}
             className="w-full h-10 rounded-lg bg-gradient-to-r from-teal-500 to-teal-600 text-white shadow-lg shadow-teal-500/20 transition-all duration-300 hover:shadow-xl hover:shadow-teal-500/30 hover:scale-[1.01] active:scale-[0.99]"
           >
             {creating ? (

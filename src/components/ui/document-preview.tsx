@@ -108,7 +108,7 @@ export function DocumentPreview({ document, open, onOpenChange }: DocumentPrevie
         </div>
 
         <AlertDialogFooter>
-          <AlertDialogCancel className="rounded-xl">Close</AlertDialogCancel>
+          <AlertDialogCancel className="rounded-xl" aria-label="Close document preview">Close</AlertDialogCancel>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

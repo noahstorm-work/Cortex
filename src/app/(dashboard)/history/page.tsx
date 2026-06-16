@@ -264,7 +264,7 @@ export default function HistoryPage() {
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2" role="search" aria-label="Filter search history">
         <div className="relative flex-1 min-w-[160px] max-w-xs">
           <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground/40" aria-hidden="true" />
           <Input
@@ -276,7 +276,8 @@ export default function HistoryPage() {
           {searchQuery && (
             <button
               onClick={() => setSearchQuery("")}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              aria-label="Clear filter"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400/40 rounded-lg"
             >
               <X className="h-3.5 w-3.5" />
             </button>
@@ -287,6 +288,7 @@ export default function HistoryPage() {
             <button
               key={f}
               onClick={() => setFilter(f)}
+              aria-pressed={filter === f}
               className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
                 filter === f
                   ? "bg-teal-400/10 text-teal-500"
@@ -318,8 +320,10 @@ export default function HistoryPage() {
               <div className="flex items-center gap-3 min-w-0 flex-1">
                 <button
                   onClick={() => toggleSelect(item.id)}
+                  role="checkbox"
+                  aria-checked={selectedIds.has(item.id)}
                   aria-label={selectedIds.has(item.id) ? "Deselect" : "Select"}
-                  className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border transition-all ${
+                  className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400/40 ${
                     selectedIds.has(item.id)
                       ? "bg-teal-500 border-teal-500"
                       : "border-muted-foreground/30 hover:border-teal-400/50"

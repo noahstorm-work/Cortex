@@ -40,7 +40,7 @@ export function StatsCards({ stats }: StatsCardsProps) {
 
             <div className="relative z-10">
               <div className={`mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${stat.iconBg} shadow-lg ${stat.accent.replace("text-", "shadow-")}/20`}>
-                <Icon className="h-5 w-5 text-white" />
+                <Icon className="h-5 w-5 text-white" aria-hidden="true" />
               </div>
               <div className="text-3xl font-bold tracking-tight text-foreground font-display">
                 {typeof stat.value === "number" ? (
