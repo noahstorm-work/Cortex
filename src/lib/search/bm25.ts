@@ -1,6 +1,23 @@
 import { generateQueryEmbedding } from "@/lib/embeddings"
 import { createServerSupabaseClient } from "@/lib/supabase/server"
 
+/** Row shape returned by the `match_chunks` Supabase RPC function. */
+interface MatchChunksRow {
+  id: string
+  document_id: string
+  document_title: string
+  content: string
+  similarity: number
+}
+
+/** Row shape returned by the text fallback search query. */
+interface TextFallbackRow {
+  id: string
+  document_id: string
+  content: string
+  documents: { title: string; user_id: string; project_id: string | null }[]
+}
+
 export interface ScoredChunk {
   chunk_id: string
   document_id: string
@@ -36,11 +53,11 @@ export async function vectorSearch(
     return textFallbackSearch(query, userId, options)
   }
 
-  let results = data || []
+  let results = (data || []) as MatchChunksRow[]
 
   if (options?.project_id) {
-    results = results.filter((r: any) => r.document_id)
-    const docIds = results.map((r: any) => r.document_id)
+    results = results.filter((r) => r.document_id)
+    const docIds = results.map((r) => r.document_id)
     if (docIds.length > 0) {
       const { data: docs } = await supabase
         .from("documents")
@@ -49,14 +66,14 @@ export async function vectorSearch(
         .in("id", docIds)
 
       const validDocIds = new Set((docs || []).map((d) => d.id))
-      results = results.filter((r: any) => validDocIds.has(r.document_id))
+      results = results.filter((r) => validDocIds.has(r.document_id))
     } else {
       results = []
     }
   }
 
   if (results.length > 0) {
-    return results.map((r: any) => ({
+    return results.map((r) => ({
       chunk_id: r.id,
       document_id: r.document_id,
       document_title: r.document_title,
@@ -98,10 +115,11 @@ async function textFallbackSearch(
 
   if (error || !data || data.length === 0) return []
 
-  return data.map((r: any) => ({
+  const typed = data as TextFallbackRow[]
+  return typed.map((r) => ({
     chunk_id: r.id,
     document_id: r.document_id,
-    document_title: r.documents.title,
+    document_title: r.documents[0]?.title ?? "",
     content: r.content,
     score: 1.0,
   }))

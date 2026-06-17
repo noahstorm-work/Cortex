@@ -79,7 +79,7 @@ export function DocumentList() {
     ])
 
     const pData = pResult.data
-    if (pData) setProjects(pData as any)
+    if (pData) setProjects(pData as Project[])
 
     const projectMap = new Map((pData || []).map((p) => [p.id, p.name]))
 

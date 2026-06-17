@@ -24,7 +24,7 @@ export interface Document {
   /** ID of the project this document belongs to, or `null` if unassigned. */
   project_id: string | null
   /** Processing status: `"pending"`, `"processing"`, `"ready"`, or `"failed"`. */
-  status: string
+  status: "pending" | "processing" | "ready" | "failed"
   /** ISO 8601 timestamp of when the document was created. */
   created_at: string
 }

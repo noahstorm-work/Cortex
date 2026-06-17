@@ -4,6 +4,7 @@ import { FileText, Search, History, ArrowRight, Sparkles } from "lucide-react"
 import Link from "next/link"
 import { ErrorBoundary } from "@/components/ui/error-boundary"
 import { StatsCards } from "@/components/dashboard/stats-cards"
+import type { Document, SearchHistoryItem } from "@/lib/types"
 
 export const dynamic = "force-dynamic"
 
@@ -29,8 +30,8 @@ async function getDashboardData(userId: string) {
     totalDocuments: docResult.count || 0,
     totalChunks: chunkResult.count || 0,
     totalSearches: searchResult.count || 0,
-    recentDocuments: (recentDocs.data || []) as { id: string; title: string; status: string; created_at: string }[],
-    recentSearches: (recentSearches.data || []) as { id: string; query: string; created_at: string }[],
+    recentDocuments: (recentDocs.data || []) as Pick<Document, "id" | "title" | "status" | "created_at">[],
+    recentSearches: (recentSearches.data || []) as Pick<SearchHistoryItem, "id" | "query" | "created_at">[],
   }
 }
 

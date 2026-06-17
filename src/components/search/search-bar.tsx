@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef, FormEvent, KeyboardEvent } from "react"
+import { useState, useEffect, useRef } from "react"
 import {
   Select,
   SelectContent,
@@ -58,7 +58,7 @@ export function SearchBar({ onSearchComplete }: SearchBarProps = {}) {
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
         .then(({ data }) => {
-          if (data) setProjects(data as any)
+          if (data) setProjects(data as Project[])
         })
     })
   }, [supabase])
