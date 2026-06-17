@@ -38,6 +38,7 @@ vi.mock("@/lib/supabase/server", () => {
       eq: vi.fn().mockReturnThis(),
       neq: vi.fn().mockReturnThis(),
       in: vi.fn().mockReturnThis(),
+      ilike: vi.fn().mockReturnThis(),
       single: vi.fn(() =>
         Promise.resolve({
           data: { id: "mock-doc-id-" + Date.now() },
@@ -62,6 +63,9 @@ vi.mock("@/lib/supabase/server", () => {
             data: { user: { id: "test-user-id", email: "test@example.com" } },
             error: null,
           })
+        ),
+        signInWithPassword: vi.fn(() =>
+          Promise.resolve({ data: { user: { id: "test-user-id" } }, error: null })
         ),
       },
       from: mockFrom,
