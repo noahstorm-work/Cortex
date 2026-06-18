@@ -1,4 +1,5 @@
 let worker: any = null
+import { logger } from "@/lib/logger"
 
 async function getWorker() {
   if (!worker) {
@@ -80,7 +81,7 @@ export async function ocrPDF(buffer: Buffer): Promise<string> {
   try {
     return await ocrPDFviaSVG(buffer)
   } catch (e) {
-    console.warn("PDF OCR via SVG failed:", e)
+    logger.warn("PDF OCR via SVG failed", { error: e })
     return text
   }
 }

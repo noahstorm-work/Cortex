@@ -1,5 +1,6 @@
 import { generateQueryEmbedding } from "@/lib/embeddings"
 import { createServerSupabaseClient } from "@/lib/supabase/server"
+import { logger } from "@/lib/logger"
 
 /** Row shape returned by the `match_chunks` Supabase RPC function. */
 interface MatchChunksRow {
@@ -49,7 +50,7 @@ export async function vectorSearch(
   const { data, error } = await queryBuilder
 
   if (error) {
-    console.error("Vector search error:", error)
+    logger.error("Vector search error", { error })
     return textFallbackSearch(query, userId, options)
   }
 

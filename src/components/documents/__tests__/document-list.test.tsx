@@ -110,7 +110,9 @@ function createMockClient() {
       if (table === "projects") {
         return {
           select: () => ({
-            eq: () => Promise.resolve({ data: mockProjects, error: null }),
+            eq: () => ({
+              order: () => Promise.resolve({ data: mockProjects, error: null }),
+            }),
           }),
         }
       }

@@ -7,6 +7,7 @@ import { ocrImage, ocrPDF } from "@/lib/ocr"
 import { processSchema } from "@/lib/validation/schemas"
 import { checkRateLimit, API_RATE_LIMIT } from "@/lib/rate-limit"
 import { extractStoragePath } from "@/lib/storage"
+import { logger } from "@/lib/logger"
 
 export async function POST(request: Request) {
   const ip = request.headers.get("x-forwarded-for") || "unknown"
@@ -117,7 +118,7 @@ export async function POST(request: Request) {
     })
   } catch (error) {
     try { await adminClient.from("documents").update({ status: "failed" }).eq("id", document_id) } catch {}
-    console.error("Process error:", error)
+    logger.error("Process error", { error })
     return NextResponse.json(
       { error: "Failed to process document" },
       { status: 500 }

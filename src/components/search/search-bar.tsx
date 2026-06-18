@@ -15,6 +15,8 @@ import { Search, Loader2, BookOpen, List, FileText, Sparkles, Cpu, ChevronDown, 
 import type { SearchResponse, Project } from "@/lib/types"
 import { createClient } from "@/lib/supabase/client"
 import { SearchExport } from "./search-export"
+import { logger } from "@/lib/logger"
+import { fetchUserProjects } from "@/lib/utils/queries"
 
 function RelevanceBadge({ label }: { label: "high" | "medium" | "low" }) {
   const styles = {
@@ -52,14 +54,9 @@ export function SearchBar({ onSearchComplete }: SearchBarProps = {}) {
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (!user) return
-      supabase
-        .from("projects")
-        .select("id, name, description, user_id, created_at")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .then(({ data }) => {
-          if (data) setProjects(data as Project[])
-        })
+      fetchUserProjects(supabase, user.id).then((data) => {
+        if (data) setProjects(data)
+      })
     })
   }, [supabase])
 
@@ -97,7 +94,7 @@ export function SearchBar({ onSearchComplete }: SearchBarProps = {}) {
           setSelectedSuggestionIndex(-1)
         } catch (err) {
           if (err instanceof DOMException && err.name === "AbortError") return
-          console.error("Autocomplete error:", err)
+          logger.error("Autocomplete error", { error: err })
           setSuggestions([])
         } finally {
           setSuggestionLoading(false)

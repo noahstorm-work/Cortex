@@ -26,6 +26,7 @@ import {
 import { FileText, FileImage, FileSpreadsheet, FileCode, ExternalLink, Trash2, Loader2, Inbox, Sparkles } from "lucide-react"
 import { Skeleton, DocumentListSkeleton } from "@/components/ui/skeleton"
 import type { Document, Project } from "@/lib/types"
+import { fetchUserProjects, getStatusBadgeClass } from "@/lib/utils/queries"
 
 const DocumentPreview = dynamic(
   () => import("@/components/ui/document-preview").then((mod) => mod.DocumentPreview),
@@ -61,10 +62,7 @@ export function DocumentList() {
     if (!user) return
 
     const [pResult, dResult] = await Promise.all([
-      supabase
-        .from("projects")
-        .select("id, name, description, user_id, created_at")
-        .eq("user_id", user.id),
+      fetchUserProjects(supabase, user.id),
       (() => {
         let q = supabase
           .from("documents")
@@ -78,7 +76,7 @@ export function DocumentList() {
       })(),
     ])
 
-    const pData = pResult.data
+    const pData = pResult
     if (pData) setProjects(pData as Project[])
 
     const projectMap = new Map((pData || []).map((p) => [p.id, p.name]))
@@ -174,12 +172,7 @@ export function DocumentList() {
                     <span className="text-xs text-muted-foreground/60">
                       {new Date(doc.created_at).toLocaleDateString()}
                     </span>
-                    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium border ${
-                      doc.status === 'ready' ? 'bg-emerald-400/10 text-emerald-500 border-emerald-400/20' :
-                      doc.status === 'processing' ? 'bg-teal-400/10 text-teal-500 border-teal-400/20' :
-                      doc.status === 'pending' ? 'bg-muted text-muted-foreground border-border/50' :
-                      'bg-destructive/10 text-destructive border-destructive/20'
-                    }`}>
+                    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium border ${getStatusBadgeClass(doc.status)}`}>
                       {doc.status === 'processing' && <span className="h-1.5 w-1.5 rounded-full bg-teal-400 animate-pulse" />}
                       {doc.status === 'pending' ? 'Pending' : doc.status === 'processing' ? 'Processing' : doc.status === 'ready' ? 'Ready' : 'Failed'}
                     </span>

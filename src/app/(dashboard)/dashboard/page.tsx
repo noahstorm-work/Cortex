@@ -5,6 +5,7 @@ import Link from "next/link"
 import { ErrorBoundary } from "@/components/ui/error-boundary"
 import { StatsCards } from "@/components/dashboard/stats-cards"
 import type { Document, SearchHistoryItem } from "@/lib/types"
+import { getStatusBadgeClass } from "@/lib/utils/queries"
 
 export const dynamic = "force-dynamic"
 
@@ -105,12 +106,7 @@ export default async function DashboardPage() {
               {data.recentDocuments.map((doc) => (
                 <div key={doc.id} className="group flex items-center justify-between rounded-xl bg-muted/30 px-4 py-2.5 transition-all duration-300 hover:bg-muted/50">
                   <span className="text-sm font-medium text-foreground truncate">{doc.title}</span>
-                  <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
-                    doc.status === "ready" ? "bg-emerald-400/10 text-emerald-500 border border-emerald-400/20" :
-                    doc.status === "processing" ? "bg-teal-400/10 text-teal-500 border border-teal-400/20" :
-                    doc.status === "failed" ? "bg-destructive/10 text-destructive border border-destructive/20" :
-                    "bg-muted text-muted-foreground border border-border/50"
-                  }`}>{doc.status}</span>
+                  <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${getStatusBadgeClass(doc.status)}`}>{doc.status}</span>
                 </div>
               ))}
             </div>

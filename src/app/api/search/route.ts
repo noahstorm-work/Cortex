@@ -3,6 +3,7 @@ import { requireAuth } from "@/lib/supabase/auth-helper"
 import { search, buildResponse } from "@/lib/search"
 import { searchSchema } from "@/lib/validation/schemas"
 import { checkRateLimit, SEARCH_RATE_LIMIT, SUMMARY_RATE_LIMIT } from "@/lib/rate-limit"
+import { logger } from "@/lib/logger"
 
 export async function POST(request: Request) {
   const ip = request.headers.get("x-forwarded-for") || "unknown"
@@ -51,12 +52,12 @@ export async function POST(request: Request) {
       result_summary: response.summary?.slice(0, 200),
       source_count: response.references?.length || 0,
     }).then(({ error }) => {
-      if (error) console.error("Failed to log search history:", error)
+      if (error) logger.error("Failed to log search history", { error })
     })
 
     return NextResponse.json(response)
   } catch (error) {
-    console.error("Search error:", error)
+    logger.error("Search error", { error })
     return NextResponse.json(
       { error: "Search failed" },
       { status: 500 }

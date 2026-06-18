@@ -3,6 +3,7 @@ import { requireAuth } from "@/lib/supabase/auth-helper"
 import { checkRateLimit, SUGGESTION_RATE_LIMIT } from "@/lib/rate-limit"
 import { searchSuggestionsSchema } from "@/lib/validation/schemas"
 import { escapeLike } from "@/lib/search/bm25"
+import { logger } from "@/lib/logger"
 
 export async function POST(request: Request) {
   const ip = request.headers.get("x-forwarded-for") || "unknown"
@@ -74,7 +75,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ suggestions })
   } catch (error) {
-    console.error("Search suggestions error:", error)
+    logger.error("Search suggestions error", { error })
     return NextResponse.json(
       { error: "Failed to fetch suggestions" },
       { status: 500 }

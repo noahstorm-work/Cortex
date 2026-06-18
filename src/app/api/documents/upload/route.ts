@@ -3,6 +3,7 @@ import { requireAuth } from "@/lib/supabase/auth-helper"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { uploadSchema } from "@/lib/validation/schemas"
 import { checkRateLimit, API_RATE_LIMIT } from "@/lib/rate-limit"
+import { logger } from "@/lib/logger"
 
 const ALLOWED_EXTENSIONS = new Set([
   ".pdf", ".docx", ".doc", ".txt", ".png", ".jpg", ".jpeg", ".gif", ".webp",
@@ -60,7 +61,7 @@ export async function POST(request: Request) {
       .createSignedUploadUrl(filePath)
 
     if (signedError || !signedData) {
-      console.error("Signed URL error:", signedError)
+      logger.error("Signed URL error", { error: signedError })
       return NextResponse.json(
         { error: "Failed to create upload URL" },
         { status: 500 }
@@ -88,7 +89,7 @@ export async function POST(request: Request) {
 
     if (insertError) {
       await admin.storage.from("documents").remove([filePath])
-      console.error("DB insert error:", insertError)
+      logger.error("DB insert error", { error: insertError })
       return NextResponse.json(
         { error: "Upload failed" },
         { status: 500 }
@@ -103,7 +104,7 @@ export async function POST(request: Request) {
       file_url: fileUrl,
     })
   } catch (error) {
-    console.error("Upload error:", error)
+    logger.error("Upload error", { error })
     return NextResponse.json(
       { error: "Upload failed" },
       { status: 500 }

@@ -7,14 +7,23 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
   reporter: "list",
+  timeout: 60000,
   use: {
     baseURL: "http://localhost:3000",
     trace: "on-first-retry",
   },
   projects: [
     {
+      name: "setup",
+      testMatch: /global-setup\.ts/,
+    },
+    {
       name: "chromium",
-      use: { ...devices["Desktop Chrome"] },
+      use: {
+        ...devices["Desktop Chrome"],
+        storageState: ".auth/user.json",
+      },
+      dependencies: ["setup"],
     },
   ],
   webServer: {
