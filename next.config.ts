@@ -1,4 +1,7 @@
-import type { NextConfig } from "next"
+import type { NextConfig } from "next";
+import createNextIntlPlugin from "next-intl/plugin";
+
+const withNextIntl = createNextIntlPlugin("./src/i18n/config.ts");
 
 const csp = [
   "default-src 'self'",
@@ -11,7 +14,7 @@ const csp = [
   "base-uri 'self'",
   "form-action 'self'",
   "frame-ancestors 'none'",
-].join("; ")
+].join("; ");
 
 const securityHeaders = [
   { key: "X-Frame-Options", value: "DENY" },
@@ -22,7 +25,7 @@ const securityHeaders = [
   { key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains; preload" },
   { key: "X-XSS-Protection", value: "0" },
   { key: "X-DNS-Prefetch-Control", value: "on" },
-]
+];
 
 const nextConfig: NextConfig = {
   serverExternalPackages: ["pdf-parse", "sharp", "tesseract.js", "pdfjs-dist"],
@@ -42,18 +45,14 @@ const nextConfig: NextConfig = {
       },
       {
         source: "/_next/static/(.*)",
-        headers: [
-          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
-        ],
+        headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
       },
       {
         source: "/api/(.*)",
-        headers: [
-          { key: "Cache-Control", value: "no-store, no-cache, must-revalidate" },
-        ],
+        headers: [{ key: "Cache-Control", value: "no-store, no-cache, must-revalidate" }],
       },
-    ]
+    ];
   },
-}
+};
 
-export default nextConfig
+export default withNextIntl(nextConfig);

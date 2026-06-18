@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
+import { useEffect, useState } from "react";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -9,29 +9,37 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogCancel,
-} from "@/components/ui/alert-dialog"
-import { Button } from "@/components/ui/button"
-import { FileText, ExternalLink, Calendar, Layers, Hash, Loader2, FolderKanban } from "lucide-react"
-import type { Document } from "@/lib/types"
-import { createClient } from "@/lib/supabase/client"
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import {
+  FileText,
+  ExternalLink,
+  Calendar,
+  Layers,
+  Hash,
+  Loader2,
+  FolderKanban,
+} from "lucide-react";
+import type { Document } from "@/lib/types";
+import { createClient } from "@/lib/supabase/client";
 
 interface DocumentPreviewProps {
-  document: Document | null
-  open: boolean
-  onOpenChange: (open: boolean) => void
+  document: Document | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
 export function DocumentPreview({ document, open, onOpenChange }: DocumentPreviewProps) {
-  const [chunkCount, setChunkCount] = useState<number | null>(null)
-  const [projectName, setProjectName] = useState<string | null>(null)
-  const [loadingMeta, setLoadingMeta] = useState(false)
+  const [chunkCount, setChunkCount] = useState<number | null>(null);
+  const [projectName, setProjectName] = useState<string | null>(null);
+  const [loadingMeta, setLoadingMeta] = useState(false);
 
   useEffect(() => {
-    if (!document || !open) return
-    const doc = document
+    if (!document || !open) return;
+    const doc = document;
 
-    setLoadingMeta(true)
-    const supabase = createClient()
+    setLoadingMeta(true);
+    const supabase = createClient();
 
     async function loadMeta() {
       const [chunkResult, projectResult] = await Promise.all([
@@ -42,17 +50,17 @@ export function DocumentPreview({ document, open, onOpenChange }: DocumentPrevie
         doc.project_id
           ? supabase.from("projects").select("name").eq("id", doc.project_id).single()
           : Promise.resolve({ data: null }),
-      ])
+      ]);
 
-      setChunkCount(chunkResult.count ?? 0)
-      setProjectName(projectResult.data?.name ?? null)
-      setLoadingMeta(false)
+      setChunkCount(chunkResult.count ?? 0);
+      setProjectName(projectResult.data?.name ?? null);
+      setLoadingMeta(false);
     }
 
-    loadMeta()
-  }, [document, open])
+    loadMeta();
+  }, [document, open]);
 
-  if (!document) return null
+  if (!document) return null;
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
@@ -62,9 +70,7 @@ export function DocumentPreview({ document, open, onOpenChange }: DocumentPrevie
             <FileText className="h-5 w-5 text-teal-500" />
             {document.title}
           </AlertDialogTitle>
-          <AlertDialogDescription>
-            Document details and metadata
-          </AlertDialogDescription>
+          <AlertDialogDescription>Document details and metadata</AlertDialogDescription>
         </AlertDialogHeader>
 
         <div className="space-y-4 py-4">
@@ -86,7 +92,9 @@ export function DocumentPreview({ document, open, onOpenChange }: DocumentPrevie
               {loadingMeta ? (
                 <Loader2 className="h-3 w-3 animate-spin" />
               ) : (
-                <span>{chunkCount !== null ? `${chunkCount} chunk${chunkCount !== 1 ? "s" : ""}` : "—"}</span>
+                <span>
+                  {chunkCount !== null ? `${chunkCount} chunk${chunkCount !== 1 ? "s" : ""}` : "—"}
+                </span>
               )}
             </div>
             {projectName && (
@@ -108,9 +116,11 @@ export function DocumentPreview({ document, open, onOpenChange }: DocumentPrevie
         </div>
 
         <AlertDialogFooter>
-          <AlertDialogCancel className="rounded-xl" aria-label="Close document preview">Close</AlertDialogCancel>
+          <AlertDialogCancel className="rounded-xl" aria-label="Close document preview">
+            Close
+          </AlertDialogCancel>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
-  )
+  );
 }

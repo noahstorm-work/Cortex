@@ -7,9 +7,9 @@
  */
 
 /** Target chunk size in words. */
-const CHUNK_SIZE = 400
+const CHUNK_SIZE = 400;
 /** Overlap between consecutive chunks in words. */
-const CHUNK_OVERLAP = 50
+const CHUNK_OVERLAP = 50;
 
 /**
  * Counts the number of tokens (words) in a string.
@@ -18,7 +18,7 @@ const CHUNK_OVERLAP = 50
  * @returns The number of whitespace-separated words
  */
 function countTokens(text: string): number {
-  return text.split(/\s+/).filter(Boolean).length
+  return text.split(/\s+/).filter(Boolean).length;
 }
 
 /**
@@ -28,17 +28,17 @@ function countTokens(text: string): number {
  * @returns Array of text chunks, each up to {@link CHUNK_SIZE} words
  */
 function splitIntoChunks(text: string): string[] {
-  const words = text.split(/\s+/).filter(Boolean)
-  const chunks: string[] = []
-  let start = 0
+  const words = text.split(/\s+/).filter(Boolean);
+  const chunks: string[] = [];
+  let start = 0;
 
   while (start < words.length) {
-    const end = Math.min(start + CHUNK_SIZE, words.length)
-    chunks.push(words.slice(start, end).join(" "))
-    start += CHUNK_SIZE - CHUNK_OVERLAP
+    const end = Math.min(start + CHUNK_SIZE, words.length);
+    chunks.push(words.slice(start, end).join(" "));
+    start += CHUNK_SIZE - CHUNK_OVERLAP;
   }
 
-  return chunks
+  return chunks;
 }
 
 /**
@@ -61,15 +61,15 @@ export function chunkText(rawText: string): string[] {
   const cleaned = rawText
     .replace(/\r\n/g, "\n")
     .replace(/\n{3,}/g, "\n\n")
-    .trim()
+    .trim();
 
-  if (!cleaned) return []
+  if (!cleaned) return [];
 
-  const estimatedTokens = countTokens(cleaned)
+  const estimatedTokens = countTokens(cleaned);
 
   if (estimatedTokens <= CHUNK_SIZE) {
-    return [cleaned]
+    return [cleaned];
   }
 
-  return splitIntoChunks(cleaned)
+  return splitIntoChunks(cleaned);
 }

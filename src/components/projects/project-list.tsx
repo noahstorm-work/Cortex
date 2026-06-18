@@ -1,10 +1,11 @@
-"use client"
+"use client";
 
-import { useEffect, useState, useCallback } from "react"
-import { useRouter } from "next/navigation"
-import { createClient } from "@/lib/supabase/client"
-import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { createClient } from "@/lib/supabase/client";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
   AlertDialogTrigger,
@@ -15,95 +16,128 @@ import {
   AlertDialogFooter,
   AlertDialogAction,
   AlertDialogCancel,
-} from "@/components/ui/alert-dialog"
-import { FolderKanban, FileText, Trash2, Unlink, Loader2, Inbox } from "lucide-react"
-import { Skeleton, ProjectListSkeleton } from "@/components/ui/skeleton"
-import type { Project, Document } from "@/lib/types"
+} from "@/components/ui/alert-dialog";
+import { FolderKanban, FileText, Trash2, Unlink, Loader2, Inbox } from "lucide-react";
+import { ProjectListSkeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
+import type { Project, Document } from "@/lib/types";
 
 interface ProjectWithDocs extends Project {
-  documents: Document[]
+  documents: Document[];
 }
 
 export function ProjectList() {
-  const [projects, setProjects] = useState<ProjectWithDocs[]>([])
-  const [loading, setLoading] = useState(true)
-  const [expandedId, setExpandedId] = useState<string | null>(null)
-  const [deleting, setDeleting] = useState<string | null>(null)
-  const supabase = createClient()
-  const router = useRouter()
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+  const supabase = createClient();
+  const router = useRouter();
+  const queryClient = useQueryClient();
 
-  const fetchProjects = useCallback(async () => {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
+  // Get user ID on mount
+  useQuery({
+    queryKey: ["user"],
+    queryFn: async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) setUserId(user.id);
+      return user;
+    },
+  });
 
-    const { data: pData } = await supabase
-      .from("projects")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
+  // Fetch projects with documents
+  const { data: projects, isLoading: loading } = useQuery<ProjectWithDocs[]>({
+    queryKey: ["projects", userId],
+    queryFn: async () => {
+      const { data: pData } = await supabase
+        .from("projects")
+        .select("*")
+        .eq("user_id", userId!)
+        .order("created_at", { ascending: false });
 
-    const { data: dData } = await supabase
-      .from("documents")
-      .select("*")
-      .eq("user_id", user.id)
+      const { data: dData } = await supabase.from("documents").select("*").eq("user_id", userId!);
 
-    if (pData) {
-      const enriched: ProjectWithDocs[] = pData.map((p) => ({
+      if (!pData) return [];
+
+      return pData.map((p) => ({
         ...p,
         documents: (dData || []).filter((d: Document) => d.project_id === p.id),
-      }))
-      setProjects(enriched)
-    }
+      }));
+    },
+    enabled: !!userId,
+  });
 
-    setLoading(false)
-  }, [supabase])
+  // Delete project mutation
+  const deleteMutation = useMutation({
+    mutationFn: async (projectId: string) => {
+      const res = await fetch("/api/projects/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ project_id: projectId }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({ error: "Failed to delete project" }));
+        throw new Error(data.error || "Failed to delete project");
+      }
+    },
+    onSuccess: () => {
+      toast.success("Project deleted");
+      queryClient.invalidateQueries({ queryKey: ["projects", userId] });
+      router.refresh();
+    },
+    onError: (err) => {
+      toast.error(err instanceof Error ? err.message : "Failed to delete project");
+    },
+  });
 
-  useEffect(() => {
-    fetchProjects()
-  }, [fetchProjects])
-
-  const handleDelete = async (projectId: string) => {
-    setDeleting(projectId)
-    await fetch("/api/projects/delete", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ project_id: projectId }),
-    })
-    setDeleting(null)
-    fetchProjects()
-    router.refresh()
-  }
-
-  const handleUnlink = async (documentId: string) => {
-    await fetch("/api/projects/assign-document", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ document_id: documentId, project_id: null }),
-    })
-    fetchProjects()
-    router.refresh()
-  }
+  // Unlink document mutation
+  const unlinkMutation = useMutation({
+    mutationFn: async (documentId: string) => {
+      const res = await fetch("/api/projects/assign-document", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ document_id: documentId, project_id: null }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({ error: "Failed to remove document" }));
+        throw new Error(data.error || "Failed to remove document");
+      }
+    },
+    onSuccess: () => {
+      toast.success("Document removed from project");
+      queryClient.invalidateQueries({ queryKey: ["projects", userId] });
+      router.refresh();
+    },
+    onError: (err) => {
+      toast.error(err instanceof Error ? err.message : "Failed to remove document");
+    },
+  });
 
   if (loading) {
-    return <ProjectListSkeleton />
+    return <ProjectListSkeleton />;
   }
 
-  if (projects.length === 0) {
+  if (!projects || projects.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center rounded-2xl border border-border/50 bg-card/50 p-12 text-center">
         <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-400/10 to-teal-600/10">
           <FolderKanban className="h-6 w-6 text-muted-foreground" aria-hidden="true" />
         </div>
         <p className="text-sm font-medium text-foreground">No projects yet</p>
-        <p className="mt-1 text-xs text-muted-foreground">Create one above to organize your documents.</p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Create one above to organize your documents.
+        </p>
       </div>
-    )
+    );
   }
 
   return (
     <div className="space-y-3">
       {projects.map((project) => (
-        <Card key={project.id} className="border border-border/50 bg-card/50 shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md">
+        <Card
+          key={project.id}
+          className="border border-border/50 bg-card/50 shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md"
+        >
           <CardContent className="p-0">
             <div
               role="button"
@@ -111,8 +145,8 @@ export function ProjectList() {
               onClick={() => setExpandedId(expandedId === project.id ? null : project.id)}
               onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault()
-                  setExpandedId(expandedId === project.id ? null : project.id)
+                  e.preventDefault();
+                  setExpandedId(expandedId === project.id ? null : project.id);
                 }
               }}
               className="flex w-full items-center justify-between px-5 py-3 text-left transition-all duration-200 hover:bg-muted/20 cursor-pointer"
@@ -135,8 +169,13 @@ export function ProjectList() {
                 </span>
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg focus-visible:ring-2 focus-visible:ring-teal-400/40" disabled={deleting === project.id}>
-                      {deleting === project.id ? (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 rounded-lg focus-visible:ring-2 focus-visible:ring-teal-400/40"
+                      disabled={deleteMutation.isPending && deleteMutation.variables === project.id}
+                    >
+                      {deleteMutation.isPending && deleteMutation.variables === project.id ? (
                         <Loader2 className="h-3 w-3 animate-spin" />
                       ) : (
                         <Trash2 className="h-3 w-3" aria-hidden="true" />
@@ -146,11 +185,18 @@ export function ProjectList() {
                   <AlertDialogContent className="glass-strong rounded-2xl">
                     <AlertDialogHeader>
                       <AlertDialogTitle>Delete project</AlertDialogTitle>
-                      <AlertDialogDescription>Are you sure you want to delete "{project.name}"? This cannot be undone.</AlertDialogDescription>
+                      <AlertDialogDescription>
+                        Are you sure you want to delete "{project.name}"? This cannot be undone.
+                      </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                       <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
-                      <AlertDialogAction onClick={() => handleDelete(project.id)} className="rounded-xl bg-gradient-to-r from-destructive to-destructive/80">Delete</AlertDialogAction>
+                      <AlertDialogAction
+                        onClick={() => deleteMutation.mutate(project.id)}
+                        className="rounded-xl bg-gradient-to-r from-destructive to-destructive/80"
+                      >
+                        Delete
+                      </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
                 </AlertDialog>
@@ -160,29 +206,50 @@ export function ProjectList() {
             {expandedId === project.id && (
               <div className="border-t border-border/30 px-5 py-3">
                 {project.documents.length === 0 ? (
-                  <p className="text-xs text-muted-foreground/60 py-2 text-center">No documents in this project.</p>
+                  <p className="text-xs text-muted-foreground/60 py-2 text-center">
+                    No documents in this project.
+                  </p>
                 ) : (
                   <div className="space-y-1">
                     {project.documents.map((doc) => (
-                      <div key={doc.id} className="flex items-center justify-between rounded-xl bg-muted/30 px-3 py-2 transition-all duration-200 hover:bg-muted/50 group">
+                      <div
+                        key={doc.id}
+                        className="flex items-center justify-between rounded-xl bg-muted/30 px-3 py-2 transition-all duration-200 hover:bg-muted/50 group"
+                      >
                         <div className="flex items-center gap-2 min-w-0">
-                          <FileText className="h-4 w-4 shrink-0 text-muted-foreground/60" aria-hidden="true" />
+                          <FileText
+                            className="h-4 w-4 shrink-0 text-muted-foreground/60"
+                            aria-hidden="true"
+                          />
                           <span className="truncate text-sm text-foreground/90">{doc.title}</span>
                         </div>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" aria-label={`Remove ${doc.title} from project`}>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                              aria-label={`Remove ${doc.title} from project`}
+                            >
                               <Unlink className="h-3 w-3" aria-hidden="true" />
                             </Button>
                           </AlertDialogTrigger>
                           <AlertDialogContent className="glass-strong rounded-2xl">
                             <AlertDialogHeader>
                               <AlertDialogTitle>Remove document from project</AlertDialogTitle>
-                              <AlertDialogDescription>Are you sure you want to remove "{doc.title}" from this project? The document itself will not be deleted.</AlertDialogDescription>
+                              <AlertDialogDescription>
+                                Are you sure you want to remove "{doc.title}" from this project? The
+                                document itself will not be deleted.
+                              </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                               <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => handleUnlink(doc.id)} className="rounded-xl bg-gradient-to-r from-destructive to-destructive/80">Remove</AlertDialogAction>
+                              <AlertDialogAction
+                                onClick={() => unlinkMutation.mutate(doc.id)}
+                                className="rounded-xl bg-gradient-to-r from-destructive to-destructive/80"
+                              >
+                                Remove
+                              </AlertDialogAction>
                             </AlertDialogFooter>
                           </AlertDialogContent>
                         </AlertDialog>
@@ -196,5 +263,5 @@ export function ProjectList() {
         </Card>
       ))}
     </div>
-  )
+  );
 }

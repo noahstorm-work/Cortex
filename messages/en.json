@@ -1,0 +1,57 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "search": "Search",
+    "back": "Back"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "documents": "Documents",
+    "search": "Search",
+    "projects": "Projects",
+    "history": "History"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome back",
+    "totalDocuments": "Total Documents",
+    "processing": "Processing",
+    "storageUsed": "Storage Used",
+    "recentActivity": "Recent Activity"
+  },
+  "documents": {
+    "title": "Documents",
+    "upload": "Upload Document",
+    "empty": "No documents yet",
+    "deleteConfirm": "Are you sure you want to delete this document?"
+  },
+  "search": {
+    "title": "Search",
+    "placeholder": "Search your documents...",
+    "noResults": "No results found"
+  },
+  "projects": {
+    "title": "Projects",
+    "create": "Create Project",
+    "empty": "No projects yet",
+    "name": "Project Name",
+    "description": "Description"
+  },
+  "history": {
+    "title": "Search History",
+    "empty": "No search history yet",
+    "clearAll": "Clear All",
+    "saved": "Saved"
+  },
+  "auth": {
+    "login": "Sign In",
+    "logout": "Sign Out",
+    "email": "Email",
+    "password": "Password"
+  }
+}

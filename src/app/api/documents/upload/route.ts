@@ -1,78 +1,81 @@
-import { NextResponse } from "next/server"
-import { requireAuth } from "@/lib/supabase/auth-helper"
-import { createAdminClient } from "@/lib/supabase/admin"
-import { uploadSchema } from "@/lib/validation/schemas"
-import { checkRateLimit, API_RATE_LIMIT } from "@/lib/rate-limit"
-import { logger } from "@/lib/logger"
+import { NextResponse } from "next/server";
+import { requireAuth } from "@/lib/supabase/auth-helper";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { uploadSchema } from "@/lib/validation/schemas";
+import { checkRateLimit, API_RATE_LIMIT } from "@/lib/rate-limit";
+import { addRateLimitHeaders } from "@/lib/rate-limit-headers";
+import { logger } from "@/lib/logger";
 
 const ALLOWED_EXTENSIONS = new Set([
-  ".pdf", ".docx", ".doc", ".txt", ".png", ".jpg", ".jpeg", ".gif", ".webp",
-])
+  ".pdf",
+  ".docx",
+  ".doc",
+  ".txt",
+  ".png",
+  ".jpg",
+  ".jpeg",
+  ".gif",
+  ".webp",
+]);
 
 function getFileExtension(fileName: string): string | null {
-  const match = fileName.toLowerCase().match(/\.[^.]+$/)
-  return match ? match[0] : null
+  const match = fileName.toLowerCase().match(/\.[^.]+$/);
+  return match ? match[0] : null;
 }
 
 export async function POST(request: Request) {
-  const ip = request.headers.get("x-forwarded-for") || "unknown"
-  const { allowed } = checkRateLimit(`upload:${ip}`, API_RATE_LIMIT)
+  const ip = request.headers.get("x-forwarded-for") || "unknown";
+  const { allowed, remaining, resetAt } = checkRateLimit(`upload:${ip}`, API_RATE_LIMIT);
   if (!allowed) {
-    return NextResponse.json({ error: "Too many requests" }, { status: 429 })
+    return addRateLimitHeaders(
+      NextResponse.json({ error: "Too many requests" }, { status: 429 }),
+      remaining,
+      API_RATE_LIMIT.max,
+      resetAt
+    );
   }
 
-  const auth = await requireAuth()
-  if (auth.response) return auth.response
-  const { supabase, user } = auth
+  const auth = await requireAuth();
+  if (auth.response) return auth.response;
+  const { supabase, user } = auth;
 
-  let body: unknown
+  let body: unknown;
   try {
-    body = await request.json()
+    body = await request.json();
   } catch {
-    return NextResponse.json(
-      { error: "Invalid JSON body" },
-      { status: 400 }
-    )
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const parsed = uploadSchema.safeParse(body)
+  const parsed = uploadSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: "Invalid request" }, { status: 400 })
+    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
 
-  const { fileName, fileType, fileSize, projectId } = parsed.data
+  const { fileName, fileType, fileSize, projectId } = parsed.data;
 
-  const ext = getFileExtension(fileName)
+  const ext = getFileExtension(fileName);
   if (ext && !ALLOWED_EXTENSIONS.has(ext)) {
-    return NextResponse.json(
-      { error: `File type "${ext}" is not allowed` },
-      { status: 400 }
-    )
+    return NextResponse.json({ error: `File type "${ext}" is not allowed` }, { status: 400 });
   }
 
   try {
-    const fileExt = ext || ".txt"
-    const filePath = `${user.id}/${crypto.randomUUID()}${fileExt}`
+    const fileExt = ext || ".txt";
+    const filePath = `${user.id}/${crypto.randomUUID()}${fileExt}`;
 
-    const admin = createAdminClient()
+    const admin = createAdminClient();
 
     const { data: signedData, error: signedError } = await admin.storage
       .from("documents")
-      .createSignedUploadUrl(filePath)
+      .createSignedUploadUrl(filePath);
 
     if (signedError || !signedData) {
-      logger.error("Signed URL error", { error: signedError })
-      return NextResponse.json(
-        { error: "Failed to create upload URL" },
-        { status: 500 }
-      )
+      logger.error("Signed URL error", { error: signedError });
+      return NextResponse.json({ error: "Failed to create upload URL" }, { status: 500 });
     }
 
-    const { data: urlData } = supabase.storage
-      .from("documents")
-      .getPublicUrl(filePath)
+    const { data: urlData } = supabase.storage.from("documents").getPublicUrl(filePath);
 
-    const fileUrl = urlData.publicUrl
+    const fileUrl = urlData.publicUrl;
 
     const { data: doc, error: insertError } = await supabase
       .from("documents")
@@ -85,29 +88,28 @@ export async function POST(request: Request) {
         status: "pending",
       })
       .select("id")
-      .single()
+      .single();
 
     if (insertError) {
-      await admin.storage.from("documents").remove([filePath])
-      logger.error("DB insert error", { error: insertError })
-      return NextResponse.json(
-        { error: "Upload failed" },
-        { status: 500 }
-      )
+      await admin.storage.from("documents").remove([filePath]);
+      logger.error("DB insert error", { error: insertError });
+      return NextResponse.json({ error: "Upload failed" }, { status: 500 });
     }
 
-    return NextResponse.json({
-      signedUrl: signedData.signedUrl,
-      path: signedData.path,
-      token: signedData.token,
-      document_id: doc.id,
-      file_url: fileUrl,
-    })
+    return addRateLimitHeaders(
+      NextResponse.json({
+        signedUrl: signedData.signedUrl,
+        path: signedData.path,
+        token: signedData.token,
+        document_id: doc.id,
+        file_url: fileUrl,
+      }),
+      remaining,
+      API_RATE_LIMIT.max,
+      resetAt
+    );
   } catch (error) {
-    logger.error("Upload error", { error })
-    return NextResponse.json(
-      { error: "Upload failed" },
-      { status: 500 }
-    )
+    logger.error("Upload error", { error });
+    return NextResponse.json({ error: "Upload failed" }, { status: 500 });
   }
 }

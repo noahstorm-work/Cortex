@@ -1,4 +1,4 @@
-import { vi } from "vitest"
+import { vi } from "vitest";
 
 // Mock next/server
 vi.mock("next/server", () => ({
@@ -7,15 +7,15 @@ vi.mock("next/server", () => ({
       return new Response(JSON.stringify(data), {
         status: init?.status || 200,
         headers: { "Content-Type": "application/json", ...init?.headers },
-      })
+      });
     },
   },
   NextRequest: class MockNextRequest extends Request {
     constructor(url: string, init?: RequestInit) {
-      super(url, init)
+      super(url, init);
     }
   },
-}))
+}));
 
 // Mock next/headers
 vi.mock("next/headers", () => ({
@@ -25,7 +25,7 @@ vi.mock("next/headers", () => ({
     delete: () => {},
   }),
   headers: () => new Headers(),
-}))
+}));
 
 // Mock @/lib/supabase/server
 vi.mock("@/lib/supabase/server", () => {
@@ -51,9 +51,9 @@ vi.mock("@/lib/supabase/server", () => {
       count: null,
       data: [],
       error: null,
-    }
-    return chain
-  }
+    };
+    return chain;
+  };
 
   return {
     createServerSupabaseClient: vi.fn(() => ({
@@ -84,8 +84,8 @@ vi.mock("@/lib/supabase/server", () => {
         })),
       },
     })),
-  }
-})
+  };
+});
 
 // Mock @/lib/supabase/admin
 vi.mock("@/lib/supabase/admin", () => ({
@@ -102,7 +102,7 @@ vi.mock("@/lib/supabase/admin", () => ({
       })),
     },
   })),
-}))
+}));
 
 // Mock @/lib/rate-limit
 vi.mock("@/lib/rate-limit", () => ({
@@ -112,7 +112,7 @@ vi.mock("@/lib/rate-limit", () => ({
   SEARCH_RATE_LIMIT: { windowMs: 60000, max: 20 },
   SUGGESTION_RATE_LIMIT: { windowMs: 60000, max: 60 },
   SUMMARY_RATE_LIMIT: { windowMs: 60000, max: 10 },
-}))
+}));
 
 // Mock OpenAI/Groq
 vi.mock("openai", () => ({
@@ -134,4 +134,4 @@ vi.mock("openai", () => ({
       },
     },
   })),
-}))
+}));

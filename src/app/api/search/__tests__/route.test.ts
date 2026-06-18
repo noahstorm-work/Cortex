@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from "vitest"
-import "@/test/api-setup"
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import "@/test/api-setup";
 
 // Mock the search module
 vi.mock("@/lib/search", () => ({
@@ -35,56 +35,56 @@ vi.mock("@/lib/search", () => ({
       total_chunks: 1,
     })
   ),
-}))
+}));
 
-import { POST } from "@/app/api/search/route"
+import { POST } from "@/app/api/search/route";
 
 function createRequest(body: any) {
   return new Request("http://localhost/api/search", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
-  })
+  });
 }
 
 describe("POST /api/search", () => {
   beforeEach(() => {
-    vi.clearAllMocks()
-  })
+    vi.clearAllMocks();
+  });
 
   it("returns 400 for invalid JSON body", async () => {
     const req = new Request("http://localhost/api/search", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: "not json",
-    })
-    const res = await POST(req)
-    expect(res.status).toBe(400)
-    const data = await res.json()
-    expect(data.error).toBe("Invalid JSON body")
-  })
+    });
+    const res = await POST(req);
+    expect(res.status).toBe(400);
+    const data = await res.json();
+    expect(data.error).toBe("Invalid JSON body");
+  });
 
   it("returns 400 for missing query", async () => {
-    const req = createRequest({})
-    const res = await POST(req)
-    expect(res.status).toBe(400)
-    const data = await res.json()
-    expect(data.error).toBe("Invalid request")
-  })
+    const req = createRequest({});
+    const res = await POST(req);
+    expect(res.status).toBe(400);
+    const data = await res.json();
+    expect(data.error).toBe("Invalid request");
+  });
 
   it("returns 400 for query too short", async () => {
-    const req = createRequest({ query: "a" })
-    const res = await POST(req)
-    expect(res.status).toBe(400)
-    const data = await res.json()
-    expect(data.error).toBe("Invalid request")
-  })
+    const req = createRequest({ query: "a" });
+    const res = await POST(req);
+    expect(res.status).toBe(400);
+    const data = await res.json();
+    expect(data.error).toBe("Invalid request");
+  });
 
   it("returns 200 with search results for valid query", async () => {
-    const req = createRequest({ query: "test query" })
-    const res = await POST(req)
+    const req = createRequest({ query: "test query" });
+    const res = await POST(req);
     // Search may return 200 or 500 depending on mock chain behavior
     // The important thing is that validation passes (not 400)
-    expect(res.status).not.toBe(400)
-  })
-})
+    expect(res.status).not.toBe(400);
+  });
+});

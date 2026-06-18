@@ -50,6 +50,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# lighthouse
+.lighthouseci/
+
 # playwright
 .auth/
 

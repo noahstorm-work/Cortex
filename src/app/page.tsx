@@ -1,40 +1,40 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { createClient } from "@/lib/supabase/client"
-import { Sparkles, ArrowRight, Loader2, Waves, FileUp, SearchIcon, Zap } from "lucide-react"
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { createClient } from "@/lib/supabase/client";
+import { Sparkles, ArrowRight, Loader2, Waves, FileUp, SearchIcon, Zap } from "lucide-react";
 
 export default function Home() {
-  const router = useRouter()
-  const [demoLoading, setDemoLoading] = useState(false)
-  const supabase = createClient()
+  const router = useRouter();
+  const [demoLoading, setDemoLoading] = useState(false);
+  const supabase = createClient();
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) router.push("/dashboard")
-    })
-  }, [supabase, router])
+      if (user) router.push("/dashboard");
+    });
+  }, [supabase, router]);
 
   const handleDemoLogin = async () => {
-    setDemoLoading(true)
+    setDemoLoading(true);
     try {
-      const res = await fetch("/api/auth/demo-login", { method: "POST" })
+      const res = await fetch("/api/auth/demo-login", { method: "POST" });
       if (res.ok) {
-        router.push("/documents")
-        router.refresh()
+        router.push("/documents");
+        router.refresh();
       } else {
-        const data = await res.json()
-        alert("Demo login failed: " + (data.error || "Unknown error"))
+        const data = await res.json();
+        alert("Demo login failed: " + (data.error || "Unknown error"));
       }
     } catch {
-      alert("Demo login failed. Please try again.")
+      alert("Demo login failed. Please try again.");
     } finally {
-      setDemoLoading(false)
+      setDemoLoading(false);
     }
-  }
+  };
 
   return (
     <div className="relative min-h-screen overflow-hidden">
@@ -42,7 +42,10 @@ export default function Home() {
       <div className="absolute inset-0 -z-10">
         <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-teal-500/5" />
         <div className="absolute top-1/4 -left-32 h-96 w-96 rounded-full bg-teal-400/10 blur-[128px] animate-pulse-glow" />
-        <div className="absolute bottom-1/4 -right-32 h-96 w-96 rounded-full bg-violet-400/8 blur-[128px] animate-pulse-glow" style={{ animationDelay: "1.5s" }} />
+        <div
+          className="absolute bottom-1/4 -right-32 h-96 w-96 rounded-full bg-violet-400/8 blur-[128px] animate-pulse-glow"
+          style={{ animationDelay: "1.5s" }}
+        />
       </div>
 
       {/* Grid pattern overlay */}
@@ -60,7 +63,9 @@ export default function Home() {
           <div className="flex justify-center mb-8">
             <div className="inline-flex items-center gap-2 rounded-full border border-teal-400/20 bg-teal-400/5 px-4 py-1.5">
               <Sparkles className="h-3.5 w-3.5 text-teal-400" aria-hidden="true" />
-              <span className="text-xs font-medium text-teal-400/80">AI-powered knowledge workspace</span>
+              <span className="text-xs font-medium text-teal-400/80">
+                AI-powered knowledge workspace
+              </span>
             </div>
           </div>
 
@@ -85,7 +90,8 @@ export default function Home() {
           </h1>
 
           <p className="mt-6 text-center text-lg leading-relaxed text-muted-foreground max-w-lg mx-auto">
-            Upload documents, ask questions, and get instant semantic answers from your personal knowledge base.
+            Upload documents, ask questions, and get instant semantic answers from your personal
+            knowledge base.
           </p>
 
           {/* CTA Buttons */}
@@ -97,9 +103,13 @@ export default function Home() {
               className="h-12 w-full sm:w-auto min-w-[180px] rounded-xl bg-gradient-to-r from-teal-500 to-teal-600 text-white shadow-lg shadow-teal-500/25 transition-all duration-300 hover:shadow-xl hover:shadow-teal-500/30 hover:scale-[1.02] active:scale-[0.98]"
             >
               {demoLoading ? (
-                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading demo...</>
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading demo...
+                </>
               ) : (
-                <><Sparkles className="mr-2 h-4 w-4" /> Try Demo</>
+                <>
+                  <Sparkles className="mr-2 h-4 w-4" /> Try Demo
+                </>
               )}
             </Button>
             <Link href="/login" className="w-full sm:w-auto">
@@ -129,7 +139,7 @@ export default function Home() {
               { icon: SearchIcon, label: "Smart search", desc: "Semantic vector search" },
               { icon: Zap, label: "Semantic answers", desc: "AI-powered insights" },
             ].map((f, i) => {
-              const Icon = f.icon
+              const Icon = f.icon;
               return (
                 <div
                   key={i}
@@ -142,11 +152,11 @@ export default function Home() {
                   <p className="text-sm font-medium text-foreground">{f.label}</p>
                   <p className="text-xs text-muted-foreground/70 mt-0.5">{f.desc}</p>
                 </div>
-              )
+              );
             })}
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }

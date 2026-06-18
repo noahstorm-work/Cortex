@@ -1,26 +1,23 @@
-import { getGroqKey } from "@/lib/embeddings/groq"
-import type { ScoredChunk } from "./bm25"
+import { getGroqKey } from "@/lib/embeddings/groq";
+import type { ScoredChunk } from "./bm25";
 
 interface SummaryResult {
-  summary: string
-  key_points: string[]
+  summary: string;
+  key_points: string[];
 }
 
 export async function generateAISummary(
   query: string,
-  chunks: ScoredChunk[],
+  chunks: ScoredChunk[]
 ): Promise<SummaryResult | null> {
-  const key = getGroqKey()
-  if (!key) return null
+  const key = getGroqKey();
+  if (!key) return null;
 
   const context = chunks
-    .map(
-      (c, i) =>
-        `[Source ${i + 1}] From "${c.document_title}":\n${c.content}`,
-    )
-    .join("\n\n")
+    .map((c, i) => `[Source ${i + 1}] From "${c.document_title}":\n${c.content}`)
+    .join("\n\n");
 
-  const systemPrompt = `You are a precise document analysis assistant. Answer based ONLY on the provided context.`
+  const systemPrompt = `You are a precise document analysis assistant. Answer based ONLY on the provided context.`;
 
   const userPrompt = `Context:
 ${context}
@@ -38,7 +35,7 @@ SUMMARY:
 KEY POINTS:
 - point 1
 - point 2
-- point 3`
+- point 3`;
 
   const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST",
@@ -55,31 +52,29 @@ KEY POINTS:
       temperature: 0.3,
       max_tokens: 1000,
     }),
-  })
+  });
 
-  if (!res.ok) return null
+  if (!res.ok) return null;
 
-  const json = await res.json()
-  const text = json.choices?.[0]?.message?.content
-  if (!text) return null
+  const json = await res.json();
+  const text = json.choices?.[0]?.message?.content;
+  if (!text) return null;
 
-  return parseSummary(text)
+  return parseSummary(text);
 }
 
 export function parseSummary(text: string): SummaryResult {
-  const summaryMatch = text.match(/SUMMARY:\s*([\s\S]*?)(?=\nKEY POINTS:)/)
-  const pointsMatch = text.match(/KEY POINTS:\s*([\s\S]*)$/)
+  const summaryMatch = text.match(/SUMMARY:\s*([\s\S]*?)(?=\nKEY POINTS:)/);
+  const pointsMatch = text.match(/KEY POINTS:\s*([\s\S]*)$/);
 
-  const summary = summaryMatch
-    ? summaryMatch[1].trim()
-    : text.split("\n")[0]
+  const summary = summaryMatch ? summaryMatch[1].trim() : text.split("\n")[0];
 
   const key_points = pointsMatch
     ? pointsMatch[1]
         .split("\n")
         .map((l) => l.replace(/^[-*]\s*/, "").trim())
         .filter(Boolean)
-    : []
+    : [];
 
-  return { summary, key_points }
+  return { summary, key_points };
 }

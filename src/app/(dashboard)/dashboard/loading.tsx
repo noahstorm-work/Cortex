@@ -1,4 +1,4 @@
-import { Skeleton } from "@/components/ui/skeleton"
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function DashboardLoading() {
   return (
@@ -36,7 +36,10 @@ export default function DashboardLoading() {
           </div>
           <div className="space-y-2">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="flex items-center justify-between rounded-xl bg-muted/30 px-4 py-2.5">
+              <div
+                key={i}
+                className="flex items-center justify-between rounded-xl bg-muted/30 px-4 py-2.5"
+              >
                 <Skeleton className="h-4 w-3/5" />
                 <Skeleton className="h-5 w-16 rounded-full" />
               </div>
@@ -61,5 +64,5 @@ export default function DashboardLoading() {
         </div>
       </div>
     </div>
-  )
+  );
 }

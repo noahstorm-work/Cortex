@@ -1,4 +1,4 @@
-import Link from "next/link"
+import Link from "next/link";
 
 export default function NotFound() {
   return (
@@ -12,10 +12,10 @@ export default function NotFound() {
       </p>
       <Link
         href="/dashboard"
-        className="inline-flex items-center gap-2 rounded-xl bg-teal-500 px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-teal-600 transition-colors focus-visible:ring-2 focus-visible:ring-teal-400/40"
+        className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90 transition-colors focus-visible:ring-2 focus-visible:ring-teal-400/40"
       >
         Back to Dashboard
       </Link>
     </div>
-  )
+  );
 }

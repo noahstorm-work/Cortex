@@ -1,56 +1,57 @@
-# Task Plan: Accessibility, Tests, Performance
+# Task Plan: Add TanStack Query to Cortex AI Workspace
 
-## Goal
-Complete a comprehensive accessibility audit, improve test coverage, and run a performance audit on the Cortex AI Workspace app.
+## Overview
 
-## Current Phase
-Phase 1
+Integrate TanStack Query (React Query) for client-side data fetching, replacing manual state management with `useState`/`useEffect` patterns.
 
-## Phases
+## Steps
 
-### Phase 1: Accessibility Deep Audit
-- [ ] Audit all pages for keyboard traps and focus management
-- [ ] Check screen reader support (ARIA labels, live regions, landmarks)
-- [ ] Verify modal/dialog focus trapping
-- [ ] Test color contrast and visual indicators
-- **Status:** in_progress
+### Step 1: Install Dependencies
 
-### Phase 2: Test Coverage
-- [ ] Fix Next.js App Router vitest issue for API routes
-- [ ] Add API route handler tests
-- [ ] Add upload flow integration tests
-- [ ] Verify all tests pass
-- **Status:** pending
+- Run `npm install @tanstack/react-query @tanstack/react-query-devtools`
 
-### Phase 3: Performance Audit
-- [ ] Run Lighthouse audit
-- [ ] Analyze client bundle sizes
-- [ ] Add dynamic imports for heavy components
-- [ ] Verify build passes
-- **Status:** pending
+### Step 2: Create Query Client Provider
 
-### Phase 4: Final Verification & Push
-- [ ] Run full test suite
-- [ ] TypeScript check
-- [ ] Commit and push all changes
-- **Status:** pending
+- Create `src/lib/query-client.ts` with QueryClient configuration
+- Default options: staleTime 1min, gcTime 5min, refetchOnWindowFocus false, retry 1
 
-## Key Questions
-1. Are there any keyboard traps in modals or dropdowns?
-2. Which components need dynamic imports?
-3. What's the current Lighthouse score?
+### Step 3: Add Provider to Dashboard Layout
 
-## Decisions Made
-| Decision | Rationale |
-|----------|-----------|
-| Use planning-with-files pattern | Large multi-step task benefits from structured tracking |
+- Update `src/app/(dashboard)/layout.tsx`
+- Wrap children in QueryClientProvider
+- Add ReactQueryDevtools in development mode
 
-## Errors Encountered
-| Error | Attempt | Resolution |
-|-------|---------|------------|
-|       |         |            |
+### Step 4: Create Custom Hooks
+
+- Create `src/lib/hooks/use-documents.ts` - fetches documents with project filter support
+- Create `src/lib/hooks/use-projects.ts` - fetches projects with document counts
+- Create `src/lib/hooks/use-search-history.ts` - fetches search history with pagination
+
+### Step 5: Update Components
+
+- Update `src/components/documents/document-list.tsx` to use useDocuments hook
+- Update `src/components/projects/project-list.tsx` to use useProjects hook
+- Update `src/app/(dashboard)/history/page.tsx` to use useSearchHistory hook
+
+### Step 6: Verify TypeScript
+
+- Run `npx tsc --noEmit` to verify no type errors
+
+## Files to Create/Modify
+
+| File                                         | Action |
+| -------------------------------------------- | ------ |
+| `src/lib/query-client.ts`                    | Create |
+| `src/lib/hooks/use-documents.ts`             | Create |
+| `src/lib/hooks/use-projects.ts`              | Create |
+| `src/lib/hooks/use-search-history.ts`        | Create |
+| `src/app/(dashboard)/layout.tsx`             | Modify |
+| `src/components/documents/document-list.tsx` | Modify |
+| `src/components/projects/project-list.tsx`   | Modify |
+| `src/app/(dashboard)/history/page.tsx`       | Modify |
 
 ## Notes
-- Update phase status as you progress
-- Log ALL errors
-- Never repeat a failed action
+
+- Existing hooks directory already exists at `src/lib/hooks/`
+- Components currently use manual `useState`/`useEffect`/`useCallback` for data fetching
+- Will preserve existing functionality (pagination, filtering, optimistic updates)

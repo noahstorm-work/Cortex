@@ -1,36 +1,36 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import Link from "next/link"
-import { createClient } from "@/lib/supabase/client"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Sparkles, Loader2, Eye, EyeOff } from "lucide-react"
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { createClient } from "@/lib/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Sparkles, Loader2, Eye, EyeOff } from "lucide-react";
 
 export default function RegisterPage() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [showPassword, setShowPassword] = useState(false)
-  const router = useRouter()
-  const supabase = createClient()
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const router = useRouter();
+  const supabase = createClient();
 
   const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError(null)
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
 
-    const { error } = await supabase.auth.signUp({ email, password })
+    const { error } = await supabase.auth.signUp({ email, password });
     if (error) {
-      setError(error.message)
-      setLoading(false)
-      return
+      setError(error.message);
+      setLoading(false);
+      return;
     }
-    router.push("/login?registered=true")
-  }
+    router.push("/login?registered=true");
+  };
 
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden px-4">
@@ -48,12 +48,17 @@ export default function RegisterPage() {
             </div>
           </div>
           <CardTitle className="text-xl font-semibold tracking-tight">Create account</CardTitle>
-          <CardDescription className="text-sm text-muted-foreground/70">Get started with Cortex</CardDescription>
+          <CardDescription className="text-sm text-muted-foreground/70">
+            Get started with Cortex
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleRegister} className="space-y-4">
             <div className="space-y-1.5">
-              <label htmlFor="email" className="text-xs font-medium text-foreground/80 tracking-wide uppercase">
+              <label
+                htmlFor="email"
+                className="text-xs font-medium text-foreground/80 tracking-wide uppercase"
+              >
                 Email
               </label>
               <Input
@@ -68,7 +73,10 @@ export default function RegisterPage() {
             </div>
 
             <div className="space-y-1.5">
-              <label htmlFor="password" className="text-xs font-medium text-foreground/80 tracking-wide uppercase">
+              <label
+                htmlFor="password"
+                className="text-xs font-medium text-foreground/80 tracking-wide uppercase"
+              >
                 Password
               </label>
               <div className="relative">
@@ -102,7 +110,13 @@ export default function RegisterPage() {
               disabled={loading}
               className="h-10 w-full rounded-lg bg-gradient-to-r from-teal-500 to-teal-600 text-white shadow-lg shadow-teal-500/20 transition-all duration-300 hover:shadow-xl hover:shadow-teal-500/30 hover:scale-[1.01] active:scale-[0.99]"
             >
-              {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creating account...</> : "Create account"}
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creating account...
+                </>
+              ) : (
+                "Create account"
+              )}
             </Button>
           </form>
 
@@ -110,10 +124,10 @@ export default function RegisterPage() {
             <Button
               onClick={async () => {
                 try {
-                  const res = await fetch("/api/auth/demo-login", { method: "POST" })
+                  const res = await fetch("/api/auth/demo-login", { method: "POST" });
                   if (res.ok) {
-                    router.push("/documents")
-                    router.refresh()
+                    router.push("/documents");
+                    router.refresh();
                   }
                 } catch {}
               }}
@@ -126,7 +140,10 @@ export default function RegisterPage() {
 
             <p className="text-xs text-muted-foreground/60">
               Already have an account?{" "}
-              <Link href="/login" className="font-medium text-teal-400 hover:text-teal-300 transition-colors">
+              <Link
+                href="/login"
+                className="font-medium text-teal-400 hover:text-teal-300 transition-colors"
+              >
                 Sign in
               </Link>
             </p>
@@ -134,5 +151,5 @@ export default function RegisterPage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server"
-import { createServerSupabaseClient } from "./server"
+import { NextResponse } from "next/server";
+import { createServerSupabaseClient } from "./server";
 
 /**
  * Authentication helper for Next.js API routes.
@@ -21,8 +21,15 @@ import { createServerSupabaseClient } from "./server"
  *   - `response` - A 401 NextResponse if unauthenticated, or `null` if authenticated
  */
 export async function requireAuth() {
-  const supabase = await createServerSupabaseClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { supabase: null, user: null, response: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) }
-  return { supabase, user, response: null }
+  const supabase = await createServerSupabaseClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user)
+    return {
+      supabase: null,
+      user: null,
+      response: NextResponse.json({ error: "Unauthorized" }, { status: 401 }),
+    };
+  return { supabase, user, response: null };
 }

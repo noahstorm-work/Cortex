@@ -1,79 +1,101 @@
-"use client"
+"use client";
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef } from "react";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { motion } from "framer-motion"
-import { Search, Loader2, BookOpen, List, FileText, Sparkles, Cpu, ChevronDown, ChevronUp, ChevronRight } from "lucide-react"
-import type { SearchResponse, Project } from "@/lib/types"
-import { createClient } from "@/lib/supabase/client"
-import { SearchExport } from "./search-export"
-import { logger } from "@/lib/logger"
-import { fetchUserProjects } from "@/lib/utils/queries"
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { motion } from "framer-motion";
+import {
+  Search,
+  Loader2,
+  BookOpen,
+  List,
+  FileText,
+  Sparkles,
+  Cpu,
+  ChevronDown,
+  ChevronUp,
+  ChevronRight,
+} from "lucide-react";
+import type { SearchResponse, Project } from "@/lib/types";
+import { createClient } from "@/lib/supabase/client";
+import { SearchExport } from "./search-export";
+import { logger } from "@/lib/logger";
+import { fetchUserProjects } from "@/lib/utils/queries";
+import { z } from "zod";
 
 function RelevanceBadge({ label }: { label: "high" | "medium" | "low" }) {
   const styles = {
     high: "bg-emerald-400/10 text-emerald-500 border-emerald-400/20",
     medium: "bg-teal-400/10 text-teal-500 border-teal-400/20",
     low: "bg-muted text-muted-foreground border-border/50",
-  }
+  };
   return (
-    <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ${styles[label]}`}>
+    <span
+      className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ${styles[label]}`}
+    >
       {label}
     </span>
-  )
+  );
 }
 
+const searchFormSchema = z.object({
+  query: z
+    .string()
+    .min(1, "Search query is required")
+    .max(500, "Query must be 500 characters or fewer"),
+});
+
 interface SearchBarProps {
-  onSearchComplete?: () => void
+  onSearchComplete?: () => void;
 }
 
 export function SearchBar({ onSearchComplete }: SearchBarProps = {}) {
-  const [query, setQuery] = useState("")
-  const [searching, setSearching] = useState(false)
-  const [result, setResult] = useState<SearchResponse | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [projects, setProjects] = useState<Project[]>([])
-  const [selectedProject, setSelectedProject] = useState("")
-  const [expandedRefs, setExpandedRefs] = useState<Set<number>>(new Set())
+  const [query, setQuery] = useState("");
+  const [searching, setSearching] = useState(false);
+  const [result, setResult] = useState<SearchResponse | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [queryError, setQueryError] = useState<string | null>(null);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [selectedProject, setSelectedProject] = useState("");
+  const [expandedRefs, setExpandedRefs] = useState<Set<number>>(new Set());
   // Autocomplete state
-  const [suggestions, setSuggestions] = useState<string[]>([])
-  const [suggestionLoading, setSuggestionLoading] = useState(false)
-  const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1)
-  const suggestionDebounceTimeout = useRef<NodeJS.Timeout | null>(null)
-  const abortControllerRef = useRef<AbortController | null>(null)
-  const supabase = createClient()
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [suggestionLoading, setSuggestionLoading] = useState(false);
+  const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1);
+  const suggestionDebounceTimeout = useRef<NodeJS.Timeout | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const supabase = createClient();
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
-      if (!user) return
+      if (!user) return;
       fetchUserProjects(supabase, user.id).then((data) => {
-        if (data) setProjects(data)
-      })
-    })
-  }, [supabase])
+        if (data) setProjects(data);
+      });
+    });
+  }, [supabase]);
 
   // Autocomplete functionality
   useEffect(() => {
     if (suggestionDebounceTimeout.current) {
-      clearTimeout(suggestionDebounceTimeout.current)
+      clearTimeout(suggestionDebounceTimeout.current);
     }
     if (abortControllerRef.current) {
-      abortControllerRef.current.abort()
+      abortControllerRef.current.abort();
     }
 
     if (query.trim().length >= 2) {
       suggestionDebounceTimeout.current = setTimeout(async () => {
-        const controller = new AbortController()
-        abortControllerRef.current = controller
-        setSuggestionLoading(true)
+        const controller = new AbortController();
+        abortControllerRef.current = controller;
+        setSuggestionLoading(true);
         try {
           const res = await fetch("/api/search-suggestions", {
             method: "POST",
@@ -83,84 +105,88 @@ export function SearchBar({ onSearchComplete }: SearchBarProps = {}) {
               limit: 5,
             }),
             signal: controller.signal,
-          })
+          });
 
           if (!res.ok) {
-            throw new Error("Failed to fetch suggestions")
+            throw new Error("Failed to fetch suggestions");
           }
 
-          const data = await res.json()
-          setSuggestions(data.suggestions || [])
-          setSelectedSuggestionIndex(-1)
+          const data = await res.json();
+          setSuggestions(data.suggestions || []);
+          setSelectedSuggestionIndex(-1);
         } catch (err) {
-          if (err instanceof DOMException && err.name === "AbortError") return
-          logger.error("Autocomplete error", { error: err })
-          setSuggestions([])
+          if (err instanceof DOMException && err.name === "AbortError") return;
+          logger.error("Autocomplete error", { error: err });
+          setSuggestions([]);
         } finally {
-          setSuggestionLoading(false)
+          setSuggestionLoading(false);
         }
-      }, 300)
+      }, 300);
     } else {
-      setSuggestions([])
-      setSelectedSuggestionIndex(-1)
+      setSuggestions([]);
+      setSelectedSuggestionIndex(-1);
     }
 
     return () => {
       if (suggestionDebounceTimeout.current) {
-        clearTimeout(suggestionDebounceTimeout.current)
+        clearTimeout(suggestionDebounceTimeout.current);
       }
       if (abortControllerRef.current) {
-        abortControllerRef.current.abort()
+        abortControllerRef.current.abort();
       }
-    }
-  }, [query])
+    };
+  }, [query]);
 
   // Handle keydown events for suggestion navigation
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (suggestions.length === 0) return
+    if (suggestions.length === 0) return;
 
     switch (e.key) {
       case "ArrowDown":
-        e.preventDefault()
-        setSelectedSuggestionIndex((prev) =>
-          prev >= suggestions.length - 1 ? 0 : prev + 1
-        )
-        break
+        e.preventDefault();
+        setSelectedSuggestionIndex((prev) => (prev >= suggestions.length - 1 ? 0 : prev + 1));
+        break;
       case "ArrowUp":
-        e.preventDefault()
-        setSelectedSuggestionIndex((prev) =>
-          prev <= 0 ? suggestions.length - 1 : prev - 1
-        )
-        break
+        e.preventDefault();
+        setSelectedSuggestionIndex((prev) => (prev <= 0 ? suggestions.length - 1 : prev - 1));
+        break;
       case "Enter":
-        e.preventDefault()
+        e.preventDefault();
         if (selectedSuggestionIndex >= 0 && selectedSuggestionIndex < suggestions.length) {
-          setQuery(suggestions[selectedSuggestionIndex])
-          setSuggestions([])
-          setSelectedSuggestionIndex(-1)
+          setQuery(suggestions[selectedSuggestionIndex]);
+          setSuggestions([]);
+          setSelectedSuggestionIndex(-1);
         }
-        handleSearch()
-        break
+        handleSearch();
+        break;
       case "Escape":
-        e.preventDefault()
-        setSuggestions([])
-        setSelectedSuggestionIndex(-1)
-        break
+        e.preventDefault();
+        setSuggestions([]);
+        setSelectedSuggestionIndex(-1);
+        break;
       default:
-        break
+        break;
     }
-  }
+  };
 
   const handleSearch = async (e: React.FormEvent | null = null) => {
     if (e) {
-      e.preventDefault()
+      e.preventDefault();
     }
-    if (!query.trim() || searching) return
 
-    setSearching(true)
-    setError(null)
-    setResult(null)
-    setExpandedRefs(new Set())
+    const parsed = searchFormSchema.safeParse({ query: query.trim() });
+    if (!parsed.success) {
+      setQueryError(parsed.error.issues[0].message);
+      return;
+    }
+    setQueryError(null);
+
+    if (searching) return;
+
+    setSearching(true);
+    setError(null);
+    setResult(null);
+    setExpandedRefs(new Set());
 
     try {
       const res = await fetch("/api/search", {
@@ -170,52 +196,65 @@ export function SearchBar({ onSearchComplete }: SearchBarProps = {}) {
           query: query.trim(),
           project_id: selectedProject || undefined,
         }),
-      })
+      });
 
       if (!res.ok) {
-        const data = await res.json()
-        throw new Error(data.error || "Search failed")
+        const data = await res.json();
+        throw new Error(data.error || "Search failed");
       }
 
-      const data: SearchResponse = await res.json()
-      setResult(data)
-      onSearchComplete?.()
+      const data: SearchResponse = await res.json();
+      setResult(data);
+      onSearchComplete?.();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Search failed")
+      setError(err instanceof Error ? err.message : "Search failed");
     } finally {
-      setSearching(false)
+      setSearching(false);
     }
-  }
+  };
 
   const toggleRef = (i: number) => {
     setExpandedRefs((prev) => {
-      const next = new Set(prev)
-      if (next.has(i)) next.delete(i)
-      else next.add(i)
-      return next
-    })
-  }
+      const next = new Set(prev);
+      if (next.has(i)) next.delete(i);
+      else next.add(i);
+      return next;
+    });
+  };
 
   return (
     <div className="space-y-6">
       <form onSubmit={handleSearch} className="flex gap-2">
         <div className="relative flex-1">
-          <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/40" aria-hidden="true" />
-          <label htmlFor="search-input" className="sr-only">Search documents</label>
+          <Search
+            className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/40"
+            aria-hidden="true"
+          />
+          <label htmlFor="search-input" className="sr-only">
+            Search documents
+          </label>
           <Input
             id="search-input"
             role="combobox"
             aria-expanded={suggestions.length > 0}
             aria-controls="search-suggestions-list"
-            aria-activedescendant={selectedSuggestionIndex >= 0 ? `suggestion-${selectedSuggestionIndex}` : undefined}
+            aria-activedescendant={
+              selectedSuggestionIndex >= 0 ? `suggestion-${selectedSuggestionIndex}` : undefined
+            }
             aria-autocomplete="list"
             type="text"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              if (queryError) setQueryError(null);
+            }}
             onKeyDown={handleKeyDown}
             placeholder="Search your documents…"
             className="h-11 pl-10 rounded-2xl border-border/50 bg-card/50 backdrop-blur-sm text-sm transition-all duration-300 focus:border-teal-400/40 focus:ring-2 focus:ring-teal-400/10 focus:bg-card/80"
           />
+          {queryError && (
+            <p className="absolute left-0 top-full mt-1 text-xs text-destructive">{queryError}</p>
+          )}
           {suggestionLoading && !suggestions.length && (
             <div className="absolute left-0 right-0 bottom-0 h-2 animate-pulse bg-gradient-to-r from-teal-400 via-teal-500 to-teal-600 rounded-b-xl"></div>
           )}
@@ -234,22 +273,23 @@ export function SearchBar({ onSearchComplete }: SearchBarProps = {}) {
                   aria-selected={selectedSuggestionIndex === index}
                   className={`
                     flex items-center px-4 py-2 text-sm
-                    ${selectedSuggestionIndex === index
-                      ? "bg-teal-50/50 text-teal-600"
-                      : "hover:bg-muted/50 text-muted-foreground"
+                    ${
+                      selectedSuggestionIndex === index
+                        ? "bg-accent/10 text-accent-foreground"
+                        : "hover:bg-muted/50 text-muted-foreground"
                     }
                     transition-colors duration-150
                   `}
                   onClick={() => {
-                    setQuery(suggestion)
-                    setSuggestions([])
-                    setSelectedSuggestionIndex(-1)
-                    handleSearch()
+                    setQuery(suggestion);
+                    setSuggestions([]);
+                    setSelectedSuggestionIndex(-1);
+                    handleSearch();
                   }}
                 >
                   <span className="flex-1">{suggestion}</span>
                   {selectedSuggestionIndex === index && (
-                    <ChevronRight className="h-3 w-3 text-teal-600" />
+                    <ChevronRight className="h-3 w-3 text-accent-foreground" />
                   )}
                 </div>
               ))}
@@ -264,7 +304,9 @@ export function SearchBar({ onSearchComplete }: SearchBarProps = {}) {
             <SelectContent>
               <SelectItem value="">All projects</SelectItem>
               {projects.map((p) => (
-                <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                <SelectItem key={p.id} value={p.id}>
+                  {p.name}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -400,5 +442,5 @@ export function SearchBar({ onSearchComplete }: SearchBarProps = {}) {
         </motion.div>
       )}
     </div>
-  )
+  );
 }

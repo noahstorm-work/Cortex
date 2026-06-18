@@ -12,6 +12,6 @@
  * const response = await buildResponse("machine learning", results)
  * ```
  */
-export { vectorSearch as search } from "./bm25"
-export { buildResponse } from "./response"
-export type { ScoredChunk, SearchOptions } from "./bm25"
+export { vectorSearch as search } from "./bm25";
+export { buildResponse } from "./response";
+export type { ScoredChunk, SearchOptions } from "./bm25";

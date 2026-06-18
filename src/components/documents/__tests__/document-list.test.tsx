@@ -1,28 +1,36 @@
-import { describe, it, expect, vi, beforeEach } from "vitest"
-import { render, screen, waitFor } from "@testing-library/react"
-import { DocumentList } from "../document-list"
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen, waitFor } from "@testing-library/react";
+import { DocumentList } from "../document-list";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
-}))
+}));
 
 vi.mock("next/link", () => ({
-  default: ({ children, href, ...props }: any) => <a href={href} {...props}>{children}</a>,
-}))
+  default: ({ children, href, ...props }: any) => (
+    <a href={href} {...props}>
+      {children}
+    </a>
+  ),
+}));
 
 vi.mock("framer-motion", () => ({
   motion: {
     div: ({ children, ...props }: any) => <div {...props}>{children}</div>,
   },
-}))
+}));
 
 vi.mock("@/components/ui/select", () => ({
   Select: ({ children }: any) => <div data-mock="select">{children}</div>,
   SelectContent: ({ children }: any) => <div data-mock="select-content">{children}</div>,
-  SelectItem: ({ children, value }: any) => <div data-mock="select-item" data-value={value}>{children}</div>,
+  SelectItem: ({ children, value }: any) => (
+    <div data-mock="select-item" data-value={value}>
+      {children}
+    </div>
+  ),
   SelectTrigger: ({ children }: any) => <div data-mock="select-trigger">{children}</div>,
   SelectValue: ({ placeholder }: any) => <span data-mock="select-value">{placeholder}</span>,
-}))
+}));
 
 vi.mock("@/components/ui/alert-dialog", () => ({
   AlertDialog: ({ children }: any) => <div data-mock="alert-dialog">{children}</div>,
@@ -30,26 +38,36 @@ vi.mock("@/components/ui/alert-dialog", () => ({
   AlertDialogContent: ({ children }: any) => <div data-mock="alert-dialog-content">{children}</div>,
   AlertDialogHeader: ({ children }: any) => <div data-mock="alert-dialog-header">{children}</div>,
   AlertDialogTitle: ({ children }: any) => <div data-mock="alert-dialog-title">{children}</div>,
-  AlertDialogDescription: ({ children }: any) => <div data-mock="alert-dialog-description">{children}</div>,
+  AlertDialogDescription: ({ children }: any) => (
+    <div data-mock="alert-dialog-description">{children}</div>
+  ),
   AlertDialogFooter: ({ children }: any) => <div data-mock="alert-dialog-footer">{children}</div>,
-  AlertDialogAction: ({ children }: any) => <button data-mock="alert-dialog-action">{children}</button>,
-  AlertDialogCancel: ({ children }: any) => <button data-mock="alert-dialog-cancel">{children}</button>,
-}))
+  AlertDialogAction: ({ children }: any) => (
+    <button data-mock="alert-dialog-action">{children}</button>
+  ),
+  AlertDialogCancel: ({ children }: any) => (
+    <button data-mock="alert-dialog-cancel">{children}</button>
+  ),
+}));
 
 vi.mock("@/components/ui/badge", () => ({
-  Badge: ({ children, variant, className }: any) => <span data-mock="badge" data-variant={variant} className={className}>{children}</span>,
-}))
+  Badge: ({ children, variant, className }: any) => (
+    <span data-mock="badge" data-variant={variant} className={className}>
+      {children}
+    </span>
+  ),
+}));
 
 vi.mock("@/components/ui/document-preview", () => ({
   DocumentPreview: () => null,
-}))
+}));
 
 vi.mock("@/components/ui/skeleton", () => ({
   Skeleton: ({ className }: any) => <div data-mock="skeleton" className={className} />,
   DocumentListSkeleton: () => <div data-mock="document-list-skeleton" />,
-}))
+}));
 
-const mockUser = { id: "user-1" }
+const mockUser = { id: "user-1" };
 const mockDocuments = [
   {
     id: "doc-1",
@@ -84,12 +102,12 @@ const mockDocuments = [
     file_type: "image/png",
     file_size: 2048,
   },
-]
+];
 
 const mockProjects = [
   { id: "proj-1", name: "Alpha", description: null, user_id: "user-1", created_at: "2025-01-01" },
   { id: "proj-2", name: "Beta", description: null, user_id: "user-1", created_at: "2025-01-02" },
-]
+];
 
 function createMockClient() {
   const buildChain = (): any => {
@@ -98,10 +116,10 @@ function createMockClient() {
       eq: () => chain,
       order: () => chain,
       range: () => Promise.resolve({ data: mockDocuments, error: null }),
-    }
-    return chain
-  }
-  const docQuery = buildChain()
+    };
+    return chain;
+  };
+  const docQuery = buildChain();
   return {
     auth: {
       getUser: () => Promise.resolve({ data: { user: mockUser }, error: null }),
@@ -114,63 +132,63 @@ function createMockClient() {
               order: () => Promise.resolve({ data: mockProjects, error: null }),
             }),
           }),
-        }
+        };
       }
       if (table === "documents") {
-        return docQuery
+        return docQuery;
       }
-      return buildChain()
+      return buildChain();
     },
-  }
+  };
 }
 
 vi.mock("@/lib/supabase/client", () => ({
   createClient: () => createMockClient(),
-}))
+}));
 
 describe("DocumentList", () => {
   beforeEach(() => {
-    vi.spyOn(global, "fetch").mockResolvedValue({ ok: true } as Response)
-  })
+    vi.spyOn(global, "fetch").mockResolvedValue({ ok: true } as Response);
+  });
 
   it("renders documents after loading", async () => {
-    render(<DocumentList />)
+    render(<DocumentList />);
 
     await waitFor(() => {
-      expect(screen.getByText("Project Report.pdf")).toBeInTheDocument()
-      expect(screen.getByText("Notes.txt")).toBeInTheDocument()
-      expect(screen.getByText("Image.png")).toBeInTheDocument()
-    })
-  })
+      expect(screen.getByText("Project Report.pdf")).toBeInTheDocument();
+      expect(screen.getByText("Notes.txt")).toBeInTheDocument();
+      expect(screen.getByText("Image.png")).toBeInTheDocument();
+    });
+  });
 
   it("shows correct status badges", async () => {
-    render(<DocumentList />)
+    render(<DocumentList />);
 
     await waitFor(() => {
-      expect(screen.getByText("Ready")).toBeInTheDocument()
-      expect(screen.getByText("Processing")).toBeInTheDocument()
-      expect(screen.getByText("Failed")).toBeInTheDocument()
-    })
-  })
+      expect(screen.getByText("Ready")).toBeInTheDocument();
+      expect(screen.getByText("Processing")).toBeInTheDocument();
+      expect(screen.getByText("Failed")).toBeInTheDocument();
+    });
+  });
 
   it("shows project badges for assigned documents", async () => {
-    render(<DocumentList />)
+    render(<DocumentList />);
 
     await waitFor(() => {
-      const alphas = screen.getAllByText("Alpha")
-      const badgeAlpha = alphas.find(el => el.getAttribute("data-mock") === "badge")
-      expect(badgeAlpha).toBeTruthy()
-      const betas = screen.getAllByText("Beta")
-      const badgeBeta = betas.find(el => el.getAttribute("data-mock") === "badge")
-      expect(badgeBeta).toBeTruthy()
-    })
-  })
+      const alphas = screen.getAllByText("Alpha");
+      const badgeAlpha = alphas.find((el) => el.getAttribute("data-mock") === "badge");
+      expect(badgeAlpha).toBeTruthy();
+      const betas = screen.getAllByText("Beta");
+      const badgeBeta = betas.find((el) => el.getAttribute("data-mock") === "badge");
+      expect(badgeBeta).toBeTruthy();
+    });
+  });
 
   it("shows filter when projects exist", async () => {
-    render(<DocumentList />)
+    render(<DocumentList />);
 
     await waitFor(() => {
-      expect(screen.getByText("Filter:")).toBeInTheDocument()
-    })
-  })
-})
+      expect(screen.getByText("Filter:")).toBeInTheDocument();
+    });
+  });
+});

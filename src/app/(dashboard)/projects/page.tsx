@@ -1,12 +1,12 @@
-import type { Metadata } from "next"
-import { FolderKanban } from "lucide-react"
-import { CreateProjectForm } from "@/components/projects/create-project-form"
-import { ProjectList } from "@/components/projects/project-list"
-import { ErrorBoundary } from "@/components/ui/error-boundary"
+import type { Metadata } from "next";
+import { FolderKanban } from "lucide-react";
+import { CreateProjectForm } from "@/components/projects/create-project-form";
+import { ProjectList } from "@/components/projects/project-list";
+import { ErrorBoundary } from "@/components/ui/error-boundary";
 
 export const metadata: Metadata = {
   title: "Projects",
-}
+};
 
 export default function ProjectsPage() {
   return (
@@ -17,9 +17,7 @@ export default function ProjectsPage() {
         </div>
         <div>
           <h1 className="text-xl font-display tracking-tight text-balance">Projects</h1>
-          <p className="text-sm text-muted-foreground/70">
-            Organize your documents into projects.
-          </p>
+          <p className="text-sm text-muted-foreground/70">Organize your documents into projects.</p>
         </div>
       </div>
 
@@ -41,5 +39,5 @@ export default function ProjectsPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

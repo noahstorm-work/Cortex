@@ -1,17 +1,17 @@
-"use client"
+"use client";
 
-import { useState, useCallback } from "react"
-import { UploadArea } from "@/components/documents/upload-area"
-import { DocumentList } from "@/components/documents/document-list"
-import { ErrorBoundary } from "@/components/ui/error-boundary"
-import { FileText, UploadCloud } from "lucide-react"
+import { useState, useCallback } from "react";
+import { UploadArea } from "@/components/documents/upload-area";
+import { DocumentList } from "@/components/documents/document-list";
+import { ErrorBoundary } from "@/components/ui/error-boundary";
+import { FileText, UploadCloud } from "lucide-react";
 
 export default function DocumentsPage() {
-  const [refreshKey, setRefreshKey] = useState(0)
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const handleUploadComplete = useCallback(() => {
-    setRefreshKey((k) => k + 1)
-  }, [])
+    setRefreshKey((k) => k + 1);
+  }, []);
 
   return (
     <div className="space-y-8 animate-fade-in-up">
@@ -48,5 +48,5 @@ export default function DocumentsPage() {
         </ErrorBoundary>
       </div>
     </div>
-  )
+  );
 }

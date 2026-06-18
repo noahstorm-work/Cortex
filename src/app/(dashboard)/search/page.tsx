@@ -1,28 +1,25 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import dynamic from "next/dynamic"
-import { SearchBar } from "@/components/search/search-bar"
-import { ErrorBoundary } from "@/components/ui/error-boundary"
-import { Search, Loader2 } from "lucide-react"
+import { useState } from "react";
+import dynamic from "next/dynamic";
+import { SearchBar } from "@/components/search/search-bar";
+import { ErrorBoundary } from "@/components/ui/error-boundary";
+import { Search } from "lucide-react";
+import { SearchHistorySkeleton } from "@/components/ui/skeleton";
 
 const SearchHistory = dynamic(
   () => import("@/components/search/search-history").then((mod) => mod.SearchHistory),
   {
-    loading: () => (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
-    ),
+    loading: () => <SearchHistorySkeleton />,
   }
-)
+);
 
 export default function SearchPage() {
-  const [searchTrigger, setSearchTrigger] = useState(0)
+  const [searchTrigger, setSearchTrigger] = useState(0);
 
   const handleSearchComplete = () => {
-    setSearchTrigger(prev => prev + 1)
-  }
+    setSearchTrigger((prev) => prev + 1);
+  };
 
   return (
     <div className="space-y-8 animate-fade-in-up">
@@ -46,5 +43,5 @@ export default function SearchPage() {
         <SearchHistory refetchTrigger={searchTrigger} />
       </ErrorBoundary>
     </div>
-  )
+  );
 }

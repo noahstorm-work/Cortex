@@ -1,12 +1,18 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { usePathname, useRouter } from "next/navigation"
-import { createClient } from "@/lib/supabase/client"
-import { cn } from "@/lib/utils/cn"
-import { ThemeToggle } from "@/components/ui/theme-toggle"
-import { Button } from "@/components/ui/button"
-import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
+import { cn } from "@/lib/utils/cn";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import {
   LayoutDashboard,
   FileText,
@@ -16,8 +22,8 @@ import {
   Sparkles,
   Menu,
   History,
-} from "lucide-react"
-import { useEffect, useState } from "react"
+} from "lucide-react";
+import { useEffect, useState } from "react";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -25,38 +31,40 @@ const navItems = [
   { href: "/search", label: "Search", icon: Search },
   { href: "/history", label: "History", icon: History },
   { href: "/projects", label: "Projects", icon: FolderKanban },
-]
+];
 
 const navGroups = [
   { label: "Workspace", items: navItems.slice(0, 3) },
   { label: "More", items: navItems.slice(3) },
-]
+];
 
 export function Sidebar() {
-  const pathname = usePathname()
-  const router = useRouter()
-  const supabase = createClient()
-  const [mounted, setMounted] = useState(false)
-  const [mobileOpen, setMobileOpen] = useState(false)
+  const pathname = usePathname();
+  const router = useRouter();
+  const supabase = createClient();
+  const [mounted, setMounted] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
-  useEffect(() => { setMounted(true) }, [])
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Close mobile sheet on navigation
   useEffect(() => {
-    setMobileOpen(false)
-  }, [pathname])
+    setMobileOpen(false);
+  }, [pathname]);
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut()
-    router.push("/login")
-    router.refresh()
-  }
+    await supabase.auth.signOut();
+    router.push("/login");
+    router.refresh();
+  };
 
-  const isActive = (href: string) => pathname.startsWith(href)
+  const isActive = (href: string) => pathname.startsWith(href);
 
-  const NavItem = ({ item }: { item: typeof navItems[number] }) => {
-    const active = isActive(item.href)
-    const Icon = item.icon
+  const NavItem = ({ item }: { item: (typeof navItems)[number] }) => {
+    const active = isActive(item.href);
+    const Icon = item.icon;
     return (
       <Link
         href={item.href}
@@ -68,11 +76,19 @@ export function Sidebar() {
             : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
         )}
       >
-        <div className={cn(
-          "flex h-7 w-7 items-center justify-center rounded-lg transition-all duration-300",
-          active ? "bg-gradient-to-br from-teal-400/20 to-teal-600/20" : "group-hover:bg-muted/50"
-        )}>
-          <Icon className={cn("h-4 w-4 transition-all duration-300", active && "text-teal-400 scale-110")} aria-hidden="true" />
+        <div
+          className={cn(
+            "flex h-7 w-7 items-center justify-center rounded-lg transition-all duration-300",
+            active ? "bg-gradient-to-br from-teal-400/20 to-teal-600/20" : "group-hover:bg-muted/50"
+          )}
+        >
+          <Icon
+            className={cn(
+              "h-4 w-4 transition-all duration-300",
+              active && "text-teal-400 scale-110"
+            )}
+            aria-hidden="true"
+          />
         </div>
         <span className={cn(active && "font-semibold")}>{item.label}</span>
         {active && (
@@ -81,8 +97,8 @@ export function Sidebar() {
           </div>
         )}
       </Link>
-    )
-  }
+    );
+  };
 
   const SidebarContent = () => (
     <>
@@ -128,21 +144,34 @@ export function Sidebar() {
         </div>
       </div>
     </>
-  )
+  );
 
   return (
     <>
       {/* Mobile Header */}
-      <div className="md:hidden fixed top-0 left-0 right-0 z-50 flex h-14 items-center border-b border-border/60 bg-background/80 backdrop-blur-2xl px-4" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
+      <div
+        className="md:hidden fixed top-0 left-0 right-0 z-50 flex h-14 items-center border-b border-border/60 bg-background/80 backdrop-blur-2xl px-4"
+        style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
+      >
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
           <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl" aria-label="Open navigation menu">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 rounded-xl"
+              aria-label="Open navigation menu"
+            >
               <Menu className="h-5 w-5" />
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="w-64 p-0 border-r-0 bg-background/95 backdrop-blur-2xl">
+          <SheetContent
+            side="left"
+            className="w-64 p-0 border-r-0 bg-background/95 backdrop-blur-2xl"
+          >
             <SheetTitle className="sr-only">Navigation menu</SheetTitle>
-            <SheetDescription className="sr-only">Navigate to different sections of Cortex</SheetDescription>
+            <SheetDescription className="sr-only">
+              Navigate to different sections of Cortex
+            </SheetDescription>
             <SidebarContent />
           </SheetContent>
         </Sheet>
@@ -164,5 +193,5 @@ export function Sidebar() {
         </aside>
       </div>
     </>
-  )
+  );
 }

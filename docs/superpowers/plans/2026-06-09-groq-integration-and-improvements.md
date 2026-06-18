@@ -12,19 +12,19 @@
 
 ## File Structure
 
-| File | Responsibility |
-|------|----------------|
-| `src/lib/embeddings/openai.ts` → `src/lib/embeddings/groq.ts` | Groq embedding client (rename + rewrite) |
-| `src/lib/embeddings/index.ts` | Update imports from `./openai` → `./groq` |
-| `src/lib/search/summarize.ts` | Update to use Groq chat completions |
-| `.env.local.example` | Add `GROQ_API_KEY`, remove `OPENAI_API_KEY` |
-| `.env.local` | User adds `GROQ_API_KEY` (manual) |
-| `src/app/api/search/route.ts` | Minor: add rate limit config |
-| `src/components/search/search-bar.tsx` | Add search export button |
-| `src/components/ui/document-preview.tsx` | New: inline document preview modal |
-| `src/app/(dashboard)/documents/page.tsx` | Integrate document preview |
-| `src/app/(dashboard)/search/page.tsx` | Integrate search export |
-| `src/lib/validation/schemas.ts` | No changes needed |
+| File                                                          | Responsibility                              |
+| ------------------------------------------------------------- | ------------------------------------------- |
+| `src/lib/embeddings/openai.ts` → `src/lib/embeddings/groq.ts` | Groq embedding client (rename + rewrite)    |
+| `src/lib/embeddings/index.ts`                                 | Update imports from `./openai` → `./groq`   |
+| `src/lib/search/summarize.ts`                                 | Update to use Groq chat completions         |
+| `.env.local.example`                                          | Add `GROQ_API_KEY`, remove `OPENAI_API_KEY` |
+| `.env.local`                                                  | User adds `GROQ_API_KEY` (manual)           |
+| `src/app/api/search/route.ts`                                 | Minor: add rate limit config                |
+| `src/components/search/search-bar.tsx`                        | Add search export button                    |
+| `src/components/ui/document-preview.tsx`                      | New: inline document preview modal          |
+| `src/app/(dashboard)/documents/page.tsx`                      | Integrate document preview                  |
+| `src/app/(dashboard)/search/page.tsx`                         | Integrate search export                     |
+| `src/lib/validation/schemas.ts`                               | No changes needed                           |
 
 ---
 
@@ -33,6 +33,7 @@
 ### Task 1: Create Groq Embedding Client
 
 **Files:**
+
 - Create: `src/lib/embeddings/groq.ts`
 - Delete: `src/lib/embeddings/openai.ts`
 - Modify: `src/lib/embeddings/index.ts`
@@ -40,17 +41,17 @@
 - [ ] **Step 1: Create `src/lib/embeddings/groq.ts`**
 
 ```typescript
-const GROQ_BASE_URL = "https://api.groq.com/openai/v1"
-const GROQ_EMBEDDING_MODEL = "nomic-embed-text-v1.5"
-const GROQ_EMBEDDING_DIMENSIONS = 1536
+const GROQ_BASE_URL = "https://api.groq.com/openai/v1";
+const GROQ_EMBEDDING_MODEL = "nomic-embed-text-v1.5";
+const GROQ_EMBEDDING_DIMENSIONS = 1536;
 
 export function getGroqKey(): string | null {
-  return process.env.GROQ_API_KEY || null
+  return process.env.GROQ_API_KEY || null;
 }
 
 export async function generateGroqEmbedding(text: string): Promise<number[]> {
-  const key = getGroqKey()
-  if (!key) throw new Error("GROQ_API_KEY not configured")
+  const key = getGroqKey();
+  if (!key) throw new Error("GROQ_API_KEY not configured");
 
   const res = await fetch(`${GROQ_BASE_URL}/embeddings`, {
     method: "POST",
@@ -62,20 +63,20 @@ export async function generateGroqEmbedding(text: string): Promise<number[]> {
       model: GROQ_EMBEDDING_MODEL,
       input: text,
     }),
-  })
+  });
 
   if (!res.ok) {
-    const body = await res.text()
-    throw new Error(`Groq embedding failed (${res.status}): ${body}`)
+    const body = await res.text();
+    throw new Error(`Groq embedding failed (${res.status}): ${body}`);
   }
 
-  const json = await res.json()
-  return json.data[0].embedding
+  const json = await res.json();
+  return json.data[0].embedding;
 }
 
 export async function generateGroqEmbeddings(texts: string[]): Promise<number[][]> {
-  const key = getGroqKey()
-  if (!key) throw new Error("GROQ_API_KEY not configured")
+  const key = getGroqKey();
+  if (!key) throw new Error("GROQ_API_KEY not configured");
 
   const res = await fetch(`${GROQ_BASE_URL}/embeddings`, {
     method: "POST",
@@ -87,23 +88,24 @@ export async function generateGroqEmbeddings(texts: string[]): Promise<number[][
       model: GROQ_EMBEDDING_MODEL,
       input: texts,
     }),
-  })
+  });
 
   if (!res.ok) {
-    const body = await res.text()
-    throw new Error(`Groq embeddings failed (${res.status}): ${body}`)
+    const body = await res.text();
+    throw new Error(`Groq embeddings failed (${res.status}): ${body}`);
   }
 
-  const json = await res.json()
+  const json = await res.json();
   return json.data
     .sort((a: { index: number }, b: { index: number }) => a.index - b.index)
-    .map((item: { embedding: number[] }) => item.embedding)
+    .map((item: { embedding: number[] }) => item.embedding);
 }
 ```
 
 - [ ] **Step 2: Update `src/lib/embeddings/index.ts`**
 
 Change imports from `./openai` to `./groq`:
+
 - Line 1: `import { generateGroqEmbedding, generateGroqEmbeddings, getGroqKey } from "./groq"`
 - Line 43-44: `isEmbedderFallback()` → checks `!getGroqKey()`
 - Line 47-48: `generateEmbedding()` → calls `generateGroqEmbedding` if key exists
@@ -128,11 +130,13 @@ git commit -m "feat: replace OpenAI with Groq for embeddings"
 ### Task 2: Update Summarization to Use Groq
 
 **Files:**
+
 - Modify: `src/lib/search/summarize.ts`
 
 - [ ] **Step 1: Update `src/lib/search/summarize.ts`**
 
 Replace OpenAI chat completions with Groq:
+
 - Line 1: `import { getGroqKey } from "@/lib/embeddings/groq"` (was `getOpenAIKey`)
 - Line 9: `if (!getGroqKey()) return null`
 - Line 43-58: Change URL from `https://api.openai.com/v1/chat/completions` to `https://api.groq.com/openai/v1/chat/completions`
@@ -156,12 +160,14 @@ git commit -m "feat: use Groq llama-3.3-70b for summarization"
 ### Task 3: Update Environment Variables
 
 **Files:**
+
 - Modify: `.env.local.example`
 - Modify: `.env.local` (add GROQ_API_KEY placeholder)
 
 - [ ] **Step 1: Update `.env.local.example`**
 
 Replace line 7 (`# OPENAI_API_KEY=sk-...`) with:
+
 ```
 # Required for real AI embeddings and AI-powered summaries
 # Get one at https://console.groq.com/keys
@@ -184,6 +190,7 @@ git commit -m "chore: update env example for Groq API key"
 ### Task 4: Update Embedding Tests
 
 **Files:**
+
 - Modify: `src/lib/embeddings/__tests__/embeddings.test.ts`
 
 - [ ] **Step 1: Update test imports**
@@ -209,43 +216,45 @@ git commit -m "test: update embedding tests for Groq"
 ### Task 5: Search Export (JSON + Clipboard)
 
 **Files:**
+
 - Create: `src/components/search/search-export.tsx`
 - Modify: `src/app/(dashboard)/search/page.tsx`
 
 - [ ] **Step 1: Create `src/components/search/search-export.tsx`**
 
 A button component that exports search results as JSON or copies to clipboard:
+
 ```tsx
-"use client"
-import { useState } from "react"
-import { Copy, Download, Check } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import type { SearchResponse } from "@/lib/types"
+"use client";
+import { useState } from "react";
+import { Copy, Download, Check } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import type { SearchResponse } from "@/lib/types";
 
 interface SearchExportProps {
-  results: SearchResponse
+  results: SearchResponse;
 }
 
 export function SearchExport({ results }: SearchExportProps) {
-  const [copied, setCopied] = useState(false)
+  const [copied, setCopied] = useState(false);
 
-  const jsonData = JSON.stringify(results, null, 2)
+  const jsonData = JSON.stringify(results, null, 2);
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(jsonData)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
+    await navigator.clipboard.writeText(jsonData);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const handleDownload = () => {
-    const blob = new Blob([jsonData], { type: "application/json" })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement("a")
-    a.href = url
-    a.download = `cortex-search-${Date.now()}.json`
-    a.click()
-    URL.revokeObjectURL(url)
-  }
+    const blob = new Blob([jsonData], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `cortex-search-${Date.now()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <div className="flex gap-2">
@@ -258,7 +267,7 @@ export function SearchExport({ results }: SearchExportProps) {
         Export
       </Button>
     </div>
-  )
+  );
 }
 ```
 
@@ -278,27 +287,29 @@ git commit -m "feat: add search results export (JSON copy/download)"
 ### Task 6: Document Preview Modal
 
 **Files:**
+
 - Create: `src/components/ui/document-preview.tsx`
 - Modify: `src/app/(dashboard)/documents/page.tsx`
 
 - [ ] **Step 1: Create `src/components/ui/document-preview.tsx`**
 
 A modal that shows document details (title, type, created date, chunk count, project) with a link to open the file:
+
 ```tsx
-"use client"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { FileText, ExternalLink, Calendar, Layers } from "lucide-react"
-import type { Document } from "@/lib/types"
+"use client";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { FileText, ExternalLink, Calendar, Layers } from "lucide-react";
+import type { Document } from "@/lib/types";
 
 interface DocumentPreviewProps {
-  document: Document | null
-  open: boolean
-  onOpenChange: (open: boolean) => void
+  document: Document | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
 export function DocumentPreview({ document, open, onOpenChange }: DocumentPreviewProps) {
-  if (!document) return null
+  if (!document) return null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -335,7 +346,7 @@ export function DocumentPreview({ document, open, onOpenChange }: DocumentPrevie
         </div>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
 ```
 
@@ -355,16 +366,18 @@ git commit -m "feat: add document preview modal"
 ### Task 7: Rate Limit Config Improvements
 
 **Files:**
+
 - Modify: `src/lib/rate-limit.ts`
 
 - [ ] **Step 1: Add search-specific rate limit for AI summaries**
 
 Add a new config `SUMMARY_RATE_LIMIT` (10/min) to prevent abuse of Groq summarization:
+
 ```typescript
 export const SUMMARY_RATE_LIMIT: RateLimitConfig = {
   windowMs: 60 * 1000,
   maxRequests: 10,
-}
+};
 ```
 
 - [ ] **Step 2: Apply to search route**
@@ -383,6 +396,7 @@ git commit -m "feat: add summary rate limit to prevent Groq API abuse"
 ### Task 8: Dark Mode Consistency
 
 **Files:**
+
 - Modify: `src/app/globals.css`
 
 - [ ] **Step 1: Verify dark mode tokens are consistent**
@@ -445,15 +459,15 @@ Check `cortex-ai-workspace.vercel.app` deploys successfully.
 
 ## Summary of Changes
 
-| Area | What Changes | Impact |
-|------|--------------|--------|
-| **Embeddings** | OpenAI `text-embedding-3-small` → Groq `nomic-embed-text-v1.5` | Same 1536-dim vectors, faster inference, free tier |
-| **Summarization** | OpenAI `gpt-4o-mini` → Groq `llama-3.3-70b-versatile` | Faster summaries, free tier |
-| **Env vars** | `OPENAI_API_KEY` → `GROQ_API_KEY` | User gets key from console.groq.com |
-| **Search export** | New JSON copy/download button | Users can save search results |
-| **Document preview** | New modal with file details | Better document management UX |
-| **Rate limiting** | New `SUMMARY_RATE_LIMIT` (10/min) | Prevents Groq API abuse |
-| **Dark mode** | Color token consistency fixes | Polished dark mode experience |
+| Area                 | What Changes                                                   | Impact                                             |
+| -------------------- | -------------------------------------------------------------- | -------------------------------------------------- |
+| **Embeddings**       | OpenAI `text-embedding-3-small` → Groq `nomic-embed-text-v1.5` | Same 1536-dim vectors, faster inference, free tier |
+| **Summarization**    | OpenAI `gpt-4o-mini` → Groq `llama-3.3-70b-versatile`          | Faster summaries, free tier                        |
+| **Env vars**         | `OPENAI_API_KEY` → `GROQ_API_KEY`                              | User gets key from console.groq.com                |
+| **Search export**    | New JSON copy/download button                                  | Users can save search results                      |
+| **Document preview** | New modal with file details                                    | Better document management UX                      |
+| **Rate limiting**    | New `SUMMARY_RATE_LIMIT` (10/min)                              | Prevents Groq API abuse                            |
+| **Dark mode**        | Color token consistency fixes                                  | Polished dark mode experience                      |
 
 ## Groq Free Tier Limits
 

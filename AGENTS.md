@@ -2,13 +2,13 @@
 
 ## Commands
 
-| Task | Command |
-|------|---------|
-| Dev server | `npm run dev` (uses `--webpack`, not Turbopack) |
-| Build | `npm run build` |
-| Lint | `npm run lint` |
-| Tests | `npm run test` (vitest, single run) |
-| Tests (watch) | `npm run test:watch` |
+| Task          | Command                                         |
+| ------------- | ----------------------------------------------- |
+| Dev server    | `npm run dev` (uses `--webpack`, not Turbopack) |
+| Build         | `npm run build`                                 |
+| Lint          | `npm run lint`                                  |
+| Tests         | `npm run test` (vitest, single run)             |
+| Tests (watch) | `npm run test:watch`                            |
 
 **Order matters**: `npm run lint && npm run build` is the minimum before committing. TypeScript strict mode is on — `npm run build` catches type errors.
 
@@ -33,11 +33,11 @@ Next.js 16 (App Router) → Supabase (PostgreSQL + pgvector + Storage) → OpenA
 
 Three distinct clients in `src/lib/supabase/`:
 
-| Client | File | Key | RLS | Use |
-|--------|------|-----|-----|-----|
-| Browser | `client.ts` | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Respects RLS | Client components |
-| Server | `server.ts` | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Respects RLS | Server components, middleware |
-| Admin | `admin.ts` | `SUPABASE_SERVICE_ROLE_KEY` | **Bypasses RLS** | Storage ops, batch inserts |
+| Client  | File        | Key                             | RLS              | Use                           |
+| ------- | ----------- | ------------------------------- | ---------------- | ----------------------------- |
+| Browser | `client.ts` | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Respects RLS     | Client components             |
+| Server  | `server.ts` | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Respects RLS     | Server components, middleware |
+| Admin   | `admin.ts`  | `SUPABASE_SERVICE_ROLE_KEY`     | **Bypasses RLS** | Storage ops, batch inserts    |
 
 **Critical**: `createAdminClient()` bypasses all RLS. Only use it for operations that genuinely need cross-user access (storage download, batch chunk inserts). Never use it for user-facing reads/writes.
 
@@ -73,14 +73,14 @@ Storage paths follow `{user_id}/{uuid}.{ext}` format. Storage RLS enforces user 
 
 `.env.local` (gitignored) with `.env.local.example` as template:
 
-| Variable | Required | Notes |
-|----------|----------|-------|
-| `NEXT_PUBLIC_SUPABASE_URL` | Yes | Public — exposed to browser |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes | Public — exposed to browser |
-| `SUPABASE_SERVICE_ROLE_KEY` | Yes | **Secret** — server only, bypasses RLS |
-| `OPENAI_API_KEY` | No | Enables AI embeddings + summarization |
-| `DEMO_LOGIN_EMAIL` | No | Defaults to `test@cortex.app` |
-| `DEMO_LOGIN_PASSWORD` | No | Required for demo login to work |
+| Variable                        | Required | Notes                                  |
+| ------------------------------- | -------- | -------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`      | Yes      | Public — exposed to browser            |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes      | Public — exposed to browser            |
+| `SUPABASE_SERVICE_ROLE_KEY`     | Yes      | **Secret** — server only, bypasses RLS |
+| `OPENAI_API_KEY`                | No       | Enables AI embeddings + summarization  |
+| `DEMO_LOGIN_EMAIL`              | No       | Defaults to `test@cortex.app`          |
+| `DEMO_LOGIN_PASSWORD`           | No       | Required for demo login to work        |
 
 **Security**: Never log or expose `SUPABASE_SERVICE_ROLE_KEY`. It was previously leaked in git history (commit `e88f315`) — that key must be rotated.
 

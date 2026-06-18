@@ -1,60 +1,60 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Input } from "@/components/ui/input"
-import { History, Search, Trash2, Loader2, Clock, Filter, X } from "lucide-react"
-import { SearchHistorySkeleton } from "@/components/ui/skeleton"
-import { useSearchHistoryFilter, type FilterMode } from "@/lib/hooks/use-search-history-filter"
-import type { SearchHistoryItem } from "@/lib/types"
+import { useEffect, useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Input } from "@/components/ui/input";
+import { History, Search, Trash2, Loader2, Clock, Filter, X } from "lucide-react";
+import { SearchHistorySkeleton } from "@/components/ui/skeleton";
+import { useSearchHistoryFilter, type FilterMode } from "@/lib/hooks/use-search-history-filter";
+import type { SearchHistoryItem } from "@/lib/types";
 
 export function SearchHistory({ refetchTrigger }: { refetchTrigger?: number } = {}) {
-  const [history, setHistory] = useState<SearchHistoryItem[]>([])
-  const [loading, setLoading] = useState(true)
-  const [clearing, setClearing] = useState(false)
-  const [fetchError, setFetchError] = useState<string | null>(null)
-  const [filter, setFilter] = useState<FilterMode>("all")
-  const [searchQuery, setSearchQuery] = useState("")
+  const [history, setHistory] = useState<SearchHistoryItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [clearing, setClearing] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+  const [filter, setFilter] = useState<FilterMode>("all");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const fetchHistory = async () => {
-    setLoading(true)
-    setFetchError(null)
+    setLoading(true);
+    setFetchError(null);
     try {
-      const res = await fetch("/api/search-history")
+      const res = await fetch("/api/search-history");
       if (!res.ok) {
-        throw new Error("Failed to load search history")
+        throw new Error("Failed to load search history");
       }
-      const data = await res.json()
-      setHistory(data)
+      const data = await res.json();
+      setHistory(data);
     } catch {
-      setFetchError("Could not load search history")
+      setFetchError("Could not load search history");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    fetchHistory()
-  }, [refetchTrigger])
+    fetchHistory();
+  }, [refetchTrigger]);
 
-  const filtered = useSearchHistoryFilter(history, filter, searchQuery)
+  const filtered = useSearchHistoryFilter(history, filter, searchQuery);
 
   const handleClear = async () => {
-    setClearing(true)
+    setClearing(true);
     try {
-      const res = await fetch("/api/search-history", { method: "DELETE" })
+      const res = await fetch("/api/search-history", { method: "DELETE" });
       if (!res.ok) {
-        throw new Error("Failed to clear history")
+        throw new Error("Failed to clear history");
       }
-      setHistory([])
+      setHistory([]);
     } catch {
-      setFetchError("Could not clear history")
+      setFetchError("Could not clear history");
     } finally {
-      setClearing(false)
+      setClearing(false);
     }
-  }
+  };
 
   if (loading) {
     return (
@@ -69,7 +69,7 @@ export function SearchHistory({ refetchTrigger }: { refetchTrigger?: number } = 
           <SearchHistorySkeleton />
         </CardContent>
       </Card>
-    )
+    );
   }
 
   if (fetchError) {
@@ -82,16 +82,18 @@ export function SearchHistory({ refetchTrigger }: { refetchTrigger?: number } = 
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div role="alert" aria-live="polite" className="text-xs text-destructive">{fetchError}</div>
+          <div role="alert" aria-live="polite" className="text-xs text-destructive">
+            {fetchError}
+          </div>
           <button
             onClick={fetchHistory}
-            className="mt-2 text-xs font-medium text-teal-600 hover:text-teal-500 focus-visible:ring-2 focus-visible:ring-teal-400/40 rounded-lg transition-colors"
+            className="mt-2 text-xs font-medium text-accent hover:text-accent/80 focus-visible:ring-2 focus-visible:ring-teal-400/40 rounded-lg transition-colors"
           >
             Try again
           </button>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   return (
@@ -126,7 +128,10 @@ export function SearchHistory({ refetchTrigger }: { refetchTrigger?: number } = 
         {history.length > 0 && (
           <div className="flex flex-wrap items-center gap-2">
             <div className="relative flex-1 min-w-[140px]">
-              <Search className="absolute left-2.5 top-1/2 h-3 w-3 -translate-y-1/2 text-muted-foreground/40" aria-hidden="true" />
+              <Search
+                className="absolute left-2.5 top-1/2 h-3 w-3 -translate-y-1/2 text-muted-foreground/40"
+                aria-hidden="true"
+              />
               <Input
                 placeholder="Filter queries…"
                 value={searchQuery}
@@ -149,11 +154,17 @@ export function SearchHistory({ refetchTrigger }: { refetchTrigger?: number } = 
                   onClick={() => setFilter(f)}
                   className={`px-2.5 py-1 text-[11px] font-medium rounded-lg transition-colors ${
                     filter === f
-                      ? "bg-teal-400/10 text-teal-500"
+                      ? "bg-accent/10 text-accent-foreground"
                       : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                   }`}
                 >
-                  {f === "all" ? "All" : f === "today" ? "Today" : f === "week" ? "This Week" : "Saved"}
+                  {f === "all"
+                    ? "All"
+                    : f === "today"
+                      ? "Today"
+                      : f === "week"
+                        ? "This Week"
+                        : "Saved"}
                 </button>
               ))}
             </div>
@@ -172,7 +183,9 @@ export function SearchHistory({ refetchTrigger }: { refetchTrigger?: number } = 
             <div className="mb-2 flex h-8 w-8 items-center justify-center rounded-xl bg-muted/50">
               <Filter className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
             </div>
-            <p className="text-xs text-muted-foreground/70">No matching searches for this filter.</p>
+            <p className="text-xs text-muted-foreground/70">
+              No matching searches for this filter.
+            </p>
           </div>
         ) : (
           <ScrollArea className="max-h-72">
@@ -183,7 +196,10 @@ export function SearchHistory({ refetchTrigger }: { refetchTrigger?: number } = 
                   className="group rounded-lg bg-muted/30 px-3 py-2 transition-all duration-200 hover:bg-muted/50"
                 >
                   <div className="flex items-center gap-2">
-                    <Search className="h-3 w-3 shrink-0 text-muted-foreground/50" aria-hidden="true" />
+                    <Search
+                      className="h-3 w-3 shrink-0 text-muted-foreground/50"
+                      aria-hidden="true"
+                    />
                     <p className="text-sm font-medium text-foreground/80 truncate group-hover:text-foreground transition-colors">
                       {item.query}
                     </p>
@@ -204,5 +220,5 @@ export function SearchHistory({ refetchTrigger }: { refetchTrigger?: number } = 
         )}
       </CardContent>
     </Card>
-  )
+  );
 }

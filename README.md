@@ -11,6 +11,7 @@ Client → Next.js (Vercel) → Supabase (DB + Storage) → OpenAI (embeddings +
 ```
 
 **Key constraints:**
+
 - Vercel Hobby: 4.5 MB serverless body limit → uploads bypass via signed URL
 - Supabase Storage is private → admin client `download()` instead of `fetch()`
 - Sharp lacks PDF support → pdfjs-dist + SVG→PNG→Tesseract pipeline
@@ -31,32 +32,32 @@ Client → Next.js (Vercel) → Supabase (DB + Storage) → OpenAI (embeddings +
 
 Dark academic elegance meets modern AI sophistication.
 
-| Element | Choice |
-|---------|--------|
-| **Display font** | DM Serif Display — serif for authority |
-| **Body font** | DM Sans — geometric sans for readability |
-| **Mono font** | JetBrains Mono |
-| **Dark bg** | Warm charcoal (`hsl(240, 4%, 6%)`) |
-| **Light bg** | Warm off-white (`hsl(40, 20%, 95%)`) |
-| **Accent** | Amber (#f59e0b) — warmth and focus |
-| **Glass** | `backdrop-blur(16px)` with semi-transparent bg |
-| **Noise** | Subtle SVG grain overlay via `.noise` class |
-| **Radius** | `0.75rem` base, `rounded-2xl` on premium surfaces |
-| **Motion** | `cubic-bezier(0.16, 1, 0.3, 1)` — energetic ease-out |
+| Element          | Choice                                               |
+| ---------------- | ---------------------------------------------------- |
+| **Display font** | DM Serif Display — serif for authority               |
+| **Body font**    | DM Sans — geometric sans for readability             |
+| **Mono font**    | JetBrains Mono                                       |
+| **Dark bg**      | Warm charcoal (`hsl(240, 4%, 6%)`)                   |
+| **Light bg**     | Warm off-white (`hsl(40, 20%, 95%)`)                 |
+| **Accent**       | Amber (#f59e0b) — warmth and focus                   |
+| **Glass**        | `backdrop-blur(16px)` with semi-transparent bg       |
+| **Noise**        | Subtle SVG grain overlay via `.noise` class          |
+| **Radius**       | `0.75rem` base, `rounded-2xl` on premium surfaces    |
+| **Motion**       | `cubic-bezier(0.16, 1, 0.3, 1)` — energetic ease-out |
 
 ## Tech Stack
 
-| Layer | Stack |
-|-------|-------|
-| Framework | Next.js 16 (App Router, Turbopack) |
-| Auth | Supabase SSR (cookie-based) |
-| Database | Supabase PostgreSQL + pgvector |
-| Storage | Supabase Storage (private bucket) |
-| AI | OpenAI (embeddings + chat) |
-| OCR | pdfjs-dist + sharp + tesseract.js |
-| UI | Tailwind CSS, Radix UI, framer-motion, Lucide |
-| Notifications | sonner |
-| Language | TypeScript (strict) |
+| Layer         | Stack                                         |
+| ------------- | --------------------------------------------- |
+| Framework     | Next.js 16 (App Router, Turbopack)            |
+| Auth          | Supabase SSR (cookie-based)                   |
+| Database      | Supabase PostgreSQL + pgvector                |
+| Storage       | Supabase Storage (private bucket)             |
+| AI            | OpenAI (embeddings + chat)                    |
+| OCR           | pdfjs-dist + sharp + tesseract.js             |
+| UI            | Tailwind CSS, Radix UI, framer-motion, Lucide |
+| Notifications | sonner                                        |
+| Language      | TypeScript (strict)                           |
 
 ## Getting Started
 
@@ -79,12 +80,12 @@ npm run dev
 
 ### Environment Variables
 
-| Variable | Required | Purpose |
-|----------|----------|---------|
-| `NEXT_PUBLIC_SUPABASE_URL` | Yes | Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes | Supabase anonymous client key |
-| `SUPABASE_SERVICE_ROLE_KEY` | Yes | Admin client (bypasses RLS) |
-| `OPENAI_API_KEY` | No | Embeddings + AI summarisation |
+| Variable                        | Required | Purpose                       |
+| ------------------------------- | -------- | ----------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`      | Yes      | Supabase project URL          |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes      | Supabase anonymous client key |
+| `SUPABASE_SERVICE_ROLE_KEY`     | Yes      | Admin client (bypasses RLS)   |
+| `OPENAI_API_KEY`                | No       | Embeddings + AI summarisation |
 
 ### Database Migrations
 
@@ -97,6 +98,7 @@ supabase/migrations/00006_search_history_saved.sql
 ```
 
 Key migrations:
+
 - `00005_semantic_schema.sql` — VECTOR(384)→VECTOR(1536), `match_chunks` RPC, ivfflat index
 - `00006_search_history_saved.sql` — adds `saved` column for bookmarked searches
 
@@ -110,17 +112,17 @@ Key migrations:
 
 ## API Routes
 
-| Route | Method | Purpose |
-|-------|--------|---------|
-| `/api/documents/upload` | POST | Create document record + return signed upload URL |
-| `/api/documents/process` | POST | OCR, chunk, embed document |
-| `/api/documents/delete` | POST | Delete document + storage file + chunks |
-| `/api/search` | POST | Semantic search with AI summary |
-| `/api/search-history` | GET/POST/DELETE | Search history CRUD |
-| `/api/projects/create` | POST | Create project folder |
-| `/api/projects/delete` | POST | Delete project |
-| `/api/projects/assign-document` | POST | Assign document to project |
-| `/api/auth/demo-login` | POST | Demo authentication |
+| Route                           | Method          | Purpose                                           |
+| ------------------------------- | --------------- | ------------------------------------------------- |
+| `/api/documents/upload`         | POST            | Create document record + return signed upload URL |
+| `/api/documents/process`        | POST            | OCR, chunk, embed document                        |
+| `/api/documents/delete`         | POST            | Delete document + storage file + chunks           |
+| `/api/search`                   | POST            | Semantic search with AI summary                   |
+| `/api/search-history`           | GET/POST/DELETE | Search history CRUD                               |
+| `/api/projects/create`          | POST            | Create project folder                             |
+| `/api/projects/delete`          | POST            | Delete project                                    |
+| `/api/projects/assign-document` | POST            | Assign document to project                        |
+| `/api/auth/demo-login`          | POST            | Demo authentication                               |
 
 ## OCR Pipeline
 
@@ -174,6 +176,7 @@ vercel --prod
 ```
 
 **Important:** Ensure `serverExternalPackages` in `next.config.ts` includes:
+
 - `pdf-parse`, `sharp`, `tesseract.js`, `pdfjs-dist`, `jsdom`
 
 These packages must run in Node.js and cannot be bundled by Turbopack/Webpack.
