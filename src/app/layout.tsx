@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import { DM_Serif_Display, DM_Sans, JetBrains_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/ui/theme-provider";
 import { SonnerToast } from "@/components/ui/sonner-toast";
-import { I18nProvider } from "@/components/providers/i18n-provider";
 import "./globals.css";
 
 const dmSerifDisplay = DM_Serif_Display({
@@ -48,10 +47,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           enableSystem
           disableTransitionOnChange
         >
-          <I18nProvider>
-            {children}
-            <SonnerToast />
-          </I18nProvider>
+          {children}
+          <SonnerToast />
         </ThemeProvider>
       </body>
     </html>

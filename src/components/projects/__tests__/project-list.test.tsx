@@ -1,6 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ProjectList } from "../project-list";
+
+function wrapper({ children }: { children: React.ReactNode }) {
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+}
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
@@ -67,18 +73,18 @@ describe("ProjectList", () => {
   });
 
   it("renders projects after loading", async () => {
-    render(<ProjectList />);
+    render(<ProjectList />, { wrapper });
     await waitFor(() => expect(screen.getByText("Test Project")).toBeInTheDocument());
     expect(screen.getByText("Alpha")).toBeInTheDocument();
   });
 
   it("shows document count for each project", async () => {
-    render(<ProjectList />);
+    render(<ProjectList />, { wrapper });
     await waitFor(() => expect(screen.getByText("2 documents")).toBeInTheDocument());
   });
 
   it("shows project description when present", async () => {
-    render(<ProjectList />);
+    render(<ProjectList />, { wrapper });
     await waitFor(() => {
       expect(screen.getByText(/A test description/)).toBeInTheDocument();
     });
@@ -86,12 +92,12 @@ describe("ProjectList", () => {
 
   it("shows empty state when no projects", async () => {
     mockProjectData = [];
-    render(<ProjectList />);
+    render(<ProjectList />, { wrapper });
     await waitFor(() => expect(screen.getByText("No projects yet")).toBeInTheDocument());
   });
 
   it("expands project to show documents on click", async () => {
-    render(<ProjectList />);
+    render(<ProjectList />, { wrapper });
     await waitFor(() => expect(screen.getByText("Test Project")).toBeInTheDocument());
     fireEvent.click(screen.getByText("Test Project"));
     await waitFor(() => {

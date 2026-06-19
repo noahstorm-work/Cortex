@@ -1,6 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { DocumentList } from "../document-list";
+
+function wrapper({ children }: { children: React.ReactNode }) {
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+}
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
@@ -152,7 +158,7 @@ describe("DocumentList", () => {
   });
 
   it("renders documents after loading", async () => {
-    render(<DocumentList />);
+    render(<DocumentList />, { wrapper });
 
     await waitFor(() => {
       expect(screen.getByText("Project Report.pdf")).toBeInTheDocument();
@@ -162,7 +168,7 @@ describe("DocumentList", () => {
   });
 
   it("shows correct status badges", async () => {
-    render(<DocumentList />);
+    render(<DocumentList />, { wrapper });
 
     await waitFor(() => {
       expect(screen.getByText("Ready")).toBeInTheDocument();
@@ -172,7 +178,7 @@ describe("DocumentList", () => {
   });
 
   it("shows project badges for assigned documents", async () => {
-    render(<DocumentList />);
+    render(<DocumentList />, { wrapper });
 
     await waitFor(() => {
       const alphas = screen.getAllByText("Alpha");
@@ -185,7 +191,7 @@ describe("DocumentList", () => {
   });
 
   it("shows filter when projects exist", async () => {
-    render(<DocumentList />);
+    render(<DocumentList />, { wrapper });
 
     await waitFor(() => {
       expect(screen.getByText("Filter:")).toBeInTheDocument();
