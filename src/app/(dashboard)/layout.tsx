@@ -5,7 +5,6 @@ import { Sidebar } from "@/components/layout/sidebar";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { PageTransition } from "@/components/ui/page-transition";
 import { QueryProvider } from "@/components/providers/query-provider";
-import { I18nProvider } from "@/components/providers/i18n-provider";
 
 export const dynamic = "force-dynamic";
 
@@ -28,8 +27,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <QueryProvider>
-      <I18nProvider>
-        <div className="relative flex min-h-screen">
+      <div className="relative flex min-h-screen">
           <a
             href="#main-content"
             className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[60] focus:rounded-xl focus:bg-background focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-teal-400/40"
@@ -51,8 +49,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
               </ErrorBoundary>
             </div>
           </main>
-        </div>
-      </I18nProvider>
+      </div>
     </QueryProvider>
   );
 }

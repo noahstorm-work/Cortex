@@ -6,7 +6,6 @@ import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { StatsCards } from "@/components/dashboard/stats-cards";
 import type { Document, SearchHistoryItem } from "@/lib/types";
 import { getStatusBadgeClass } from "@/lib/utils/queries";
-import { getTranslations } from "next-intl/server";
 
 export const dynamic = "force-dynamic";
 
@@ -62,7 +61,6 @@ async function getDashboardData(userId: string) {
 }
 
 export default async function DashboardPage() {
-  const t = await getTranslations("dashboard");
   const supabase = await createServerSupabaseClient();
   const {
     data: { user },
@@ -73,7 +71,7 @@ export default async function DashboardPage() {
 
   const stats = [
     {
-      label: t("totalDocuments"),
+      label: "Total Documents",
       value: data.totalDocuments,
       href: "/documents",
       gradient: "from-teal-400/20 via-teal-500/10 to-transparent",
@@ -114,8 +112,8 @@ export default async function DashboardPage() {
           <Sparkles className="h-4 w-4 text-white" aria-hidden="true" />
         </div>
         <div>
-          <h1 className="text-xl font-display tracking-tight text-balance">{t("title")}</h1>
-          <p className="text-sm text-muted-foreground/70">{t("welcome")}</p>
+          <h1 className="text-xl font-display tracking-tight text-balance">Dashboard</h1>
+          <p className="text-sm text-muted-foreground/70">Welcome back</p>
         </div>
       </div>
 
