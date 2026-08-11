@@ -6,6 +6,7 @@ import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { StatsCards } from "@/components/dashboard/stats-cards";
 import type { Document, SearchHistoryItem } from "@/lib/types";
 import { getStatusBadgeClass } from "@/lib/utils/queries";
+import { ConfirmedToast } from "@/components/auth/confirmed-toast";
 
 export const dynamic = "force-dynamic";
 
@@ -106,6 +107,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-8 animate-fade-in-up">
+      <ConfirmedToast />
       {/* Header */}
       <div className="flex items-center gap-3">
         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-teal-400 to-teal-600 shadow-sm">
