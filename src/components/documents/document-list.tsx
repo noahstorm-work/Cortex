@@ -99,7 +99,9 @@ export function DocumentList() {
             .select("*")
             .eq("user_id", userId!)
             .order("created_at", { ascending: false });
-          if (filterProject) {
+          if (filterProject === "unassigned") {
+            q = q.is("project_id", null);
+          } else if (filterProject) {
             q = q.eq("project_id", filterProject);
           }
           return q.range(page * 20, (page + 1) * 20 - 1);

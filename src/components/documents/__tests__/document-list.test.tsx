@@ -197,4 +197,18 @@ describe("DocumentList", () => {
       expect(screen.getByText("Filter:")).toBeInTheDocument();
     });
   });
+
+  it("has 'No project' option with value='unassigned'", async () => {
+    render(<DocumentList />, { wrapper });
+
+    await waitFor(() => {
+      expect(screen.getByText("Filter:")).toBeInTheDocument();
+    });
+
+    const noProjectOption = screen.getByText("No project");
+    expect(noProjectOption.closest("[data-mock='select-item']")).toHaveAttribute(
+      "data-value",
+      "unassigned"
+    );
+  });
 });
