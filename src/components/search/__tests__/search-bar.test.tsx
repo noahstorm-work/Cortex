@@ -2,9 +2,12 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { SearchBar } from "../search-bar";
 
+const mockPush = vi.fn();
+const mockSearchParams = new URLSearchParams();
+
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
-  useSearchParams: () => new URLSearchParams(),
+  useRouter: () => ({ push: mockPush, refresh: vi.fn() }),
+  useSearchParams: () => mockSearchParams,
 }));
 
 vi.mock("framer-motion", () => ({
@@ -155,6 +158,29 @@ describe("SearchBar", () => {
     await waitFor(() => {
       const errors = screen.getAllByText("Network error");
       expect(errors.length).toBeGreaterThanOrEqual(1);
+    });
+  });
+
+  it("initializes query from URL params", async () => {
+    mockSearchParams.set("q", "hello world");
+    render(<SearchBar />);
+
+    await waitFor(() => {
+      const input = screen.getByRole("combobox");
+      expect(input).toHaveValue("hello world");
+    });
+
+    mockSearchParams.delete("q");
+  });
+
+  it("updates URL params on search", async () => {
+    render(<SearchBar />);
+    const input = screen.getByRole("combobox");
+    fireEvent.change(input, { target: { value: "test query" } });
+    fireEvent.submit(screen.getByRole("button", { name: /search/i }));
+
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith("?q=test%20query", { scroll: false });
     });
   });
 });

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import {
   Select,
   SelectContent,
@@ -57,7 +58,9 @@ interface SearchBarProps {
 }
 
 export function SearchBar({ onSearchComplete }: SearchBarProps = {}) {
-  const [query, setQuery] = useState("");
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const [query, setQuery] = useState(searchParams.get("q") || "");
   const [searching, setSearching] = useState(false);
   const [result, setResult] = useState<SearchResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -187,6 +190,7 @@ export function SearchBar({ onSearchComplete }: SearchBarProps = {}) {
     setError(null);
     setResult(null);
     setExpandedRefs(new Set());
+    router.push(`?q=${encodeURIComponent(query.trim())}`, { scroll: false });
 
     try {
       const res = await fetch("/api/search", {
